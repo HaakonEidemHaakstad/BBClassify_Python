@@ -138,6 +138,34 @@ def dcbinom(p: float, N: int, n: int, k: float) -> float:
     e = k * p * (1 - p)
     return a - e * (b - 2*c + d)
 
+## Alternative density function for Lord's two-term approximation of the compound binomial distribution.
+# x = tuple or list of choose-function outputs such as those produced from the choose_functions function.
+# p = probability of success.
+# N = total number of trials.
+# n = specific number of successes.
+# k = Lord's k.
+def dcbinom2(x: tuple, p: float, N: int, n: int, k: float, method: str) -> float:
+    a = x[0]*(p**n)*(1 - p)**(N - n)
+    if method != "ll":
+        b = x[1]*(p**n)*(1 - p)**(N - n)
+        c = x[2]*(p**n)*(1 - p)**(N - n)
+        d = x[3]*(p**n)*(1 - p)**(N - n)
+        e = k * p * (1 - p)
+        return a - e * (b - 2*c + d)
+    return a
+
+## Choose function (N!/(n!*(N - n))).
+# N = total number of trials.
+# k = specific number of successes.
+def choose_functions(N, n):
+    def choose(N, n):
+        return math.factorial(N) // (math.factorial(n) * math.factorial(N - n))
+    a = choose(N, n)
+    b = choose(N - 2, n)
+    c = choose(N - 2, n - 1)
+    d = choose(N - 2, n - 2)
+    return (a, b, c, d)
+
 ## Integrate across univariate BB distribution.
 # a = alpha shape parameter.
 # b = beta shape parameter.
@@ -158,6 +186,28 @@ def bbintegrate1(a: float, b: float, l: float, u: float, N: int, n: int, k: floa
         def f(x, a, b, l, u, N, n):
             return dbeta4p(x, a, b, l, u) * binom.pmf(n, N, x)
         return quad(f, lower, upper, args = (a, b, l, u, N, n), limit = limit)
+    
+## Alternate integrate across univariate BB distribution.
+# a = alpha shape parameter.
+# b = beta shape parameter.
+# l = lower-bound location parameter.
+# u = upper-bound location parameter.
+# c = choose-function list or tuple (such as that produced by the choose_functions function).
+# N = upper-bound of binomial distribution.
+# n = specific binomial outcome.
+# k = Lord's k.
+# lower = lower-bound of integration.
+# upper = upper bound of intergration.
+# method = specify Livingston and Lewis ("LL") or Hanson and Brennan approach.
+def bbintegrate1_2(a: float, b: float, l: float, u: float, c: tuple, N: int, n: int, k: float, lower: float, upper: float, method: str = "ll", limit = 100) -> float:
+    if method != "ll":
+        def f(x, a, b, l, u, c, N, n, k):
+            return dbeta4p(x, a, b, l, u) * dcbinom2(c, x, N, n, k, method)
+        return quad(f, lower, upper, args = (a, b, l, u, c, N, n, k), limit = limit)
+    else:
+        def f(x, a, b, l, u, c, N, n):
+            return dbeta4p(x, a, b, l, u) * dcbinom2(c, x, N, n, k, method)
+        return quad(f, lower, upper, args = (a, b, l, u, c, N, n), limit = limit)
 
 ## Integrate across bivariate BB distribution.
 # a = alpha shape parameter.
