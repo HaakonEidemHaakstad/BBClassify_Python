@@ -1,4 +1,5 @@
 from support_functions.betafunctions import *
+from time import time
 
 ## Function for estimating accuracy and consistency from beta-binomial models.
 # x = vector of values representing test-scores, or a list of model parameters.
@@ -176,12 +177,12 @@ def cac2(x, reliability: float, min: float, max: float, cut: float, model: int =
         confmat = np.zeros((N + 1, len(cut) - 1))
         for i in range(len(cut) - 1):
             for j in range(N + 1):
-                confmat[j, i] = bbintegrate1(pars["alpha"], pars["beta"], pars["l"], pars["u"], N, j, pars["lords_k"], tcut[i], tcut[i + 1], method)[0]
+                confmat[j, i] = bbintegrate1_2(pars["alpha"], pars["beta"], pars["l"], pars["u"], choose_values[j], N, j, pars["lords_k"], tcut[i], tcut[i + 1], method)[0]
         confusionmatrix = np.zeros((len(cut) - 1, len(cut) - 1))
         for i in range(len(cut) - 1):
             for j in range(len(cut) - 1):
                 if i != len(cut) - 2:
-                    confusionmatrix[i, j] = sum(confmat[cut[i]:cut[i + 1], j])
+                    confusionmatrix[i, j] = sum(confmat[cut[i]:cut[i + 1], j]) 
                 else:
                     confusionmatrix[i, j] = sum(confmat[cut[i]:, j])
         accuracy = []
@@ -204,7 +205,7 @@ def cac2(x, reliability: float, min: float, max: float, cut: float, model: int =
         for i in range(N + 1):
             for j in range(N + 1):
                 if i <= j:
-                    consmat[i, j] = bbintegrate2(pars["alpha"], pars["beta"], pars["l"], pars["u"], N, i, j, pars["lords_k"], 0, 1, method)[0]
+                    consmat[i, j] = bbintegrate2_1(pars["alpha"], pars["beta"], pars["l"], pars["u"], choose_values[i], choose_values[j], N, i, j, pars["lords_k"], 0, 1, method)[0]
         lower_triangle = np.tril_indices(consmat.shape[0], 0)
         consmat[lower_triangle] = consmat.T[lower_triangle]
         consistencymatrix = np.zeros((len(cut) - 1, len(cut) - 1))
@@ -260,5 +261,14 @@ for i in range(100000):
         rawdata[i, j] = np.random.binomial(1, p_success[i], 1)
 sumscores = np.sum(rawdata, axis = 1)
 meanscores = np.mean(rawdata, axis = 1)
-
-output = cac(sumscores, cronbachs_alpha(rawdata), 0, 100, [50, 75])
+#output = cac2(sumscores, cronbachs_alpha(rawdata), 0, 100, [50, 75], output = ["accuracy", "consistency"], print_output = False)
+#print(output)
+#exit()
+print("starting")
+t1 = time()
+for i in range(10):
+    output = cac(sumscores, cronbachs_alpha(rawdata), 0, 100, [50, 75], output = ["accuracy", "consistency"], print_output = False)
+    print(f"cac1 time: {time() - t1}, accuracy: {output["Overall accuracy"]}, consistency: {output["Overall consistency"]}")
+    t1 = time()
+    output = cac2(sumscores, cronbachs_alpha(rawdata), 0, 100, [50, 75], output = ["accuracy", "consistency"], print_output = False)
+    print(f"cac2 time: {time() - t1}, accuracy: {output["Overall accuracy"]}, consistency: {output["Overall consistency"]}")

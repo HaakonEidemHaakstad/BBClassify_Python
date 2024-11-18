@@ -154,12 +154,23 @@ def dcbinom2(x: tuple, p: float, N: int, n: int, k: float, method: str) -> float
         return a - e * (b - 2*c + d)
     return a
 
+
+## Factorial function using direct arithmetic:
+# x = number to take factorial of.
+def da_factorial(x):
+    if x > 0:
+        return math.prod([i for i in range(1, x + 1)])
+    elif x == 0:
+        return 1
+    else:
+        return math.prod([i for i in range(x, 0)])
+
 ## Choose function (N!/(n!*(N - n))).
 # N = total number of trials.
 # k = specific number of successes.
 def choose_functions(N, n):
     def choose(N, n):
-        return math.factorial(N) // (math.factorial(n) * math.factorial(N - n))
+        return da_factorial(N) / (da_factorial(n) * da_factorial(N - n))
     a = choose(N, n)
     b = choose(N - 2, n)
     c = choose(N - 2, n - 1)
@@ -229,6 +240,29 @@ def bbintegrate2(a: float, b: float, l: float, u: float, N: int, n1: int, n2: in
         def f(x, a, b, l, u, N, n1, n2):
             return dbeta4p(x, a, b, l, u) * binom.pmf(n1, N, x) * binom.pmf(n2, N, x)
         return quad(f, lower, upper, args = (a, b, l, u, N, n1, n2), limit = limit)
+
+## Integrate across bivariate BB distribution.
+# a = alpha shape parameter.
+# b = beta shape parameter.
+# l = lower-bound location parameter.
+# u = upper-bound location parameter.
+# c = choose-function list or tuple (such as that produced by the choose_functions function).
+# N = upper-bound of binomial distribution.
+# n1 = specific binomial outcome on first binomial trial.
+# n2 = specific binomial outcome on second binomial trial.
+# lower = lower-bound of integration.
+# upper = upper bound of intergration.
+# method = specify Livingston and Lewis ("ll") or Hanson and Brennan approach (anything but "ll").
+def bbintegrate2_1(a: float, b: float, l: float, u: float, c1: tuple, c2: tuple, N: int, n1: int, n2: int, k: float, lower: float, upper: float, method: str = "ll", limit = 100) -> float:
+    if method != "ll":
+        def f(x, a, b, l, u, c1, c2, N, n1, n2, k):
+            return dbeta4p(x, a, b, l, u) * dcbinom2(c1, x, N, n1, k, method) * dcbinom2(c2, x, N, n2, k, method)
+        return quad(f, lower, upper, args = (a, b, l, u, c1, c2, N, n1, n2, k), limit = limit)
+    else:
+        def f(x, a, b, l, u, c1, c2, N, n1, n2):
+            return dbeta4p(x, a, b, l, u) * dcbinom2(c1, x, N, n1, k, method) * dcbinom2(c2, x, N, n2, k, method)
+        return quad(f, lower, upper, args = (a, b, l, u, c1, c2, N, n1, n2), limit = limit)
+
 
 ## Function for calculating the descending factorial each value of a vector.
 # x = vector of values.
