@@ -61,7 +61,7 @@ def cac(x, reliability: float, min: float, max: float, cut: float, model: int = 
             print("Model parameter estimates:")
             print(out["parameters"])
             print("")
-    choose_values = [choose_functions(N, i) for i in range(N + 1)] # TODO: make appropriate changes below.
+    choose_values = [choose_functions(N, i) for i in range(N + 1)]
     if "accuracy" in output:
         print("Estimating accuracy...\n")
         confmat = np.zeros((N + 1, len(cut) - 1))
