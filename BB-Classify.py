@@ -1,29 +1,67 @@
 from support_functions.betafunctions import *
 
-## Function for estimating accuracy and consistency from beta-binomial models.
-# x = vector of values representing test-scores, or a list of model parameters.
-# reliability = the reliability coefficient of the test-scores.
-# min = the minimum possible score to attain on the test (only necessary for 
-#       the Livingston and Lewis approach).
-# max = for the Livingston and Lewis approach, the maximum possible score to 
-#       attain on the test. For the Hanson and Brennan approach, the actual
-#       test length (number of items).
-# model = how many parameters of the true-score distribution that is to be
-#       estimated (4 or 2). Default is 4.
-# l = the lower-bound location parameter for the two-parameter distribution.
-# u = the lower-bound location parameter for the two-parameter distribution.
-# failsafe = whether the function should automatically revert to a two-
-#       parameter solution if the four-parameter fitting procedure produces
-#       impermissible location-parameter estimates.
-# method = string specifying whether it is the Livingston and Lewis or the 
-#       Hanson and Brennan approach is to be employed. Default is "ll" 
-#       (Livingston and Lewis). Any other value passed means the Hanson and 
-#       Brennan approach.
-# output = list of strings which state what analyses to do and include in the 
-#       output.
-# print_output = Whether to print the output to the consoel as it is estimated.
-
 def cac(x, reliability: float, min: float, max: float, cut: float, model: int = 4, l: float = 0, u: float = 1, failsafe: bool = False, method: str = "ll", output: list[str] = ["parameters", "accuracy", "consistency"], print_output = True):
+    """
+    Estimate accuracy and consistency of classifications using beta-binomial models.
+
+    This function supports two approaches:
+    - Livingston and Lewis (LL)
+    - Hanson and Brennan (HB)
+
+    Parameters
+    ----------
+    x : list of float or int
+        Either a list of values to which a beta-binomial model is to be fitted,
+        or a list of model parameters.
+    reliability : float
+        The test-score reliability coefficient.
+    min : float
+        Minimum possible test score (used only in the Livingston and Lewis approach).
+    max : float
+        - For the Livingston and Lewis approach: Maximum possible test score.
+        - For the Hanson and Brennan approach: Actual test length (number of items).
+    model : int, optional
+        The type of beta-binomial model to fit. Use "2" for a two-parameter model
+        or "4" for a four-parameter model. Default is 4.
+    l : float, optional
+        Lower bound for the beta true-score distribution in a two-parameter model.
+        Must be between 0 and 1, and less than `u`. Default is 0.
+    u : float, optional
+        Upper bound for the beta true-score distribution in a two-parameter model.
+        Must be between 0 and 1, and greater than `l`. Default is 1.
+    failsafe : bool, optional
+        If True, reverts to a two-parameter model if the four-parameter model fails
+        or produces invalid estimates. Default is False.
+    method : str, optional
+        Estimation approach to use:
+        - "ll": Livingston and Lewis (default)
+        - Any other string: Hanson and Brennan
+    output : list of str, optional
+        Specifies the analyses to include in the output:
+        - "parameters": Model parameter estimates
+        - "accuracy": Confusion matrices and accuracy statistics
+        - "consistency": Consistency matrices and statistics
+        Default is ["parameters", "accuracy", "consistency"].
+    print_output : bool, optional
+        Whether to print intermediate results to the console. Default is True.
+
+    Returns
+    -------
+    dict
+        A dictionary containing the specified output. Keys may include:
+        - "parameters": Model parameter estimates
+        - "Confusion matrix": Confusion matrix data
+        - "Overall accuracy": Overall classification accuracy
+        - "Consistency matrix": Consistency matrix data
+        - "Overall consistency": Overall classification consistency
+
+    Raises
+    ------
+    ValueError
+        If inputs are invalid, such as `l` >= `u` in a two-parameter model or other
+        parameter conflicts.
+"""
+
     out = {}
     cut = [min] + cut + [max]
     tcut = list(cut)
@@ -61,7 +99,9 @@ def cac(x, reliability: float, min: float, max: float, cut: float, model: int = 
             print("Model parameter estimates:")
             print(out["parameters"])
             print("")
+
     choose_values = [choose_functions(N, i) for i in range(N + 1)]
+
     if "accuracy" in output:
         print("Estimating accuracy...\n")
         confmat = np.zeros((N + 1, len(cut) - 1))
@@ -103,22 +143,22 @@ def cac(x, reliability: float, min: float, max: float, cut: float, model: int = 
             for j in range(len(cut) - 1):
                 if i == 0 and j == 0:
                     consistencymatrix[i, j] = sum(sum(consmat[0:cut[i + 1], 0:cut[j + 1]]))
-                if i == 0 and (j != 0 and j != len(cut) - 2):
+                elif i == 0 and (j != 0 and j != len(cut) - 2):
                     consistencymatrix[i, j] = sum(sum(consmat[0:cut[i + 1], cut[j]:cut[j + 1]]))
-                if i == 0  and j == len(cut) - 2:
+                elif i == 0  and j == len(cut) - 2:
                     consistencymatrix[i, j] = sum(sum(consmat[0:cut[i + 1], cut[j]:cut[j + 1] + 1]))
-                if (i != 0 and i != len(cut) - 2) and j == 0:
+                elif (i != 0 and i != len(cut) - 2) and j == 0:
                     consistencymatrix[i, j] = sum(sum(consmat[cut[i]:cut[i + 1], 0:cut[j + 1]]))
-                if (i != 0 and i != len(cut) - 2) and (j != 0 and j != len(cut) - 2):
+                elif (i != 0 and i != len(cut) - 2) and (j != 0 and j != len(cut) - 2):
                     consistencymatrix[i, j] = sum(sum(consmat[cut[i]:cut[i + 1], cut[j]:cut[j + 1]]))
-                if (i != 0 and i != len(cut) - 2) and j == len(cut) - 2:
+                elif (i != 0 and i != len(cut) - 2) and j == len(cut) - 2:
                     consistencymatrix[i, j] = sum(sum(consmat[cut[i]:cut[i + 1], cut[j]:cut[j + 1] + 1]))
-                if i == len(cut) - 2 and j == 0:
+                elif i == len(cut) - 2 and j == 0:
                     consistencymatrix[i, j] = sum(sum(consmat[cut[i]:cut[i + 1] + 1, 0:cut[j + 1]]))
-                if i == len(cut) - 2 and (j != 0 and j != len(cut) - 2):
+                elif i == len(cut) - 2 and (j != 0 and j != len(cut) - 2):
                     consistencymatrix[i, j] = sum(sum(consmat[cut[i]:cut[i + 1] + 1, cut[j]:cut[j + 1]]))
-                if i == len(cut) - 2 and j == len(cut) - 2:
-                        consistencymatrix[i, j] = sum(sum(consmat[cut[i]:cut[i + 1] + 1, cut[j]:cut[j + 1] + 1]))
+                else #i == len(cut) - 2 and j == len(cut) - 2:
+                    consistencymatrix[i, j] = sum(sum(consmat[cut[i]:cut[i + 1] + 1, cut[j]:cut[j + 1] + 1]))
             consistency = []
             for i in range(len(cut) - 1):
                 consistency = consistency + [consistencymatrix[i, i]]
