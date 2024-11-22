@@ -19,9 +19,6 @@ def string_to_number(s: str, notlist: bool = True):
         out = out[0]
     return out
 
-## Load a .csv file and turn it into a list of lists.
-# x = A string specifying the path to the .csv file.
-# sumscores = Whether to create a single list withe each entry being the sum of each sub-list.
 def csv_to_list(x: str, sumscores: bool = True) -> list:
     """
     Load a .csv file and turn it into a list or a list of lists.
