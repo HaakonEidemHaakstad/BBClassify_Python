@@ -7,11 +7,24 @@ import pandas as pd
 import numpy as np
 import csv
 
-
-## Turn a string with numbers delimited by commas (,) into numbers.
-# s = a string of numbers separated by commas (,).
-# notlist: Store as single value if list is length 1.
 def string_to_number(s: str, notlist: bool = True):
+    """
+    Turn a string with numbers delimited by commas into numbers.
+
+    Parameters
+    ----------
+    s: str
+        A string of numbers separated by commas.
+    notlist: bool
+        Return a single value if the list is of length 1.
+    
+    Returns
+    -------
+    list
+        - If 's' contains more than one number and notlist is False.
+    float
+        - If 's' contains only one number and notlist is True.
+    """
     out = [int(x) if x.isdigit() else float(x) for x in s.replace(', ', ',').split(',')]
     if any(isinstance(x, float) for x in out):
         out = list(map(float, out))
@@ -40,17 +53,29 @@ def csv_to_list(x: str, sumscores: bool = True) -> list:
     data = []
     with open(x, 'r') as file:
         reader = csv.reader(file)
-        for row in reader:
-            row = list(map(float, row))
-            data.append(row)
+        data = [row for row in list(map(float, reader))]
+        #for row in reader:
+        #    row = list(map(float, row))
+        #    data.append(row)
     if sumscores:
         for i in range(len(data)):
             data[i] = sum(data[i])
     return data
 
-## The Cronbach's Alpha reliability coefficient.
-# x = a list of lists, where rows are items and columns respondents.
 def cronbachs_alpha(x: list) -> float:
+    """
+    Estimate Cronbach's Alpha reliability coefficient.
+
+    Parameters
+    ----------
+    x : list
+        A list of lists, where rows represent items and columns respondents.
+    
+    Returns
+    -------
+    float:
+        Cronbach's Alpha reliability coefficient.
+    """
     x = np.transpose(np.array(x))
     x = np.cov(x)
     n = x.shape[1]
@@ -59,46 +84,130 @@ def cronbachs_alpha(x: list) -> float:
     alpha = (n / (n - 1)) * (1 - (diag / var))
     return alpha
 
-## Livingston and Lewis' effective test length.
-# mean = the mean of the observed-score distribution.
-# var = the variance of the observed-score distribution.
-# reliability = the reliability of the scores.
-# min = the minimum possible value.
-# max = the maximum possible value.
 def etl(mean: float, var: float, reliability: float, min: float = 0, max: float = 1) -> float:
+    """
+    Calculate the effective test length.
+
+    Parameters
+    ----------
+    mean : float
+        The mean of the score distribution.
+    var : float
+        The variance of the score distribution.
+    reliability : float
+        The reliability coefficient of the test-scores.
+    min : float
+        The minimum possible value of the scores.
+    max : float
+        The maximum possible value of the scores.
+    
+    Returns
+    -------
+    float:
+        The effective test length.
+    """
     return ((mean - min) * (max - mean) - (reliability * var)) / (var * (1 - reliability))
 
-## Lord's k.
-# mean = the mean of the observed-score distribution.
-# var = the variance of the observed-score distribution.
-# reliability = the reliability of the scores.
-# length = the test-length.
 def k(mean: float, var: float, reliability: float, length: int) -> float:
+    """
+    Calculate Lord's k.
+
+    Parameters
+    ----------
+    mean : float
+        The mean of the score distribution.
+    var : float
+        The variance of the score distribution.
+    reliability : float
+        The reliability coefficient of the test-scores.
+    length: int
+        The length of the test (number of dichotomously scored items).
+
+    Returns
+    -------
+    float:
+        Lord's k.
+    """
     vare = var * (1 - reliability)
     num = length * ((length - 1) * (var - vare) - length * var + mean * (length - mean))
     den = 2 * (mean * (length - mean) - (var - vare))
     return num / den
 
-## Density function for the four-parameter beta distribution.
-# x = specific point along the four-parameter beta distribution.
-# a = alpha shape parameter.
-# b = beta shape paramter.
-# l = lower-bound location parameter.
-# u = upper-bound location parameter.
 def dbeta4p(x: float, a: float, b: float, l: float, u: float) -> float:
+    """
+    Density function for the four-parameter beta distribution.
+
+    Parameters
+    ----------
+    x : float
+        Specified point along the four-parameter beta distribution.
+    a : float
+        The Alpha (first) shape parameter of the beta distribution.
+    b : float
+        The Beta (second) shape parameter of the beta distribution.
+    l : float
+        The lower-bound of the four-parameter beta distribution.
+    u : float
+        The upper-bound of the four-parameter beta distribution.
+
+    Returns
+    -------
+    float:
+        The probability density at a specific point along the four-parameter
+        beta distribution.
+    """
     if x < l or x > u:
         return 0
     else:
         return (1 / scipy.special.beta(a, b)) * (((x - l)**(a - 1) * (u - x)**(b - 1)) / (u - l)**(a + b - 1))
 
-def rbeta4p(n: float, a: float, b: float, l: float = 0, u: float = 1) -> float:
+def rbeta4p(n: int, a: float, b: float, l: float = 0, u: float = 1) -> np.array[float]:
+    """
+    Random number generator for the four-parameter beta distribution.
+
+    Parameters
+    ----------
+    n : int
+        Number of random values to draw from the four-parameter beta distribution.    
+    a : float
+        The Alpha (first) shape parameter of the beta distribution.
+    b : float
+        The Beta (second) shape parameter of the beta distribution.
+    l : float
+        The lower-bound of the four-parameter beta distribution.
+    u : float
+        The upper-bound of the four-parameter beta distribution.
+
+    Returns
+    -------
+    numpy array :
+        An array of length n containing random values drawn from the four-parameter
+        beta distribution.
+    """
     return np.random.beta(a, b, n) * (u - l) + l
 
-## Function for fitting a four-parameter beta distribution to a vector of values-
-# x = vector of values.
-# moments = an optional list of the first four raw moments
 def beta4fit(x: list, moments: list = []) -> list[float]:
-    if len(moments) == 1:
+    """
+    Fit a four-parameter beta distribution to a list of values.
+
+    Parameters
+    ----------
+    x : list[float]
+        List of values the distribution of which a four-parameter beta
+        distribution is to be fit.
+    moments : list[int]
+        An optional list containing the first four moments of the distribution.
+    
+    Returns
+    -------
+    list[float]:
+        A list containing the parameters of the beta distribution.
+        - [0] : The Alpha (first) shape parameter.
+        - [1] : The Beta (second) shape parameter.
+        - [2] : The lower-bound.
+        - [3] : The upper-bound.
+    """
+    if len(moments) == 0:
         m1 = stats.mean(x)
         s2 = stats.variance(x)
         x3 = list(x)
@@ -129,6 +238,26 @@ def beta4fit(x: list, moments: list = []) -> list[float]:
 # l = lower-bound location parameter.
 # u = upper-bound location parameter.
 def beta2fit(x: list, l: float, u: float, moments: list = []) -> list[float]:
+    """
+    Fit a two-parameter beta distribution to a list of values.
+
+    Parameters
+    ----------
+    x : list[float]
+        List of values the distribution of which a four-parameter beta
+        distribution is to be fit.
+    moments : list[int]
+        An optional list containing the first four moments of the distribution.
+    
+    Returns
+    ------- 
+    list[float]:
+        A list containing the parameters of the beta distribution.
+        - [0] : The Alpha (first) shape parameter.
+        - [1] : The Beta (second) shape parameter.
+        - [2] : The lower-bound.
+        - [3] : The upper-bound.
+    """
     if len(list) == 1:
         m1 = stats.mean(x)
         s2 = stats.variance(x)
@@ -139,12 +268,26 @@ def beta2fit(x: list, l: float, u: float, moments: list = []) -> list[float]:
     b = ((m1 - u) * (l * (u - m1) + m1**2 - m1 * u + s2)) / (s2 * (u - l))
     return [a, b, l, u]
 
-## Density function for Lord's two-term approximation of the compound binomial distribution.
-# p = probability of success.
-# N = total number of trials.
-# n = specific number of successes.
-# k = Lord's k.
 def dcbinom(p: float, N: int, n: int, k: float) -> float:
+    """
+    Density function for Lord's two-term approximation of the compound binomial distribution.
+
+    Parameters
+    ----------
+    p : float
+        Probability of 'success'.
+    N : int
+        Total number of 'trials'.
+    n : int
+        Specific number of 'successes'.
+    k : float
+        Lord's k.
+
+    Returns
+    -------
+    float:
+        Probability of a specific number of 'successes' given N number of 'trials'.
+    """
     a = binom.pmf(n, N, p)
     b = binom.pmf(n, N - 2, p)
     c = binom.pmf(n - 1, N - 2, p)
@@ -152,13 +295,31 @@ def dcbinom(p: float, N: int, n: int, k: float) -> float:
     e = k * p * (1 - p)
     return a - e * (b - 2*c + d)
 
-## Alternative density function for Lord's two-term approximation of the compound binomial distribution.
-# x = tuple or list of choose-function outputs such as those produced from the choose_functions function.
-# p = probability of success.
-# N = total number of trials.
-# n = specific number of successes.
-# k = Lord's k.
 def dcbinom2(x: tuple, p: float, N: int, n: int, k: float, method: str) -> float:
+    """
+    Alternative density function for Lord's two-term approximation of the compound binomial distribution.
+
+    Parameters
+    ----------
+    x : list or tuple
+        tuple or list of choose-function outputs such as that produced from the choose_functions function.
+    p : float
+        Probability of 'success'.
+    N : int
+        Total number of 'trials'.
+    n : int
+        Specific number of 'successes'.
+    k : float
+        Lord's k (only necessary if method != 'll').
+    method : str
+        - "ll" for the Livingston and Lewis approach.
+        - Any other string for the Hanson and Brennan approach.
+
+    Returns
+    -------
+    float:
+        Probability of a specific number of 'successes' given N number of 'trials'.
+    """
     a = x[0]*(p**n)*(1 - p)**(N - n)
     if method != "ll":
         b = x[1]*(p**n)*(1 - p)**(N - n)
@@ -168,10 +329,20 @@ def dcbinom2(x: tuple, p: float, N: int, n: int, k: float, method: str) -> float
         return a - e * (b - 2*c + d)
     return a
 
+def da_factorial(x: int):
+    """
+    Calculate factorial using direct arithmetic.
 
-## Factorial function using direct arithmetic:
-# x = number to take factorial of.
-def da_factorial(x):
+    Parameters
+    ----------
+    x : int
+        Value to calculate the factorial of.
+
+    Returns
+    -------
+    int:
+        The factorial of 'x'.
+    """
     if x > 0:
         return math.prod([i for i in range(1, x + 1)])
     elif x == 0:
@@ -179,10 +350,22 @@ def da_factorial(x):
     else:
         return math.prod([i for i in range(x, 0)])
 
-## Choose function (N!/(n!*(N - n))).
-# N = total number of trials.
-# k = specific number of successes.
 def choose_functions(N, n):
+    """
+    Choose functions for the compound beta-binomial distribution.
+
+    Parameters
+    ----------
+    N : int
+        Number of 'trials'.
+    n : int
+        Number of 'successes'.
+
+    Returns
+    -------
+    tuple:
+        A tuple of length 4 containing, in order, the output of the choose functions contained in the compound beta-binomial function.
+    """
     def choose(N, n):
         return da_factorial(N) / (da_factorial(n) * da_factorial(N - n))
     a = choose(N, n)
@@ -191,18 +374,39 @@ def choose_functions(N, n):
     d = choose(N - 2, n - 2)
     return (a, b, c, d)
 
-## Integrate across univariate BB distribution.
-# a = alpha shape parameter.
-# b = beta shape parameter.
-# l = lower-bound location parameter.
-# u = upper-bound location parameter.
-# N = upper-bound of binomial distribution.
-# n = specific binomial outcome.
-# k = Lord's k.
-# lower = lower-bound of integration.
-# upper = upper bound of intergration.
-# method = specify Livingston and Lewis ("LL") or Hanson and Brennan approach.
 def bbintegrate1(a: float, b: float, l: float, u: float, N: int, n: int, k: float, lower: float, upper: float, method: str = "ll", limit = 100) -> float:
+    """
+    Integrate across univariate beta-binomial distribution.
+
+    Parameters
+    ----------
+    a : float
+        The Alpha (first) shape parameter of the beta distribution.
+    b : float
+        The Beta (second) shape parameter of the beta distribution.
+    l : float
+        The lower-bound of the four-parameter beta distribution.
+    u : float
+        The upper-bound of the four-parameter beta distribution.
+    N : int
+        Number of 'trials'.
+    n : int
+        Number of 'successes'.
+    k : float
+        Lord's k (only necessary if method != 'll').
+    lower : float
+        The lower limit of the integral.
+    upper : float
+        The upper limit of the integral.
+    method : str
+        - "ll" for the Livingston and Lewis approach.
+        - Any other string for the Hanson and Brennan approach.
+    
+    Returns
+    -------
+    float:
+        Area under the curve at the specified interval for a beta-binomial distribution.
+    """
     if method != "ll":
         def f(x, a, b, l, u, N, n, k):
             return dbeta4p(x, a, b, l, u) * dcbinom(x, N, n, k)
