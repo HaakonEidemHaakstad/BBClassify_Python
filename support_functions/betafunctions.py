@@ -416,19 +416,41 @@ def bbintegrate1(a: float, b: float, l: float, u: float, N: int, n: int, k: floa
             return dbeta4p(x, a, b, l, u) * binom.pmf(n, N, x)
         return quad(f, lower, upper, args = (a, b, l, u, N, n), limit = limit)
     
-## Alternate integrate across univariate BB distribution.
-# a = alpha shape parameter.
-# b = beta shape parameter.
-# l = lower-bound location parameter.
-# u = upper-bound location parameter.
-# c = choose-function list or tuple (such as that produced by the choose_functions function).
-# N = upper-bound of binomial distribution.
-# n = specific binomial outcome.
-# k = Lord's k.
-# lower = lower-bound of integration.
-# upper = upper bound of intergration.
-# method = specify Livingston and Lewis ("LL") or Hanson and Brennan approach.
 def bbintegrate1_2(a: float, b: float, l: float, u: float, c: tuple, N: int, n: int, k: float, lower: float, upper: float, method: str = "ll", limit = 100) -> float:
+    """
+    Alternative integrate across univariate beta-binomial distribution.
+
+    Parameters
+    ----------
+    a : float
+        The Alpha (first) shape parameter of the beta distribution.
+    b : float
+        The Beta (second) shape parameter of the beta distribution.
+    l : float
+        The lower-bound of the four-parameter beta distribution.
+    u : float
+        The upper-bound of the four-parameter beta distribution.
+    c : tuple
+        Choose function list or tuple (such as that produced by the choose_functions function).
+    N : int
+        Number of 'trials'.
+    n : int
+        Number of 'successes'.
+    k : float
+        Lord's k (only necessary if method != 'll').
+    lower : float
+        The lower limit of the integral.
+    upper : float
+        The upper limit of the integral.
+    method : str
+        - "ll" for the Livingston and Lewis approach.
+        - Any other string for the Hanson and Brennan approach.
+    
+    Returns
+    -------
+    float:
+        Area under the curve at the specified interval for a beta-binomial distribution.
+    """
     if method != "ll":
         def f(x, a, b, l, u, c, N, n, k):
             return dbeta4p(x, a, b, l, u) * dcbinom2(c, x, N, n, k, method)
