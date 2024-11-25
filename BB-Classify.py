@@ -157,7 +157,7 @@ def cac(x, reliability: float, min: float, max: float, cut: float, model: int = 
                     consistencymatrix[i, j] = sum(sum(consmat[cut[i]:cut[i + 1] + 1, 0:cut[j + 1]]))
                 elif i == len(cut) - 2 and (j != 0 and j != len(cut) - 2):
                     consistencymatrix[i, j] = sum(sum(consmat[cut[i]:cut[i + 1] + 1, cut[j]:cut[j + 1]]))
-                else #i == len(cut) - 2 and j == len(cut) - 2:
+                else:
                     consistencymatrix[i, j] = sum(sum(consmat[cut[i]:cut[i + 1] + 1, cut[j]:cut[j + 1] + 1]))
             consistency = []
             for i in range(len(cut) - 1):

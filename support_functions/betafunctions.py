@@ -21,14 +21,14 @@ def string_to_number(s: str, notlist: bool = True):
     Returns
     -------
     Union[list[float], float]
-        A list of numbers if the input string contains multiple values. If `notlist` is True and the result has only one element, a single float is returned.
+        A list of numbers if the input string contains multiple values. If 'notlist' is True and the result has only one element, a single float is returned.
 
     Examples
     --------
-    >>> string_to_number("1, 2.5, 3")
+    >>> string_to_number('1, 2.5, 3')
     [1.0, 2.5, 3.0]
 
-    >>> string_to_number("42", notlist=True)
+    >>> string_to_number('42', notlist = True)
     42.0
     """
     out = [int(x) if x.isdigit() else float(x) for x in s.replace(', ', ',').split(',')]
@@ -52,15 +52,15 @@ def csv_to_list(x: str, sumscores: bool = True) -> list:
     Returns
     -------
     list
-        - If `sumscores` is False, a list of lists with numeric values from the CSV.
-        - If `sumscores` is True, a list containing the sum of each sublist.
+        - If 'sumscores' is False, a list of lists with numeric values from the CSV.
+        - If 'sumscores' is True, a list containing the sum of each sublist.
 
     Examples
     --------
-    >>> csv_to_list("data.csv", sumscores=False)
+    >>> csv_to_list('data.csv', sumscores = False)
     [[1.0, 2.0], [3.0, 4.0]]
 
-    >>> csv_to_list("data.csv", sumscores=True)
+    >>> csv_to_list('data.csv', sumscores = True)
     [3.0, 7.0]
     """
     data = []
@@ -71,8 +71,9 @@ def csv_to_list(x: str, sumscores: bool = True) -> list:
         #    row = list(map(float, row))
         #    data.append(row)
     if sumscores:
-        for i in range(len(data)):
-            data[i] = sum(data[i])
+        data = [sum(i) for i in data]
+        #for i in range(len(data)):
+            #data[i] = sum(data[i])
     return data
 
 def cronbachs_alpha(x: list) -> float:
@@ -126,7 +127,7 @@ def etl(mean: float, var: float, reliability: float, min: float = 0, max: float 
 
     Examples
     --------
-    >>> etl(mean=50, var=25, reliability=0.8, min=0, max=100)
+    >>> etl(mean = 50, var = 25, reliability = 0.8, min = 0, max = 100)
     4.0
     """
     return ((mean - min) * (max - mean) - (reliability * var)) / (var * (1 - reliability))
@@ -153,7 +154,7 @@ def k(mean: float, var: float, reliability: float, length: int) -> float:
 
     Examples
     --------
-    >>> k(mean=50, var=25, reliability=0.8, length=10)
+    >>> k(mean = 50, var = 25, reliability = 0.8, length = 10)
     3.5
     """
     vare = var * (1 - reliability)
@@ -185,7 +186,7 @@ def dbeta4p(x: float, a: float, b: float, l: float, u: float) -> float:
 
     Examples
     --------
-    >>> dbeta4p(x=0.5, a=2, b=2, l=0, u=1)
+    >>> dbeta4p(x = 0.5, a = 2, b = 2, l = 0, u = 1)
     1.5
     """
     if x < l or x > u:
@@ -213,11 +214,11 @@ def rbeta4p(n: int, a: float, b: float, l: float = 0, u: float = 1) -> np.array[
     Returns
     -------
     numpy.ndarray
-        Array of length `n` containing random values drawn from the four-parameter beta distribution.
+        Array of length 'n' containing random values drawn from the four-parameter beta distribution.
 
     Examples
     --------
-    >>> rbeta4p(n=5, a=2, b=2, l=0, u=1)
+    >>> rbeta4p(n = 5, a = 2, b = 2, l = 0, u = 1)
     array([0.12, 0.55, 0.23, 0.76, 0.89])
     """
     return np.random.beta(a, b, n) * (u - l) + l
@@ -303,7 +304,7 @@ def beta2fit(x: list, l: float, u: float, moments: list = []) -> list[float]:
 
     Examples
     --------
-    >>> beta2fit([0.1, 0.2, 0.3, 0.4], l=0, u=1)
+    >>> beta2fit([0.1, 0.2, 0.3, 0.4], l = 0, u = 1)
     [2.0, 2.5, 0, 1]
     """
     if len(list) == 1:
@@ -334,11 +335,11 @@ def dcbinom(p: float, N: int, n: int, k: float) -> float:
     Returns
     -------
     float
-        Probability of observing `n` successes out of `N` trials.
+        Probability of observing 'n' successes out of 'N' trials.
 
     Examples
     --------
-    >>> dcbinom(p=0.5, N=10, n=5, k=2.0)
+    >>> dcbinom(p = 0.5, N = 10, n = 5, k = 2.0)
     0.246
     """
     a = binom.pmf(n, N, p)
@@ -394,7 +395,7 @@ def da_factorial(x: int):
     Returns
     -------
     int
-        Factorial of `x`.
+        Factorial of 'x'.
 
     Examples
     --------
@@ -426,10 +427,10 @@ def choose_functions(N, n):
     -------
     tuple
         A tuple of length 4 containing the binomial coefficients required for the compound beta-binomial distribution:
-        - [0] : Coefficient for exact successes (`n`).
-        - [1] : Coefficient for two fewer trials (`N - 2`, `n`).
-        - [2] : Coefficient for one fewer success and two fewer trials (`N - 2`, `n - 1`).
-        - [3] : Coefficient for two fewer successes and two fewer trials (`N - 2`, `n - 2`).
+        - [0] : Coefficient for exact successes ('n').
+        - [1] : Coefficient for two fewer trials ('N - 2', 'n').
+        - [2] : Coefficient for one fewer success and two fewer trials ('N - 2', 'n - 1').
+        - [3] : Coefficient for two fewer successes and two fewer trials ('N - 2', 'n - 2').
 
     Examples
     --------
@@ -470,7 +471,7 @@ def bbintegrate1(a: float, b: float, l: float, u: float, N: int, n: int, k: floa
         Upper limit of the integral.
     method : str, optional
         The method to compute the integral:
-        - `"ll"` for the Livingston and Lewis approach (default).
+        - 'll' for the Livingston and Lewis approach (default).
         - Any other string for the Hanson and Brennan approach.
 
     Returns
@@ -480,7 +481,7 @@ def bbintegrate1(a: float, b: float, l: float, u: float, N: int, n: int, k: floa
 
     Examples
     --------
-    >>> bbintegrate1(2, 3, 0, 1, 10, 5, 0.5, 0, 1, method="ll")
+    >>> bbintegrate1(2, 3, 0, 1, 10, 5, 0.5, 0, 1, method = 'll')
     0.1234
     """
     if method != "ll":
@@ -507,7 +508,7 @@ def bbintegrate1_2(a: float, b: float, l: float, u: float, c: tuple, N: int, n: 
     u : float
         Upper bound of the four-parameter beta distribution.
     c : tuple
-        Precomputed coefficients (e.g., from the `choose_functions` function).
+        Precomputed coefficients (e.g., from the 'choose_functions' function).
     N : int
         Total number of trials.
     n : int
@@ -520,7 +521,7 @@ def bbintegrate1_2(a: float, b: float, l: float, u: float, c: tuple, N: int, n: 
         Upper limit of the integral.
     method : str, optional
         The method to compute the integral:
-        - `"ll"` for the Livingston and Lewis approach (default).
+        - 'll' for the Livingston and Lewis approach (default).
         - Any other string for the Hanson and Brennan approach.
 
     Returns
@@ -539,7 +540,7 @@ def bbintegrate1_2(a: float, b: float, l: float, u: float, c: tuple, N: int, n: 
 
 def bbintegrate2(a: float, b: float, l: float, u: float, N: int, n1: int, n2: int, k: float, lower: float, upper: float, method: str = "ll") -> float:
     """
-    Integrate across a bivariate beta-binomial distribution.
+    Compute the integral of a bivariate beta-binomial distribution over a specified range.
 
     a : float
         The Alpha (first) shape parameter of the beta distribution.
@@ -562,13 +563,13 @@ def bbintegrate2(a: float, b: float, l: float, u: float, N: int, n1: int, n2: in
     upper : float
         The upper limit of the integral.
     method : str
-        - "ll" for the Livingston and Lewis approach.
+        - 'll' for the Livingston and Lewis approach.
         - Any other string for the Hanson and Brennan approach.
 
     Returns
     -------
     float:
-        Area under the curve at the specified interval for a bivariate beta-binomial distribution.
+        The computed area under the curve for the bivariate beta-binomial distribution over the specified range using precomputed coefficients.
     """
     if method != "ll":
         def f(x, a, b, l, u, N, n1, n2, k):
@@ -581,40 +582,41 @@ def bbintegrate2(a: float, b: float, l: float, u: float, N: int, n1: int, n2: in
     
 def bbintegrate2_1(a: float, b: float, l: float, u: float, c1: tuple, c2: tuple, N: int, n1: int, n2: int, k: float, lower: float, upper: float, method: str = "ll") -> float:
     """
-    Alternative integrate across bivariate beta-binomial distribution.
+    Compute the integral of a univariate beta-binomial distribution using precomputed coefficients.
 
+    Parameters
+    ----------
     a : float
-        The Alpha (first) shape parameter of the beta distribution.
+        Alpha (first shape parameter) of the beta distribution.
     b : float
-        The Beta (second) shape parameter of the beta distribution.
+        Beta (second shape parameter) of the beta distribution.
     l : float
-        The lower-bound of the four-parameter beta distribution.
+        Lower bound of the four-parameter beta distribution.
     u : float
-        The upper-bound of the four-parameter beta distribution.
+        Upper bound of the four-parameter beta distribution.
     c1 : tuple
-        Choose function list or tuple (such as that produced by the choose_functions function) for the first 'trial'.
+        Precomputed coefficients (e.g., from the 'choose_functions' function).
     c2 : tuple
-        Choose function list or tuple (such as that produced by the choose_functions function) for the second 'trial'.
+        Precomputed coefficients (e.g., from the 'choose_functions' function).
     N : int
-        Number of 'trials'.
-    n1 : int
-        Number of 'successes' on the first 'trial'.
-    n2 : int
-        Number of 'successes' on the second 'trial'.
+        Total number of trials.
+    n : int
+        Number of observed successes.
     k : float
-        Lord's k (only necessary if method != 'll').
+        Lord's k parameter (used for the Hanson and Brennan method).
     lower : float
-        The lower limit of the integral.
+        Lower limit of the integral.
     upper : float
-        The upper limit of the integral.
-    method : str
-        - "ll" for the Livingston and Lewis approach.
+        Upper limit of the integral.
+    method : str, optional
+        The method to compute the integral:
+        - 'll' for the Livingston and Lewis approach (default).
         - Any other string for the Hanson and Brennan approach.
 
     Returns
     -------
-    float:
-        Area under the curve at the specified interval for a bivariate beta-binomial distribution.
+    float
+        The computed area under the curve for the beta-binomial distribution over the specified range using precomputed coefficients.
     """
     if method != "ll":
         def f(x, a, b, l, u, c1, c2, N, n1, n2, k):
@@ -630,17 +632,28 @@ def dfac(x: list, r = int): # TODO: Rewrite as list comprehension.
     """
     Calculate the descending factorial for each numeric value in a list.
 
+    The descending factorial of a number 'n' to power 'r' is calculated as:
+    'n * (n - 1) * (n - 2) * ... * (n - (r - 1))'.
+
     Parameters
     ----------
     x : list
-        List of numerical values
+        List of numeric values for which the descending factorial will be calculated.
     r : int
-        The power each value is to be raised to.
+        Number of terms in the descending factorial. If `r = 1`, the function simply raises each value in `x` to the power of `r`.
 
     Returns
     -------
-    list:
-        List of descending factorials for each numeric value contained in 'x'.
+    list
+        A list containing the descending factorials for each value in the input list.
+
+    Examples
+    --------
+    >>> dfac([5, 6, 7], 3)
+    [60, 120, 210]
+
+    >>> dfac([4, 3], 1)
+    [4, 3]
     """
     x1 = list(x)
     for i in range(len(x)):
@@ -652,21 +665,32 @@ def dfac(x: list, r = int): # TODO: Rewrite as list comprehension.
                     x1[i] = x1[i] * (x[i] - j + 1)
     return x1
 
-def tsm(x: list, n: int, k: float): # TODO: Rewrite as list comprehension.
+def tsm(x: list, n: int, k: float): # TODO: Refactor as list comprehension.
     """
     Calculate the first four raw moments of the true-score distribution.
 
     Parameters
     ----------
     x : list
-        List of values representing final test-scores.    
-    n : float
-        The effective test length
+        List of values representing final test scores.
+    n : int
+        Effective test length.
+    k : float
+        Lord's k parameter, used for adjusting the moments based on test characteristics.
 
     Returns
     -------
-    list:
-        A list containing, in order, the first four moments of the true-score distribution.
+    list
+        A list containing the first four raw moments of the true-score distribution, in order:
+        - [0] : The mean.
+        - [1] : The second raw moment.
+        - [2] : The third raw moment.
+        - [3] : The fourth raw moment.
+
+    Examples
+    --------
+    >>> tsm([5, 6, 7, 8], 10, 0.2)
+    [0.65, 0.422, 0.276, 0.182]
     """
     m = [0, 0, 0, 0]
     for i in range(0, 4):
@@ -682,33 +706,42 @@ def tsm(x: list, n: int, k: float): # TODO: Rewrite as list comprehension.
 
 def betaparameters(x: list, n: int, k: float, model: int = 4, l: float = 0, u: float = 1):
     """
-    Estimate the true-score 2 or 4 parameter beta distribution parameters.
+    Estimate the parameters of a two- or four-parameter beta distribution for the true-score distribution.
 
     Parameters
     ----------
     x : list
-        List of values representing final test-scores.
-    n : float
-        Actual (for the Hanson and Brennan approach) or Effective (For the Livingston and Lewis approach) test length.
+        List of values representing final test scores.
+    n : int
+        Test length. For the Livingston and Lewis approach, this is the effective test length.
+        For the Hanson and Brennan approach, this is the actual test length.
     k : float
-        Lord's k.
-    model : int
-        Which model to for which parameters are to be estimated.
-        - 2, if two-parameter model.
-        - 4, if four-parameter model.
-    l : float (optional)
-        If model = 2, the lower-bound of the beta distribution.
-    u : float (optional)
-        If model = 2, the upper-bound of the beta distribution.
-    
+        Lord's k parameter, used for adjusting the distribution.
+    model : int, optional
+        Specifies the model to use for parameter estimation:
+        - 2: Two-parameter beta distribution.
+        - 4: Four-parameter beta distribution. Default is 4.
+    l : float, optional
+        Lower bound of the beta distribution. Used only if `model` is 2. Default is 0.
+    u : float, optional
+        Upper bound of the beta distribution. Used only if `model` is 2. Default is 1.
+
     Returns
     -------
-    dict:
-        A dictionary with keys:
-        - "alpha": The first shape parameter.
-        - "beta": The second shape parameter.
-        - "l": The lower-bound.
-        - "u": The upper-bound.
+    dict
+        A dictionary containing the estimated parameters of the beta distribution:
+        - 'alpha': The first shape parameter (alpha).
+        - 'beta': The second shape parameter (beta).
+        - 'l': The lower bound (applicable to both models, default is 0 for two-parameter model).
+        - 'u': The upper bound (applicable to both models, default is 1 for two-parameter model).
+
+    Examples
+    --------
+    >>> betaparameters([5, 6, 7, 8], n=10, k=0.2, model=4)
+    {'alpha': 2.5, 'beta': 3.0, 'l': 0.0, 'u': 1.0}
+
+    >>> betaparameters([5, 6, 7, 8], n=10, k=0.2, model=2, l=0, u=1)
+    {'alpha': 1.8, 'beta': 2.2, 'l': 0, 'u': 1}
     """
     m = tsm(x, n, k)
     s2 = m[1] - m[0]**2
