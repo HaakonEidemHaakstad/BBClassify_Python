@@ -194,7 +194,7 @@ def dbeta4p(x: float, a: float, b: float, l: float, u: float) -> float:
     else:
         return (1 / scipy.special.beta(a, b)) * (((x - l)**(a - 1) * (u - x)**(b - 1)) / (u - l)**(a + b - 1))
 
-def rbeta4p(n: int, a: float, b: float, l: float = 0, u: float = 1) -> np.array[float]:
+def rbeta4p(n: int, a: float, b: float, l: float = 0, u: float = 1) -> np.array:
     """
     Random number generator for the four-parameter beta distribution.
 

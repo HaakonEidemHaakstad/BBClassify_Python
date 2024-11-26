@@ -20,6 +20,8 @@ def cac(x, reliability: float, min: float, max: float, cut: float, model: int = 
     max : float
         - For the Livingston and Lewis approach: Maximum possible test score.
         - For the Hanson and Brennan approach: Actual test length (number of items).
+    cut : list
+        List of cut-scores.
     model : int, optional
         The type of beta-binomial model to fit. Use "2" for a two-parameter model
         or "4" for a four-parameter model. Default is 4.
