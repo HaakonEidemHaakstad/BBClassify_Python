@@ -179,25 +179,25 @@ def cac(x, reliability: float, min: float, max: float, cut: float, model: int = 
 ## TESTS: ###
 
 # Setting the seed
-#np.random.seed(123456)
+np.random.seed(123456)
 
 # Define the parameters for the beta distribution
-#a, b = 6, 4
+a, b = 6, 4
 # The first two parameters are for the location and scale parameters respectively
-#p_success = rbeta4p(100000, 6, 4, .15, .85)
+p_success = rbeta4p(10000, 6, 4, .15, .85)
 
 # Preallocate a matrix of zeros with 1000 rows and 20 columns
-#rawdata = np.zeros((100000, 100))
+rawdata = np.zeros((10000, 100))
 
 # Loop over the columns
-#for i in range(100000):
-#    for j in range(100):
+for i in range(10000):
+    for j in range(100):
     # For each column, generate binomially distributed data
-#        rawdata[i, j] = np.random.binomial(1, p_success[i], 1)
-#sumscores = np.sum(rawdata, axis = 1)
-#meanscores = np.mean(rawdata, axis = 1)
-#output = cac2(sumscores, cronbachs_alpha(rawdata), 0, 100, [50, 75], output = ["accuracy", "consistency"], print_output = False)
-#print(output)
+        rawdata[i, j] = np.random.binomial(1, p_success[i], 1)
+sumscores = np.sum(rawdata, axis = 1)
+meanscores = np.mean(rawdata, axis = 1)
+output = cac(sumscores, cronbachs_alpha(rawdata), 0, 100, [50, 75], output = ["accuracy", "consistency"], print_output = False)
+print(output)
 #exit()
 #print("starting")
 #from time import time

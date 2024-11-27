@@ -1,5 +1,5 @@
 from support_functions.betafunctions import *
-
+import matplotlib.pyplot as plt
 class bbclassify():
     def __init__(self, data: list, reliability: float, min_score: float, max_score: float, cut_scores: list[float], method: str = "ll", model: int = 4, l: float = 0, u: float = 1, failsafe: bool = False):
         """
@@ -44,15 +44,16 @@ class bbclassify():
         self.reliability = reliability
         self.min_score = min_score
         self.max_score = max_score
-        self.cut_scores = cut_scores
+        self.cut_scores = [self.min_score] + cut_scores + [self.max_score]
+        self.cut_truescores = [(i - self.min_score) / (self.max_score + self.min_score) for i in self.cut_scores]
         self.method = method
         self.model = model
         self.l = l
         self.u = u
         self.failsafe = failsafe
 
-        self.cut_scores = [self.min_score] + self.cut_scores + [self.max_score]
-        self.cut_truescores = [(cut_score - self.min_score) / (self.max_score + self.min_score) for cut_score in self.cut_scores]
+        self.Accuracy = None
+        self.Consistency = None
 
         if isinstance(self.data, dict):
             self.parameters = self.data
@@ -73,12 +74,46 @@ class bbclassify():
             else:
                 self.N = self.max_score
                 self.K = k(stats.mean(self.data), stats.variance(self.data), self.reliability, self.N)
-                pars = betaparameters(self.data, self.N, self.K, self.model, self.l, self.u)
+                self.parameters = betaparameters(self.data, self.N, self.K, self.model, self.l, self.u)
                 if (self.failsafe == True and self.model == 4) and (self.l < 0 or self.u > 1):
                     pars = betaparameters(self.data, self.max_score, self.N, 2, self.l, self.u)
                 self.parameters["lords_k"] = self.K
         
         self.choose_values = [choose_functions(self.N, i) for i in range(self.N + 1)]
+    
+    def modelfit(self):
+        if isinstance(self.data, dict):
+            raise ValueError("Model fit testing requires observed test-scores as data input.")
+        n_respondents = len(self.data)
+        if self.method != "ll":
+            expected = [
+                bbintegrate1_2(self.parameters["alpha"], self.parameters["beta"], self.parameters["l"], self.parameters["u"],
+                               self.choose_values[i], self.N, i, self.parameters["lords_k"], self.parameters["l"], self.parameters["u"], self.method)[0] * n_respondents
+                               for i in range(self.N + 1)
+                               ]
+            observed = [self.data.count(i) for i in range(self.N + 1)]
+            for _ in range(2):
+                length = len(expected)
+                for j in range(length):
+                    if expected[j + 1] < 1:
+                        expected[j + 1] += expected[j]
+                        observed[j + 1] += observed[j]
+                        expected[j], observed[j] = None, None
+                    else:
+                        break
+                observed = [observed[j] for j in range(length) if expected[j] is not None][::-1]
+                expected = [j for j in expected if j is not None][::-1]
+            normalize = sum(observed) / sum(expected)
+            expected = [j*normalize for j in expected if j is not None]
+        else:
+            None
+        #fig, ax = plt.subplots()
+        #plt.bar([str(i) for i in range(len(observed))], observed)
+        #plt.show()
+        print(f"Total: {len(self.data)}")
+        print(f"EXPECTED:: Length: {len(expected)}. Min: {min(expected)}. Max: {max(expected)}. Sum: {sum(expected)}. 1st value: {expected[0]}. Last value: {expected[-1]}.")
+        print(f"OBSERVED:: Length: {len(observed)}. Min: {min(observed)}. Max: {max(observed)}. Sum: {sum(observed)}. 1st value: {observed[0]}. Last value: {observed[-1]}.")
+        print(expected.index(min(expected)))
     
     def accuracy(self):
         confmat = np.zeros((self.N + 1, len(self.cut_scores) - 1))
@@ -93,7 +128,8 @@ class bbclassify():
                     self.confusionmatrix[i, j] = sum(confmat[self.cut_scores[i]:self.cut_scores[i + 1], j]) 
                 else:
                     self.confusionmatrix[i, j] = sum(confmat[self.cut_scores[i]:, j])
-        self.accuracy = sum([self.confusionmatrix[i, i] for i in range(len(self.cut_scores) - 1)])
+        self.Accuracy = sum([self.confusionmatrix[i, i] for i in range(len(self.cut_scores) - 1)])
+        return self
 
     def consistency(self):
         consmat = np.zeros((self.N + 1, self.N + 1))
@@ -125,7 +161,14 @@ class bbclassify():
                     self.consistencymatrix[i, j] = sum(sum(consmat[self.cut_scores[i]:self.cut_scores[i + 1] + 1, self.cut_scores[j]:self.cut_scores[j + 1]]))
                 else:
                     self.consistencymatrix[i, j] = sum(sum(consmat[self.cut_scores[i]:self.cut_scores[i + 1] + 1, self.cut_scores[j]:self.cut_scores[j + 1] + 1]))
-            self.consistency = sum([self.consistencymatrix[i, i] for i in range(len(self.cut_scores) - 1)])
+        self.Consistency = sum([self.consistencymatrix[i, i] for i in range(len(self.cut_scores) - 1)])
+        return self
+        
+    def caprint(self):
+        if self.accuracy != None:
+            print(f"Overall accuracy: {self.accuracy}")
+        if self.consistency != None:
+            print(f"Overall consistency: {self.consistency}")
 
 ## TESTS: ###
 # Setting the seed
@@ -134,34 +177,18 @@ np.random.seed(123456)
 # Define the parameters for the beta distribution
 a, b = 6, 4
 #The first two parameters are for the location and scale parameters respectively
-p_success = rbeta4p(100000, 6, 4, .15, .85)
+p_success = rbeta4p(10000, 6, 4, .15, .85)
 
 # Preallocate a matrix of zeros with 1000 rows and 20 columns
-rawdata = np.zeros((100000, 100))
+rawdata = np.zeros((10000, 100))
 
 # Loop over the columns
-for i in range(100000):
+for i in range(10000):
     for j in range(100):
         rawdata[i, j] = np.random.binomial(1, p_success[i], 1)
-sumscores = np.sum(rawdata, axis = 1)
+sumscores = list(np.sum(rawdata, axis = 1))
 meanscores = np.mean(rawdata, axis = 1)
-output = bbclassify(sumscores, cronbachs_alpha(rawdata), 0, 100, [50, 75])
-output.accuracy()
-output.consistency()
-print(output.accuracy)
-print(output.confusionmatrix)
-print(output.consistency)
-print(output.consistencymatrix)
-#print(output.parameters)
-#print(output)
-""""""
-#exit()
-#print("starting")
-#from time import time
-#t1 = time()
-#for i in range(10):
-#    output = cac(sumscores, cronbachs_alpha(rawdata), 0, 100, [50, 75], output = ["accuracy", "consistency"], print_output = False, method = "")
-#    print(f"cac1 time: {time() - t1}, accuracy: {output["Overall accuracy"]}, consistency: {output["Overall consistency"]}")
-#    t1 = time()
-#    output = cac2(sumscores, cronbachs_alpha(rawdata), 0, 100, [50, 75], output = ["accuracy", "consistency"], print_output = False, method = "")
-#    print(f"cac2 time: {time() - t1}, accuracy: {output["Overall accuracy"]}, consistency: {output["Overall consistency"]}")
+output = bbclassify(sumscores, cronbachs_alpha(rawdata), 0, 100, [50, 75], method = "hb").modelfit()
+#output.Accuracy().caprint()
+#output.Consistency().caprint()
+#print(f"Accuracy: {output.accuracy}.\nConsistency: {output.consistency}")
