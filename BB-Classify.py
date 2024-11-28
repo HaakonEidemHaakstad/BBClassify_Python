@@ -109,7 +109,7 @@ def cac(x, reliability: float, min: float, max: float, cut: float, model: int = 
         confmat = np.zeros((N + 1, len(cut) - 1))
         for i in range(len(cut) - 1):
             for j in range(N + 1):
-                confmat[j, i] = bbintegrate1_2(pars["alpha"], pars["beta"], pars["l"], pars["u"], choose_values[j], N, j, pars["lords_k"], tcut[i], tcut[i + 1], method)[0]
+                confmat[j, i] = bbintegrate1_1(pars["alpha"], pars["beta"], pars["l"], pars["u"], choose_values[j], N, j, pars["lords_k"], tcut[i], tcut[i + 1], method)[0]
         confusionmatrix = np.zeros((len(cut) - 1, len(cut) - 1))
         for i in range(len(cut) - 1):
             for j in range(len(cut) - 1):

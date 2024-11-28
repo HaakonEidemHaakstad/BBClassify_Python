@@ -1,6 +1,6 @@
 import scipy.special
 from scipy.integrate import quad
-from scipy.stats import binom
+from scipy.stats import binom, chi2
 import statistics as stats
 import math
 import pandas as pd
@@ -493,7 +493,7 @@ def bbintegrate1(a: float, b: float, l: float, u: float, N: int, n: int, k: floa
             return dbeta4p(x, a, b, l, u) * binom.pmf(n, N, x)
         return quad(f, lower, upper, args = (a, b, l, u, N, n))
     
-def bbintegrate1_2(a: float, b: float, l: float, u: float, c: tuple, N: int, n: int, k: float, lower: float, upper: float, method: str = "ll") -> float:
+def bbintegrate1_1(a: float, b: float, l: float, u: float, c: tuple, N: int, n: int, k: float, lower: float, upper: float, method: str = "ll") -> float:
     """
     Compute the integral of a univariate beta-binomial distribution using precomputed coefficients.
 
