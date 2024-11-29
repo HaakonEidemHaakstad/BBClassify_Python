@@ -60,7 +60,7 @@ class bbclassify():
         self.fitted = False
         self.Accuracy = None
         self.Consistency = None
-        
+
     def fit(self):
         if isinstance(self.data, dict): # Parameters do not have to be estimated if a dict of parameter values is supplied.
             self.parameters = self.data
@@ -69,7 +69,7 @@ class bbclassify():
             else:
                 self.N = self.parameters["atl"]
         else: # If raw data is supplied, estimate parameters from the data.
-            if method == "ll": # For the Livingston and Lewis method:
+            if self.method == "ll": # For the Livingston and Lewis method:
                 self.effective_test_length = self._etl(stats.mean(self.data), stats.variance(self.data), self.reliability, self.min_score, self.max_score)
                 self.N = round(self.effective_test_length)
                 self.K = 0
