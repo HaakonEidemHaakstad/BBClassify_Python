@@ -57,13 +57,14 @@ class bbclassify():
         self.l = l
         self.u = u
         self.failsafe = failsafe
-
+        self.fitted = False
         self.Accuracy = None
         self.Consistency = None
-
+        
+    def fit(self):
         if isinstance(self.data, dict): # Parameters do not have to be estimated if a dict of parameter values is supplied.
             self.parameters = self.data
-            if method == "ll":
+            if self.method == "ll":
                 self.N = self.parameters["etl"]
             else:
                 self.N = self.parameters["atl"]
@@ -87,6 +88,7 @@ class bbclassify():
                 warn(f"Failsafe triggered. True-score fitting procedure produced impermissible parameter values (l = {self.parameters['l']}, u = {self.parameters['u']}).")
                 self.parameters = self._betaparameters(self.data, self.N, self.K, 2, self.l, self.u)
                 self.model = 2
+            self.fitted = True
 
         self.choose_values = [self._choose_functions(self.N, i) for i in range(self.N + 1)]
     
@@ -95,6 +97,9 @@ class bbclassify():
         # If the input to the data argument is a dictionary of model-parameters, throw a value error.
         if isinstance(self.data, dict):
             raise ValueError("Model fit testing requires observed test-scores as data input.")
+        if not self.fitted:
+            print("Model not fitted. Automatically fitting the model...")
+            self.fit()
         n_respondents = len(self.data)
         # Make a list of the model-implied (expected) frequency-distribution.
         expected = [
@@ -143,6 +148,9 @@ class bbclassify():
     
     # Function for estimating classification accuracy.
     def accuracy(self):
+        if not self.fitted:
+            print("Model not fitted. Automatically fitting the model...")
+            self.fit()
         confmat = np.zeros((self.N + 1, len(self.cut_scores) - 1))
         for i in range(len(self.cut_scores) - 1):
             for j in range(self.N + 1):
@@ -160,6 +168,9 @@ class bbclassify():
 
     # Function for estimating classification consistency.
     def consistency(self):
+        if not self.fitted:
+            print("Model not fitted. Automatically fitting the model...")
+            self.fit()
         consmat = np.zeros((self.N + 1, self.N + 1))
         for i in range(self.N + 1):
             for j in range(self.N + 1):
@@ -442,7 +453,7 @@ class bbclassify():
             return a - e * (b - 2*c + d)
         return a
 
-    def _da_factorial(self, x: int):
+    def _da_factorial(self, x: int) -> int:
         """
         Calculate the factorial of a number using direct arithmetic.
 
@@ -494,7 +505,7 @@ class bbclassify():
         """
         return self._da_factorial(N) / (self._da_factorial(n) * self._da_factorial(N - n))
 
-    def _choose_functions(self, N, n):
+    def _choose_functions(self, N: int, n: int) -> list[int]:
         """
         Compute coefficients for the compound beta-binomial distribution.
 
@@ -588,7 +599,7 @@ class bbclassify():
         u : float
             Upper bound of the four-parameter beta distribution.
         c : tuple
-            Precomputed coefficients (e.g., from the 'choose_functions' function).
+            Precomputed coefficients (e.g., from the '_choose_functions' function).
         N : int
             Total number of trials.
         n : int
@@ -675,9 +686,9 @@ class bbclassify():
         u : float
             Upper bound of the four-parameter beta distribution.
         c1 : tuple
-            Precomputed coefficients (e.g., from the 'choose_functions' function).
+            Precomputed coefficients (e.g., from the '_choose_functions' function).
         c2 : tuple
-            Precomputed coefficients (e.g., from the 'choose_functions' function).
+            Precomputed coefficients (e.g., from the '_choose_functions' function).
         N : int
             Total number of trials.
         n : int
@@ -735,15 +746,15 @@ class bbclassify():
         >>> _dfac([4, 3], 1)
         [4, 3]
         """
-        x1 = list(x)
-        for i in range(len(x)):
+        y = x.copy()
+        for i in range(len(y)):
             if r <= 1:
-                x1[i] = x1[i]**r
+                y[i] = y[i]**r
             else:
                 for j in range(1, r + 1):
                     if j > 1:
-                        x1[i] = x1[i] * (x[i] - j + 1)
-        return x1
+                        y[i] = y[i] * (y[i] - j + 1)
+        return y
 
     def _tsm(self, x: list, n: int, k: float): # TODO: Refactor as list comprehension.
         """
@@ -772,16 +783,13 @@ class bbclassify():
         >>> _tsm([5, 6, 7, 8], 10, 0.2)
         [0.65, 0.422, 0.276, 0.182]
         """
-        m = [0, 0, 0, 0]
-        for i in range(0, 4):
-            if i == 0:
-                m[i] = stats.mean(x) / n
-            else:
-                M = i + 1
-                a = (self._dfac([n], 2)[0] + k * self._dfac([M], 2)[0])
-                b = stats.mean(self._dfac(x, M)) / self._dfac([n - 2], M - 2)[0]
-                c = k * self._dfac([M], 2)[0] * m[i]
-                m[i] = (b / a) + c
+        m = [stats.mean(x) / n, 0, 0, 0]
+        for i in range(1, 4):
+            M = i + 1
+            a = (self._dfac([n], 2)[0] + k * self._dfac([M], 2)[0])
+            b = stats.mean(self._dfac(x, M)) / self._dfac([n - 2], M - 2)[0]
+            c = k * self._dfac([M], 2)[0] * m[i]
+            m[i] = (b / a) + c
         return m
 
     def _betaparameters(self, x: list, n: int, k: float, model: int = 4, l: float = 0, u: float = 1):
@@ -862,7 +870,8 @@ for i in range(10000):
         rawdata[i, j] = np.random.binomial(1, p_success[i], 1)
 sumscores = list(np.sum(rawdata, axis = 1))
 meanscores = np.mean(rawdata, axis = 1)
-output = bbclassify(sumscores, cronbachs_alpha(rawdata), 0, 100, [50, 75], method = "ll").modelfit()
+output = bbclassify(sumscores, cronbachs_alpha(rawdata), 0, 100, [50, 75], method = "ll").accuracy()
+print(output.Accuracy)
 #output.Accuracy().caprint()
 #output.Consistency().caprint()
 #print(f"Accuracy: {output.accuracy}.\nConsistency: {output.consistency}")
