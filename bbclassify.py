@@ -848,18 +848,19 @@ from support_functions.betafunctions import cronbachs_alpha, rbeta4p
 # Define the parameters for the beta distribution
 a, b = 6, 4
 #The first two parameters are for the location and scale parameters respectively
-p_success = rbeta4p(10000, 6, 4, .15, .85)
+p_success = rbeta4p(1000, 6, 4, .15, .85)
 
 # Preallocate a matrix of zeros with 1000 rows and 20 columns
-rawdata = np.zeros((10000, 100))
+rawdata = np.zeros((1000, 100))
 
 # Loop over the columns
-for i in range(10000):
+for i in range(1000):
     for j in range(100):
         rawdata[i, j] = np.random.binomial(1, p_success[i], 1)
 sumscores = list(np.sum(rawdata, axis = 1))
 meanscores = np.mean(rawdata, axis = 1)
-output = bbclassify(sumscores, cronbachs_alpha(rawdata), 0, 100, [50, 75], method = "ll").accuracy()
+output = bbclassify(sumscores, cronbachs_alpha(rawdata), 0, 100, [50, 75], method = "ll")
+output.Accuracy()
 print(output.Accuracy)
 #output.Accuracy().caprint()
 #output.Consistency().caprint()
