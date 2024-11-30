@@ -63,13 +63,13 @@ class bbclassify():
 
         if isinstance(self.data, dict): # Parameters do not have to be estimated if a dict of parameter values is supplied.
             self.parameters = self.data
-            if method == "ll":
+            if self.method == "ll":
                 self.N = self.parameters["etl"]
             else:
                 self.N = self.parameters["atl"]
         else: # If raw data is supplied, estimate parameters from the data.
-            if method == "ll": # For the Livingston and Lewis method:
-                self.effective_test_length = self._etl(stats.mean(self.data), stats.variance(self.data), self.reliability, self.min_score, self.max_score)
+            if self.method == "ll": # For the Livingston and Lewis method:
+                self.effective_test_length = self._calculate_etl(stats.mean(self.data), stats.variance(self.data), self.reliability, self.min_score, self.max_score)
                 self.N = round(self.effective_test_length)
                 self.K = 0
                 self.parameters = self._betaparameters(self.data, self.N, 0, self.model, self.l, self.u)
@@ -78,7 +78,7 @@ class bbclassify():
                 self.parameters["lords_k"] = 0
             else: # For the Hanson and Brennan method:
                 self.N = self.max_score
-                self.K = self._k(stats.mean(self.data), stats.variance(self.data), self.reliability, self.N)
+                self.K = self._calculate_lords_k(stats.mean(self.data), stats.variance(self.data), self.reliability, self.N)
                 self.parameters = self._betaparameters(self.data, self.N, self.K, self.model, self.l, self.u)
                 self.parameters["lords_k"] = self.K
             # If a four-parameter fitting procedure produced invalid location parameter estimates, and the failsafe was specified to
@@ -192,7 +192,7 @@ class bbclassify():
         self.Consistency = sum([self.consistencymatrix[i, i] for i in range(len(self.cut_scores) - 1)])
         return self
         
-    def _etl(self, mean: float, var: float, reliability: float, min: float = 0, max: float = 1) -> float:
+    def _calculate_etl(self, mean: float, var: float, reliability: float, min: float = 0, max: float = 1) -> float:
         """
         Calculate the effective test length.
 
@@ -216,11 +216,11 @@ class bbclassify():
 
         Examples
         --------
-        >>> _etl(mean = 50, var = 25, reliability = 0.8, min = 0, max = 100)
+        >>> _calculate_etl(mean = 50, var = 25, reliability = 0.8, min = 0, max = 100)
         4.0
         """
         return ((mean - min) * (max - mean) - (reliability * var)) / (var * (1 - reliability))
-    def _k(self, mean: float, var: float, reliability: float, length: int) -> float:
+    def _calculate_lords_k(self, mean: float, var: float, reliability: float, length: int) -> float:
         """
         Calculate Lord's k.
 
@@ -242,7 +242,7 @@ class bbclassify():
 
         Examples
         --------
-        >>> _k(mean = 50, var = 25, reliability = 0.8, length = 10)
+        >>> _calculate_lords_k(mean = 50, var = 25, reliability = 0.8, length = 10)
         3.5
         """
         vare = var * (1 - reliability)
