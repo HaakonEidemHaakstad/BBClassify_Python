@@ -57,19 +57,18 @@ class bbclassify():
         self.l = l
         self.u = u
         self.failsafe = failsafe
-        self.fitted = False
+
         self.Accuracy = None
         self.Consistency = None
 
-    def fit(self):
         if isinstance(self.data, dict): # Parameters do not have to be estimated if a dict of parameter values is supplied.
             self.parameters = self.data
-            if self.method == "ll":
+            if method == "ll":
                 self.N = self.parameters["etl"]
             else:
                 self.N = self.parameters["atl"]
         else: # If raw data is supplied, estimate parameters from the data.
-            if self.method == "ll": # For the Livingston and Lewis method:
+            if method == "ll": # For the Livingston and Lewis method:
                 self.effective_test_length = self._etl(stats.mean(self.data), stats.variance(self.data), self.reliability, self.min_score, self.max_score)
                 self.N = round(self.effective_test_length)
                 self.K = 0
@@ -88,7 +87,6 @@ class bbclassify():
                 warn(f"Failsafe triggered. True-score fitting procedure produced impermissible parameter values (l = {self.parameters['l']}, u = {self.parameters['u']}).")
                 self.parameters = self._betaparameters(self.data, self.N, self.K, 2, self.l, self.u)
                 self.model = 2
-            self.fitted = True
 
         self.choose_values = [self._choose_functions(self.N, i) for i in range(self.N + 1)]
     
@@ -97,9 +95,6 @@ class bbclassify():
         # If the input to the data argument is a dictionary of model-parameters, throw a value error.
         if isinstance(self.data, dict):
             raise ValueError("Model fit testing requires observed test-scores as data input.")
-        if not self.fitted:
-            print("Model not fitted. Automatically fitting the model...")
-            self.fit()
         n_respondents = len(self.data)
         # Make a list of the model-implied (expected) frequency-distribution.
         expected = [
@@ -148,9 +143,6 @@ class bbclassify():
     
     # Function for estimating classification accuracy.
     def accuracy(self):
-        if not self.fitted:
-            print("Model not fitted. Automatically fitting the model...")
-            self.fit()
         confmat = np.zeros((self.N + 1, len(self.cut_scores) - 1))
         for i in range(len(self.cut_scores) - 1):
             for j in range(self.N + 1):
@@ -168,9 +160,6 @@ class bbclassify():
 
     # Function for estimating classification consistency.
     def consistency(self):
-        if not self.fitted:
-            print("Model not fitted. Automatically fitting the model...")
-            self.fit()
         consmat = np.zeros((self.N + 1, self.N + 1))
         for i in range(self.N + 1):
             for j in range(self.N + 1):
@@ -453,7 +442,7 @@ class bbclassify():
             return a - e * (b - 2*c + d)
         return a
 
-    def _da_factorial(self, x: int) -> int:
+    def _da_factorial(self, x: int):
         """
         Calculate the factorial of a number using direct arithmetic.
 
@@ -505,7 +494,7 @@ class bbclassify():
         """
         return self._da_factorial(N) / (self._da_factorial(n) * self._da_factorial(N - n))
 
-    def _choose_functions(self, N: int, n: int) -> list[int]:
+    def _choose_functions(self, N, n):
         """
         Compute coefficients for the compound beta-binomial distribution.
 
@@ -746,15 +735,15 @@ class bbclassify():
         >>> _dfac([4, 3], 1)
         [4, 3]
         """
-        y = x.copy()
-        for i in range(len(y)):
+        x1 = x.copy()
+        for i in range(len(x)):
             if r <= 1:
-                y[i] = y[i]**r
+                x1[i] = x1[i]**r
             else:
                 for j in range(1, r + 1):
                     if j > 1:
-                        y[i] = y[i] * (y[i] - j + 1)
-        return y
+                        x1[i] = x1[i] * (x[i] - j + 1)
+        return x1
 
     def _tsm(self, x: list, n: int, k: float): # TODO: Refactor as list comprehension.
         """
