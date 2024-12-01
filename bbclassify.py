@@ -58,8 +58,12 @@ class bbclassify():
         self.u = u
         self.failsafe = failsafe
 
-        self.Accuracy = None
-        self.Consistency = None
+
+        self.Modelfit_chi_squared = "Model fit not yet estimated. Run .modelfit() to estimate model fit."
+        self.Modelfit_degrees_of_freedom = "Model fit not yet estimated. Run .modelfit() to estimate model fit."
+        self.Modelfit_p_value = "Model fit not yet estimated. Run .modelfit() to estimate model fit."
+        self.Accuracy = "Accuracy not yet estimated. Run .accuracy() to estimate model fit."
+        self.Consistency = "Consistency not yet estimated, Run .consistency() to estiamte model fit."
 
         if isinstance(self.data, dict): # Parameters do not have to be estimated if a dict of parameter values is supplied.
             self.parameters = self.data
@@ -137,9 +141,9 @@ class bbclassify():
         expected = [j*normalize for j in expected]
 
         # Calculate chi-squared, degrees of freedom, and p-value.
-        self.modelfit_chi_squared = sum([(observed[i] - expected[i])**2 / expected[i] for i in range(len(expected))])
-        self.modelfit_degrees_of_freedom = len(expected) - self.model
-        self.modelfit_p_value = 1 - chi2.cdf(self.modelfit_chi_squared, self.modelfit_degrees_of_freedom)
+        self.Modelfit_chi_squared = sum([(observed[i] - expected[i])**2 / expected[i] for i in range(len(expected))])
+        self.Modelfit_degrees_of_freedom = len(expected) - self.model
+        self.Modelfit_p_value = 1 - chi2.cdf(self.modelfit_chi_squared, self.modelfit_degrees_of_freedom)
     
     # Function for estimating classification accuracy.
     def accuracy(self):
@@ -860,8 +864,11 @@ for i in range(1000):
 sumscores = list(np.sum(rawdata, axis = 1))
 meanscores = np.mean(rawdata, axis = 1)
 output = bbclassify(sumscores, cronbachs_alpha(rawdata), 0, 100, [50, 75], method = "ll")
-output.Accuracy()
-print(output.Accuracy)
+output.modelfit().Modelfit
+output.accuracy().Accuracy
+output.consistency().Consistency
+print(output.accuracy().Accuracy)
+print(o)
 #output.Accuracy().caprint()
 #output.Consistency().caprint()
 #print(f"Accuracy: {output.accuracy}.\nConsistency: {output.consistency}")
