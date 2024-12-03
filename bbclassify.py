@@ -1,10 +1,12 @@
 from warnings import warn
-import scipy.special
+from typing import Union
 from scipy.integrate import quad
 from scipy.stats import binom, chi2
+import scipy.special
 import statistics as stats
 import math
 import numpy as np
+import pandas as pd
 
 class bbclassify():
     def __init__(self, data: list, reliability: float, min_score: float, max_score: float, cut_scores: list[float], method: str = "ll", model: int = 4, l: float = 0, u: float = 1, failsafe: bool = False):
@@ -48,52 +50,42 @@ class bbclassify():
         
         Examples
         --------
-        # Set random seed.
         >>> np.random.seed(1234)
-        # Import support functions for estimating reliability and sample probabilities from a four-parameter beta distribution.
         >>> from support_functions.betafunctions import cronbachs_alpha, rbeta4p
 
-        # Define the parameters for the beta distribution
         >>> N_resp, N_items, alpha, beta, l, u = 250, 100, 6, 4, .15, .85
-        # The first two parameters are for the location and scale parameters respectively
         >>> p_success = rbeta4p(N_resp, alpha, beta, l, u)
         >>> rawdata = [np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)]
         >>> sumscores = [int(i) for i in list(np.sum(rawdata, axis = 1))]
         
-        # Create a bbclassify object and fit the model using the Livingston and Lewis approach.
         >>> bb_ll = bbclassify(data = sumscores, reliability = cronbachs_alpha(rawdata), min_score= 0, max_score = 100, cut_scores = [50, 75], method = "ll")
-        # Retrieve the parameter estimates.
         >>> print(bb_ll.Parameters)
         {'alpha': 3.877386083988672, 'beta': 3.9727308136649238, 'l': 0.2681195709670965, 'u': 0.8706384086828665, 'etl': 99.96892140618861, 'etl rounded': 100, 'lords_k': 0}
         
-        Estimate model fit and print the chi-squared value, the degrees of freedom, and the p-value.
         >>> bb_ll.modelfit()
         >>> print([bb_ll.Modelfit_chi_squared, bb_ll.Modelfit_degrees_of_freedom, bb_ll.Modelfit_p_value])
         [41.57098815343608, 46, 0.6581136565975114]
 
-        # Estimate accuracy and print the accuracy estimate.
         >>> bb_ll.accuracy()
         >>> print(bb_ll.Accuracy)
         0.8438848734448846
 
-        # Estimate consistency and print the consistency estimate.
         >>> bb_ll.consistency()
         >>> print(bb_ll.Consistency)
         0.7811757067805466
 
-        Do the same for the Hanson and Brennan approach.
         >>> bb_hb = bbclassify(data = sumscores, reliability = cronbachs_alpha(rawdata), min_score= 0, max_score = 100, cut_scores = [50, 75], method = "hb")
         >>> print(bb_hb.Parameters)
         {'alpha': 3.878383371886145, 'beta': 3.974443224813199, 'l': 0.2680848232389114, 'u': 0.8707270089303472, 'lords_k': -0.015544127802040899}
         >>> bb_hb.modelfit()
         >>> print([bb_hb.Modelfit_chi_squared, bb_hb.Modelfit_degrees_of_freedom, bb_hb.Modelfit_p_value])
-        [41.56824040756796, 46, 0.6582260821176182]
+        [41.568240407567785, 46, 0.6582260821176256]
         >>> bb_hb.accuracy()
         >>> print(bb_hb.Accuracy)
-        0.8440449341145049
+        0.8440449341145039
         >>> bb_hb.consistency()
         >>> print(bb_hb.Consistency)
-        0.7814787747625881
+        0.7814787747625861
         """
         self.data = data
         self.reliability = reliability
@@ -208,7 +200,6 @@ class bbclassify():
                 else:
                     self.confusionmatrix[i, j] = sum(confmat[self.cut_scores[i]:, j])
         self.Accuracy = sum([self.confusionmatrix[i, i] for i in range(len(self.cut_scores) - 1)])
-        return self
 
     # Function for estimating classification consistency.
     def consistency(self):
@@ -242,7 +233,6 @@ class bbclassify():
                 else:
                     self.consistencymatrix[i, j] = sum(sum(consmat[self.cut_scores[i]:self.cut_scores[i + 1] + 1, self.cut_scores[j]:self.cut_scores[j + 1] + 1]))
         self.Consistency = sum([self.consistencymatrix[i, i] for i in range(len(self.cut_scores) - 1)])
-        return self
         
     def _calculate_etl(self, mean: float, var: float, reliability: float, min: float = 0, max: float = 1) -> float:
         """
@@ -393,7 +383,7 @@ class bbclassify():
         c = binom.pmf(n - 1, N - 2, p)
         d = binom.pmf(n - 2, N - 2, p)
         e = k * p * (1 - p)
-        return a - e * (b - 2*c + d)
+        return float(a - e * (b - 2*c + d))
 
     def _dcbinom2(self, x: tuple, p: float, N: int, n: int, k: float, method: str) -> float:
         """
@@ -464,7 +454,7 @@ class bbclassify():
         >>> bb = bbclassify(data = sumscores, reliability = cronbachs_alpha(rawdata), min_score = 0, max_score = 100, cut_scores = [50])
         >>> print(bb._da_factorial(5))
         120
-        >>> print(_da_factorial(0))
+        >>> print(bb._da_factorial(0))
         1
         """
         if x > 0:
@@ -534,7 +524,7 @@ class bbclassify():
         >>> sumscores = [int(i) for i in list(np.sum(rawdata, axis = 1))]
         >>> bb = bbclassify(data = sumscores, reliability = cronbachs_alpha(rawdata), min_score = 0, max_score = 100, cut_scores = [50])
         >>> print(bb._choose_functions(10, 5))
-        (252, 210, 120, 45)
+        (252, 56, 70, 56)
         """        
         a = self._choose(N, n)
         b = self._choose(N - 2, n)
@@ -799,10 +789,17 @@ class bbclassify():
 
         Examples
         --------
-        >>> _dfac([5, 6, 7], 3)
+        >>> np.random.seed(1234)
+        >>> from support_functions.betafunctions import cronbachs_alpha, rbeta4p
+        >>> N_resp, N_items, alpha, beta, l, u = 250, 100, 6, 4, .15, .85
+        >>> p_success = rbeta4p(N_resp, alpha, beta, l, u)
+        >>> rawdata = [np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)]
+        >>> sumscores = [int(i) for i in list(np.sum(rawdata, axis = 1))]
+        >>> bb_hb = bbclassify(data = sumscores, reliability = cronbachs_alpha(rawdata), min_score = 0, max_score = 100, cut_scores = [50], method = "hb")
+        >>> bb_hb._dfac([5, 6, 7], 3)
         [60, 120, 210]
 
-        >>> _dfac([4, 3], 1)
+        >>> bb_hb._dfac([4, 3], 1)
         [4, 3]
         """
         x1 = x.copy()
@@ -899,10 +896,10 @@ class bbclassify():
         >>> rawdata = [np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)]
         >>> sumscores = [int(i) for i in list(np.sum(rawdata, axis = 1))]
         >>> bb_hb = bbclassify(data = sumscores, reliability = cronbachs_alpha(rawdata), min_score = 0, max_score = 100, cut_scores = [50], method = "hb")
-        >>> print(bb.Parameters)
+        >>> print(bb_hb.Parameters)
         {'alpha': 3.878383371886145, 'beta': 3.974443224813199, 'l': 0.2680848232389114, 'u': 0.8707270089303472, 'lords_k': -0.015544127802040899}
-        >>> bb = bbclassify(data = sumscores, reliability = cronbachs_alpha(rawdata), min_score= 0, max_score = 100, cut_scores = [50, 75], model = 2, l = 0.25, u = 0.85, method = "ll")
-        >>> print(bb.Parameters)
+        >>> bb_ll = bbclassify(data = sumscores, reliability = cronbachs_alpha(rawdata), min_score= 0, max_score = 100, cut_scores = [50, 75], model = 2, l = 0.25, u = 0.85, method = "ll")
+        >>> print(bb_ll.Parameters)
         {'alpha': 4.079875519795486, 'beta': 3.673593731051123, 'l': 0.25, 'u': 0.85, 'etl': 99.96892140618861, 'etl rounded': 100, 'lords_k': 0}
         """
         m = self._tsm(x, n, k)
@@ -923,3 +920,20 @@ class bbclassify():
             a = ((l - m[0]) * (l * (m[0] - u) - m[0]**2 + m[0] * u - s2)) / (s2 * (l - u))
             b = ((m[0] - u) * (l * (u - m[0]) + m[0]**2 - m[0] * u + s2)) / (s2 * (u - l))
         return {"alpha":  a, "beta": b, "l": l, "u": u}
+
+class reliability():
+    def __init__(self, data: pd.DataFrame, coef: str = "alpha") -> float:
+        self.data = data
+        self.coef = coef
+        self.covariance_matrix = np.array(self.data.dropna().cov())
+
+    def alpha(self):
+        n = self.covariance_matrix.shape[1]
+        return (n / (n - 1)) * (1 - (sum(np.diag(self.covariance_matrix)) / sum(sum(self.covariance_matrix))))
+    
+    def omega(self):
+        None
+        
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()
