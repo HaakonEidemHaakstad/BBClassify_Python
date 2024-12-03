@@ -45,6 +45,55 @@ class bbclassify():
         failsafe : bool, optional
             If True, reverts to a two-parameter model if the four-parameter model fails
             or produces invalid estimates. Default is False.
+        
+        Examples
+        --------
+        # Set random seed.
+        >>> np.random.seed(1234)
+        # Import support functions for estimating reliability and sample probabilities from a four-parameter beta distribution.
+        >>> from support_functions.betafunctions import cronbachs_alpha, rbeta4p
+
+        # Define the parameters for the beta distribution
+        >>> N_resp, N_items, alpha, beta, l, u = 250, 100, 6, 4, .15, .85
+        # The first two parameters are for the location and scale parameters respectively
+        >>> p_success = rbeta4p(N_resp, alpha, beta, l, u)
+        >>> rawdata = [np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)]
+        >>> sumscores = [int(i) for i in list(np.sum(rawdata, axis = 1))]
+        
+        # Create a bbclassify object and fit the model using the Livingston and Lewis approach.
+        >>> bb_ll = bbclassify(data = sumscores, reliability = cronbachs_alpha(rawdata), min_score= 0, max_score = 100, cut_scores = [50, 75], method = "ll")
+        # Retrieve the parameter estimates.
+        >>> print(bb_ll.Parameters)
+        {'alpha': 3.877386083988672, 'beta': 3.9727308136649238, 'l': 0.2681195709670965, 'u': 0.8706384086828665, 'etl': 99.96892140618861, 'etl rounded': 100, 'lords_k': 0}
+        
+        Estimate model fit and print the chi-squared value, the degrees of freedom, and the p-value.
+        >>> bb_ll.modelfit()
+        >>> print([bb_ll.Modelfit_chi_squared, bb_ll.Modelfit_degrees_of_freedom, bb_ll.Modelfit_p_value])
+        [41.57098815343608, 46, 0.6581136565975114]
+
+        # Estimate accuracy and print the accuracy estimate.
+        >>> bb_ll.accuracy()
+        >>> print(bb_ll.Accuracy)
+        0.8438848734448846
+
+        # Estimate consistency and print the consistency estimate.
+        >>> bb_ll.consistency()
+        >>> print(bb_ll.Consistency)
+        0.7811757067805466
+
+        Do the same for the Hanson and Brennan approach.
+        >>> bb_hb = bbclassify(data = sumscores, reliability = cronbachs_alpha(rawdata), min_score= 0, max_score = 100, cut_scores = [50, 75], method = "hb")
+        >>> print(bb_hb.Parameters)
+        {'alpha': 3.878383371886145, 'beta': 3.974443224813199, 'l': 0.2680848232389114, 'u': 0.8707270089303472, 'lords_k': -0.015544127802040899}
+        >>> bb_hb.modelfit()
+        >>> print([bb_hb.Modelfit_chi_squared, bb_hb.Modelfit_degrees_of_freedom, bb_hb.Modelfit_p_value])
+        [41.56824040756796, 46, 0.6582260821176182]
+        >>> bb_hb.accuracy()
+        >>> print(bb_hb.Accuracy)
+        0.8440449341145049
+        >>> bb_hb.consistency()
+        >>> print(bb_hb.Consistency)
+        0.7814787747625881
         """
         self.data = data
         self.reliability = reliability
@@ -58,38 +107,37 @@ class bbclassify():
         self.u = u
         self.failsafe = failsafe
 
-
-        self.Modelfit_chi_squared = "Model fit not yet estimated. Run .modelfit() to estimate model fit."
-        self.Modelfit_degrees_of_freedom = "Model fit not yet estimated. Run .modelfit() to estimate model fit."
-        self.Modelfit_p_value = "Model fit not yet estimated. Run .modelfit() to estimate model fit."
-        self.Accuracy = "Accuracy not yet estimated. Run .accuracy() to estimate model fit."
-        self.Consistency = "Consistency not yet estimated, Run .consistency() to estiamte model fit."
+        self.Modelfit_chi_squared = "Model fit not yet estimated. Call .modelfit() to estimate model fit."
+        self.Modelfit_degrees_of_freedom = "Model fit not yet estimated. Call .modelfit() to estimate model fit."
+        self.Modelfit_p_value = "Model fit not yet estimated. Call .modelfit() to estimate model fit."
+        self.Accuracy = "Accuracy not yet estimated. Call .accuracy() to estimate model fit."
+        self.Consistency = "Consistency not yet estimated, Call .consistency() to estiamte model fit."
 
         if isinstance(self.data, dict): # Parameters do not have to be estimated if a dict of parameter values is supplied.
-            self.parameters = self.data
+            self.Parameters = self.data
             if self.method == "ll":
-                self.N = self.parameters["etl"]
+                self.N = self.Parameters["etl"]
             else:
-                self.N = self.parameters["atl"]
+                self.N = self.Parameters["atl"]
         else: # If raw data is supplied, estimate parameters from the data.
             if self.method == "ll": # For the Livingston and Lewis method:
-                self.effective_test_length = self._calculate_etl(stats.mean(self.data), stats.variance(self.data), self.reliability, self.min_score, self.max_score)
+                self.effective_test_length = self._calculate_etl(stats.mean(self.data), stats.variance(self.data), float(self.reliability), self.min_score, self.max_score)
                 self.N = round(self.effective_test_length)
                 self.K = 0
-                self.parameters = self._betaparameters(self.data, self.N, 0, self.model, self.l, self.u)
-                self.parameters["etl"] = self.effective_test_length
-                self.parameters["etl rounded"] = self.N
-                self.parameters["lords_k"] = 0
+                self.Parameters = self._betaparameters(self.data, self.N, 0, self.model, self.l, self.u)
+                self.Parameters["etl"] = self.effective_test_length
+                self.Parameters["etl rounded"] = self.N
+                self.Parameters["lords_k"] = 0
             else: # For the Hanson and Brennan method:
                 self.N = self.max_score
-                self.K = self._calculate_lords_k(stats.mean(self.data), stats.variance(self.data), self.reliability, self.N)
-                self.parameters = self._betaparameters(self.data, self.N, self.K, self.model, self.l, self.u)
-                self.parameters["lords_k"] = self.K
+                self.K = float(self._calculate_lords_k(stats.mean(self.data), stats.variance(self.data), self.reliability, self.N))
+                self.Parameters = self._betaparameters(self.data, self.N, self.K, self.model, self.l, self.u)
+                self.Parameters["lords_k"] = self.K
             # If a four-parameter fitting procedure produced invalid location parameter estimates, and the failsafe was specified to
             # engage in such a circumstance, fit a two-parameter model instead with the location-parameters specified by the user.
-            if (self.failsafe == True and self.model == 4) and (self.parameters["l"] < 0 or self.parameters["u"] > 1):
-                warn(f"Failsafe triggered. True-score fitting procedure produced impermissible parameter values (l = {self.parameters['l']}, u = {self.parameters['u']}).")
-                self.parameters = self._betaparameters(self.data, self.N, self.K, 2, self.l, self.u)
+            if (self.failsafe == True and self.model == 4) and (self.Parameters["l"] < 0 or self.Parameters["u"] > 1):
+                warn(f"Failsafe triggered. True-score fitting procedure produced impermissible parameter values (l = {self.Parameters['l']}, u = {self.Parameters['u']}).")
+                self.Parameters = self._betaparameters(self.data, self.N, self.K, 2, self.l, self.u)
                 self.model = 2
 
         self.choose_values = [self._choose_functions(self.N, i) for i in range(self.N + 1)]
@@ -102,8 +150,8 @@ class bbclassify():
         n_respondents = len(self.data)
         # Make a list of the model-implied (expected) frequency-distribution.
         expected = [
-                    self._bbintegrate1_1(self.parameters["alpha"], self.parameters["beta"], self.parameters["l"], self.parameters["u"],
-                            self.choose_values[i], self.N, i, self.parameters["lords_k"], 0, 1, self.method)[0] * n_respondents 
+                    self._bbintegrate1_1(self.Parameters["alpha"], self.Parameters["beta"], self.Parameters["l"], self.Parameters["u"],
+                            self.choose_values[i], self.N, i, self.Parameters["lords_k"], 0, 1, self.method)[0] * n_respondents 
                             for i in range(self.N + 1)
                     ]
         # Make a list of the actual observed-score frequency-distribution.
@@ -143,15 +191,15 @@ class bbclassify():
         # Calculate chi-squared, degrees of freedom, and p-value.
         self.Modelfit_chi_squared = sum([(observed[i] - expected[i])**2 / expected[i] for i in range(len(expected))])
         self.Modelfit_degrees_of_freedom = len(expected) - self.model
-        self.Modelfit_p_value = 1 - chi2.cdf(self.modelfit_chi_squared, self.modelfit_degrees_of_freedom)
+        self.Modelfit_p_value = 1 - float(chi2.cdf(self.Modelfit_chi_squared, self.Modelfit_degrees_of_freedom))
     
     # Function for estimating classification accuracy.
     def accuracy(self):
         confmat = np.zeros((self.N + 1, len(self.cut_scores) - 1))
         for i in range(len(self.cut_scores) - 1):
             for j in range(self.N + 1):
-                confmat[j, i] = self._bbintegrate1_1(self.parameters["alpha"], self.parameters["beta"], self.parameters["l"], self.parameters["u"], 
-                                               self.choose_values[j], self.N, j, self.parameters["lords_k"], self.cut_truescores[i], self.cut_truescores[i + 1], self.method)[0]
+                confmat[j, i] = self._bbintegrate1_1(self.Parameters["alpha"], self.Parameters["beta"], self.Parameters["l"], self.Parameters["u"], 
+                                               self.choose_values[j], self.N, j, self.Parameters["lords_k"], self.cut_truescores[i], self.cut_truescores[i + 1], self.method)[0]
         self.confusionmatrix = np.zeros((len(self.cut_scores) - 1, len(self.cut_scores) - 1))
         for i in range(len(self.cut_scores) - 1):
             for j in range(len(self.cut_scores) - 1):
@@ -168,8 +216,8 @@ class bbclassify():
         for i in range(self.N + 1):
             for j in range(self.N + 1):
                 if i <= j:
-                    consmat[i, j] = self._bbintegrate2_1(self.parameters["alpha"], self.parameters["beta"], self.parameters["l"], self.parameters["u"], 
-                                                   self.choose_values[i], self.choose_values[j], self.N, i, j, self.parameters["lords_k"], 0, 1, self.method)[0]
+                    consmat[i, j] = self._bbintegrate2_1(self.Parameters["alpha"], self.Parameters["beta"], self.Parameters["l"], self.Parameters["u"], 
+                                                   self.choose_values[i], self.choose_values[j], self.N, i, j, self.Parameters["lords_k"], 0, 1, self.method)[0]
         lower_triangle = np.tril_indices(consmat.shape[0], 0)
         consmat[lower_triangle] = consmat.T[lower_triangle]
         self.consistencymatrix = np.zeros((len(self.cut_scores) - 1, len(self.cut_scores) - 1))
@@ -220,10 +268,18 @@ class bbclassify():
 
         Examples
         --------
-        >>> _calculate_etl(mean = 50, var = 25, reliability = 0.8, min = 0, max = 100)
-        4.0
+        >>> np.random.seed(1234)
+        >>> from support_functions.betafunctions import cronbachs_alpha, rbeta4p
+        >>> N_resp, N_items, alpha, beta, l, u = 250, 100, 6, 4, .15, .85
+        >>> p_success = rbeta4p(N_resp, alpha, beta, l, u)
+        >>> rawdata = [np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)]
+        >>> sumscores = [int(i) for i in list(np.sum(rawdata, axis = 1))]
+        >>> bb_ll = bbclassify(data = sumscores, reliability = cronbachs_alpha(rawdata), min_score= 0, max_score = 100, cut_scores = [50, 75], method = "ll")
+        >>> print(bb_ll._calculate_etl(mean = stats.mean(sumscores), var = stats.variance(sumscores), reliability = cronbachs_alpha(rawdata), min = 0, max = 100))
+        99.96892140618861
         """
         return ((mean - min) * (max - mean) - (reliability * var)) / (var * (1 - reliability))
+    
     def _calculate_lords_k(self, mean: float, var: float, reliability: float, length: int) -> float:
         """
         Calculate Lord's k.
@@ -246,8 +302,15 @@ class bbclassify():
 
         Examples
         --------
-        >>> _calculate_lords_k(mean = 50, var = 25, reliability = 0.8, length = 10)
-        3.5
+        >>> np.random.seed(1234)
+        >>> from support_functions.betafunctions import cronbachs_alpha, rbeta4p
+        >>> N_resp, N_items, alpha, beta, l, u = 250, 100, 6, 4, .15, .85
+        >>> p_success = rbeta4p(N_resp, alpha, beta, l, u)
+        >>> rawdata = [np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)]
+        >>> sumscores = [int(i) for i in list(np.sum(rawdata, axis = 1))]
+        >>> bb_hb = bbclassify(data = sumscores, reliability = cronbachs_alpha(rawdata), min_score= 0, max_score = 100, cut_scores = [50, 75], method = "hb")
+        >>> print(bb_hb._calculate_lords_k(mean = stats.mean(sumscores), var = stats.variance(sumscores), reliability = cronbachs_alpha(rawdata), length = 100))
+        -0.015544127802040899
         """
         vare = var * (1 - reliability)
         num = length * ((length - 1) * (var - vare) - length * var + mean * (length - mean))
@@ -278,107 +341,20 @@ class bbclassify():
 
         Examples
         --------
-        >>> _dbeta4p(x = 0.5, a = 2, b = 2, l = 0, u = 1)
-        1.5
+        >>> np.random.seed(1234)
+        >>> from support_functions.betafunctions import cronbachs_alpha, rbeta4p
+        >>> N_resp, N_items, alpha, beta, l, u = 250, 100, 6, 4, .15, .85
+        >>> p_success = rbeta4p(N_resp, alpha, beta, l, u)
+        >>> rawdata = [np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)]
+        >>> sumscores = [int(i) for i in list(np.sum(rawdata, axis = 1))]
+        >>> bb_hb = bbclassify(data = sumscores, reliability = cronbachs_alpha(rawdata), min_score= 0, max_score = 100, cut_scores = [50, 75], method = "hb")
+        >>> print(bb_hb._dbeta4p(x = 0.5, a = 6, b = 4, l = 0.15, u = 0.85))
+        2.8124999999999996
         """
         if x < l or x > u:
             return 0
         else:
             return (1 / scipy.special.beta(a, b)) * (((x - l)**(a - 1) * (u - x)**(b - 1)) / (u - l)**(a + b - 1))
-
-    def _beta4fit(self, x: list, moments: list = []) -> list[float]:
-        """
-        Fit a four-parameter beta distribution to a list of values.
-
-        Parameters
-        ----------
-        x : list[float]
-            List of values to fit a four-parameter beta distribution to.
-        moments : list[float], optional
-            An optional list containing the first four moments of the distribution. If not provided, moments are calculated from the data.
-
-        Returns
-        -------
-        list[float]
-            A list containing the parameters of the beta distribution:
-            - [0] : Alpha (first shape parameter).
-            - [1] : Beta (second shape parameter).
-            - [2] : Lower bound of the distribution.
-            - [3] : Upper bound of the distribution.
-
-        Examples
-        --------
-        >>> _beta4fit([0.1, 0.2, 0.3, 0.4])
-        [2.0, 2.5, 0.0, 1.0]
-        """
-        if len(moments) == 0:
-            m1 = stats.mean(x)
-            s2 = stats.variance(x)
-            x3 = list(x)
-            x4 = list(x)
-            for i in range(len(x)):
-                x3[i] = ((x3[i] - m1)**3) / (s2**0.5)**3
-                x4[i] = ((x4[i] - m1)**4) / (s2**0.5)**4
-            g3 = (1 / len(x3)) * sum(x3)
-            g4 = (1 / len(x4)) * sum(x4)
-        else:
-            m1 = moments[0]
-            s2 = moments[1] - moments[0]**2
-            g3 = (moments[2] - 3 * moments[0] * moments[1] + 2 * moments[0]**3) / ((s2**0.5)**3)
-            g4 = (moments[3] - 4 * moments[0] * moments[2] + 6 * moments[0]**2 * moments[0] - 3 * moments[0]**3) / ((s2**0.5)**4)
-        r = 6 * (g4 - g3**2 - 1) / (6 + 3 * g3**2 - 2 * g4)
-        if g3 < 0:
-            a = r / 2 * (1 + (1 - ((24 * (r + 1)) / ((r + 2) * (r + 3) * g4 - 3 * (r - 6) * (r + 1))))**0.5)
-            b = r / 2 * (1 - (1 - ((24 * (r + 1)) / ((r + 2) * (r + 3) * g4 - 3 * (r - 6) * (r + 1))))**0.5)
-        else:
-            b = r / 2 * (1 + (1 - ((24 * (r + 1)) / ((r + 2) * (r + 3) * g4 - 3 * (r - 6) * (r + 1))))**0.5)
-            a = r / 2 * (1 - (1 - ((24 * (r + 1)) / ((r + 2) * (r + 3) * g4 - 3 * (r - 6) * (r + 1))))**0.5)
-        l = m1 - ((a * (s2 * (a + b + 1))**0.5) / (a * b)**0.5)
-        u = m1 + ((b * (s2 * (a + b + 1))**0.5) / (a * b)**0.5)
-        return [a, b, l, u]
-
-    ## Function for fitting a two-parameter beta distribution to a vector of values.
-    # x = vector of values.
-    # l = lower-bound location parameter.
-    # u = upper-bound location parameter.
-    def _beta2fit(self, x: list, l: float, u: float, moments: list = []) -> list[float]:
-        """
-        Fit a two-parameter beta distribution to a list of values.
-
-        Parameters
-        ----------
-        x : list[float]
-            List of values to fit a two-parameter beta distribution to.
-        l : float
-            Lower bound of the distribution.
-        u : float
-            Upper bound of the distribution.
-        moments : list[float], optional
-            An optional list containing the first two moments of the distribution. If not provided, moments are calculated from the data.
-
-        Returns
-        -------
-        list[float]
-            A list containing the parameters of the beta distribution:
-            - [0] : Alpha (first shape parameter).
-            - [1] : Beta (second shape parameter).
-            - [2] : l (the lower-bound)
-            - [3] : u (the upper-bound)
-
-        Examples
-        --------
-        >>> _beta2fit([0.1, 0.2, 0.3, 0.4], l = 0, u = 1)
-        [2.0, 2.5, 0, 1]
-        """
-        if len(list) == 1:
-            m1 = stats.mean(x)
-            s2 = stats.variance(x)
-        else:
-            m1 = moments[0]
-            s2 = moments[1] - moments[0]**2
-        a = ((l - m1) * (l * (m1 - u) - m1**2 + m1 * u - s2)) / (s2 * (l - u))
-        b = ((m1 - u) * (l * (u - m1) + m1**2 - m1 * u + s2)) / (s2 * (u - l))
-        return [a, b, l, u]
 
     def _dcbinom(self, p: float, N: int, n: int, k: float) -> float:
         """
@@ -402,8 +378,15 @@ class bbclassify():
 
         Examples
         --------
-        >>> _dcbinom(p = 0.5, N = 10, n = 5, k = 2.0)
-        0.246
+        >>> np.random.seed(1234)
+        >>> from support_functions.betafunctions import cronbachs_alpha, rbeta4p
+        >>> N_resp, N_items, alpha, beta, l, u = 250, 100, 6, 4, .15, .85
+        >>> p_success = rbeta4p(N_resp, alpha, beta, l, u)
+        >>> rawdata = [np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)]
+        >>> sumscores = [int(i) for i in list(np.sum(rawdata, axis = 1))]
+        >>> bb_hb = bbclassify(data = sumscores, reliability = cronbachs_alpha(rawdata), min_score= 0, max_score = 100, cut_scores = [50, 75], method = "hb")
+        >>> bb_hb._dcbinom(p = 0.5, N = 10, n = 5, k = 2.0)
+        0.3007812500000001
         """
         a = binom.pmf(n, N, p)
         b = binom.pmf(n, N - 2, p)
@@ -436,6 +419,16 @@ class bbclassify():
         -------
         float:
             Probability of a specific number of 'successes' given N number of 'trials'.
+        
+        Examples
+        --------
+        >>> np.random.seed(1234)
+        >>> from support_functions.betafunctions import cronbachs_alpha, rbeta4p
+        >>> N_resp, N_items, alpha, beta, l, u = 250, 100, 6, 4, .15, .85
+        >>> p_success = rbeta4p(N_resp, alpha, beta, l, u)
+        >>> rawdata = [np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)]
+        >>> sumscores = [int(i) for i in list(np.sum(rawdata, axis = 1))]
+        >>> bb_hb = bbclassify(data = sumscores, reliability = cronbachs_alpha(rawdata), min_score = 0, max_score = 100, cut_scores = [50], method = "hb")
         """
         a = x[0]*(p**n)*(1 - p)**(N - n)
         if method != "ll":
@@ -462,10 +455,16 @@ class bbclassify():
 
         Examples
         --------
-        >>> _da_factorial(5)
+        >>> np.random.seed(1234)
+        >>> from support_functions.betafunctions import cronbachs_alpha, rbeta4p
+        >>> N_resp, N_items, alpha, beta, l, u = 250, 100, 6, 4, .15, .85
+        >>> p_success = rbeta4p(N_resp, alpha, beta, l, u)
+        >>> rawdata = [np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)]
+        >>> sumscores = [int(i) for i in list(np.sum(rawdata, axis = 1))]
+        >>> bb = bbclassify(data = sumscores, reliability = cronbachs_alpha(rawdata), min_score = 0, max_score = 100, cut_scores = [50])
+        >>> print(bb._da_factorial(5))
         120
-
-        >>> _da_factorial(0)
+        >>> print(_da_factorial(0))
         1
         """
         if x > 0:
@@ -493,10 +492,17 @@ class bbclassify():
         
         Examples
         --------
-        >>> _choose(10, 5)
+        >>> np.random.seed(1234)
+        >>> from support_functions.betafunctions import cronbachs_alpha, rbeta4p
+        >>> N_resp, N_items, alpha, beta, l, u = 250, 100, 6, 4, .15, .85
+        >>> p_success = rbeta4p(N_resp, alpha, beta, l, u)
+        >>> rawdata = [np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)]
+        >>> sumscores = [int(i) for i in list(np.sum(rawdata, axis = 1))]
+        >>> bb = bbclassify(data = sumscores, reliability = cronbachs_alpha(rawdata), min_score = 0, max_score = 100, cut_scores = [50])
+        >>> print(bb._choose(10, 5))
         252
         """
-        return self._da_factorial(N) / (self._da_factorial(n) * self._da_factorial(N - n))
+        return int(self._da_factorial(N) / (self._da_factorial(n) * self._da_factorial(N - n)))
 
     def _choose_functions(self, N, n):
         """
@@ -520,8 +526,15 @@ class bbclassify():
 
         Examples
         --------
-        >>> _choose_functions(10, 5)
-        (252.0, 210.0, 120.0, 45.0)
+        >>> np.random.seed(1234)
+        >>> from support_functions.betafunctions import cronbachs_alpha, rbeta4p
+        >>> N_resp, N_items, alpha, beta, l, u = 250, 100, 6, 4, .15, .85
+        >>> p_success = rbeta4p(N_resp, alpha, beta, l, u)
+        >>> rawdata = [np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)]
+        >>> sumscores = [int(i) for i in list(np.sum(rawdata, axis = 1))]
+        >>> bb = bbclassify(data = sumscores, reliability = cronbachs_alpha(rawdata), min_score = 0, max_score = 100, cut_scores = [50])
+        >>> print(bb._choose_functions(10, 5))
+        (252, 210, 120, 45)
         """        
         a = self._choose(N, n)
         b = self._choose(N - 2, n)
@@ -560,13 +573,22 @@ class bbclassify():
 
         Returns
         -------
-        float
+        tuple
             The computed area under the curve for the beta-binomial distribution over the specified range.
+            - [0] : The area under the curve.
+            - [1] : Error estimate.
 
         Examples
         --------
-        >>> _bbintegrate1(2, 3, 0, 1, 10, 5, 0.5, 0, 1, method = 'll')
-        0.1234
+        >>> np.random.seed(1234)
+        >>> from support_functions.betafunctions import cronbachs_alpha, rbeta4p
+        >>> N_resp, N_items, alpha, beta, l, u = 250, 100, 6, 4, .15, .85
+        >>> p_success = rbeta4p(N_resp, alpha, beta, l, u)
+        >>> rawdata = [np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)]
+        >>> sumscores = [int(i) for i in list(np.sum(rawdata, axis = 1))]
+        >>> bb_hb = bbclassify(data = sumscores, reliability = cronbachs_alpha(rawdata), min_score = 0, max_score = 100, cut_scores = [50])
+        >>> print(bb_hb._bbintegrate1(6, 4, 0.15, 0.85, 10, 5, 1, 0, 1, method = 'll'))
+        (0.18771821236360686, 1.0678646219550548e-08)
         """
         if method != "ll":
             def f(x, a, b, l, u, N, n, k):
@@ -610,8 +632,23 @@ class bbclassify():
 
         Returns
         -------
-        float
-            The computed area under the curve for the beta-binomial distribution over the specified range using precomputed coefficients.
+        tuple
+            The computed area under the curve for the beta-binomial distribution over the specified range.
+            - [0] : The area under the curve.
+            - [1] : Error estimate.
+
+        Examples
+        --------
+        >>> np.random.seed(1234)
+        >>> from support_functions.betafunctions import cronbachs_alpha, rbeta4p
+        >>> N_resp, N_items, alpha, beta, l, u = 250, 100, 6, 4, .15, .85
+        >>> p_success = rbeta4p(N_resp, alpha, beta, l, u)
+        >>> rawdata = [np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)]
+        >>> sumscores = [int(i) for i in list(np.sum(rawdata, axis = 1))]
+        >>> bb_hb = bbclassify(data = sumscores, reliability = cronbachs_alpha(rawdata), min_score = 0, max_score = 100, cut_scores = [50], method = "hb")
+        >>> cf = bb_hb._choose_functions(10, 5)
+        >>> print(bb_hb._bbintegrate1_1(6, 4, 0.15, 0.85, cf, 10, 5, 1, 0, 1, method = 'll'))
+        (0.18771821236360692, 1.0678646219447462e-08)
         """
         if method != "ll":
             def f(x, a, b, l, u, c, N, n, k):
@@ -652,8 +689,22 @@ class bbclassify():
 
         Returns
         -------
-        float:
-            The computed area under the curve for the bivariate beta-binomial distribution over the specified range using precomputed coefficients.
+        tuple
+            The computed area under the curve for the beta-binomial distribution over the specified range.
+            - [0] : The area under the curve.
+            - [1] : Error estimate.
+
+        Examples
+        --------
+        >>> np.random.seed(1234)
+        >>> from support_functions.betafunctions import cronbachs_alpha, rbeta4p
+        >>> N_resp, N_items, alpha, beta, l, u = 250, 100, 6, 4, .15, .85
+        >>> p_success = rbeta4p(N_resp, alpha, beta, l, u)
+        >>> rawdata = [np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)]
+        >>> sumscores = [int(i) for i in list(np.sum(rawdata, axis = 1))]
+        >>> bb_hb = bbclassify(data = sumscores, reliability = cronbachs_alpha(rawdata), min_score = 0, max_score = 100, cut_scores = [50], method = "hb")
+        >>> print(bb_hb._bbintegrate2(6, 4, 0.15, 0.85, 10, 5, 5, 1, 0, 1, method = 'll'))
+        (0.03843435178500844, 4.336562943457941e-10)
         """
         if method != "ll":
             def f(x, a, b, l, u, N, n1, n2, k):
@@ -699,8 +750,23 @@ class bbclassify():
 
         Returns
         -------
-        float
-            The computed area under the curve for the beta-binomial distribution over the specified range using precomputed coefficients.
+        tuple
+            The computed area under the curve for the beta-binomial distribution over the specified range.
+            - [0] : The area under the curve.
+            - [1] : Error estimate.
+
+        Examples
+        --------
+        >>> np.random.seed(1234)
+        >>> from support_functions.betafunctions import cronbachs_alpha, rbeta4p
+        >>> N_resp, N_items, alpha, beta, l, u = 250, 100, 6, 4, .15, .85
+        >>> p_success = rbeta4p(N_resp, alpha, beta, l, u)
+        >>> rawdata = [np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)]
+        >>> sumscores = [int(i) for i in list(np.sum(rawdata, axis = 1))]
+        >>> bb_hb = bbclassify(data = sumscores, reliability = cronbachs_alpha(rawdata), min_score = 0, max_score = 100, cut_scores = [50], method = "hb")
+        >>> cf = bb_hb._choose_functions(10, 5)
+        >>> print(bb_hb._bbintegrate2_1(6, 4, 0.15, 0.85, cf, cf, 10, 5, 5, 1, 0, 1, method = 'll'))
+        (0.03843435178500849, 4.336562889266626e-10)
         """
         if method != "ll":
             def f(x, a, b, l, u, c1, c2, N, n1, n2, k):
@@ -758,9 +824,10 @@ class bbclassify():
         x : list
             List of values representing final test scores.
         n : int
-            Effective test length.
+            - Effective test length for the Livingston and Lewis approach.
+            - Actual test length for the Hanson and Brennan approach.
         k : float
-            Lord's k parameter, used for adjusting the moments based on test characteristics.
+            Lord's k parameter, used for moment estimation under the Hanson and Brennan approach.
 
         Returns
         -------
@@ -773,8 +840,15 @@ class bbclassify():
 
         Examples
         --------
-        >>> _tsm([5, 6, 7, 8], 10, 0.2)
-        [0.65, 0.422, 0.276, 0.182]
+        >>> np.random.seed(1234)
+        >>> from support_functions.betafunctions import cronbachs_alpha, rbeta4p
+        >>> N_resp, N_items, alpha, beta, l, u = 250, 100, 6, 4, .15, .85
+        >>> p_success = rbeta4p(N_resp, alpha, beta, l, u)
+        >>> rawdata = [np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)]
+        >>> sumscores = [int(i) for i in list(np.sum(rawdata, axis = 1))]
+        >>> bb_hb = bbclassify(data = sumscores, reliability = cronbachs_alpha(rawdata), min_score = 0, max_score = 100, cut_scores = [50], method = "hb")
+        >>> print(bb_hb._tsm(sumscores, 100, bb_hb.Parameters['lords_k']))
+        [0.56572, 0.33029356244956504, 0.19847130696480725, 0.12240805759909551]
         """
         m = [stats.mean(x) / n, 0, 0, 0]
         for i in range(1, 4):
@@ -818,11 +892,18 @@ class bbclassify():
 
         Examples
         --------
-        >>> _betaparameters([5, 6, 7, 8], n=10, k=0.2, model=4)
-        {'alpha': 2.5, 'beta': 3.0, 'l': 0.0, 'u': 1.0}
-
-        >>> _betaparameters([5, 6, 7, 8], n=10, k=0.2, model=2, l=0, u=1)
-        {'alpha': 1.8, 'beta': 2.2, 'l': 0, 'u': 1}
+        >>> np.random.seed(1234)
+        >>> from support_functions.betafunctions import cronbachs_alpha, rbeta4p
+        >>> N_resp, N_items, alpha, beta, l, u = 250, 100, 6, 4, .15, .85
+        >>> p_success = rbeta4p(N_resp, alpha, beta, l, u)
+        >>> rawdata = [np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)]
+        >>> sumscores = [int(i) for i in list(np.sum(rawdata, axis = 1))]
+        >>> bb_hb = bbclassify(data = sumscores, reliability = cronbachs_alpha(rawdata), min_score = 0, max_score = 100, cut_scores = [50], method = "hb")
+        >>> print(bb.Parameters)
+        {'alpha': 3.878383371886145, 'beta': 3.974443224813199, 'l': 0.2680848232389114, 'u': 0.8707270089303472, 'lords_k': -0.015544127802040899}
+        >>> bb = bbclassify(data = sumscores, reliability = cronbachs_alpha(rawdata), min_score= 0, max_score = 100, cut_scores = [50, 75], model = 2, l = 0.25, u = 0.85, method = "ll")
+        >>> print(bb.Parameters)
+        {'alpha': 4.079875519795486, 'beta': 3.673593731051123, 'l': 0.25, 'u': 0.85, 'etl': 99.96892140618861, 'etl rounded': 100, 'lords_k': 0}
         """
         m = self._tsm(x, n, k)
         s2 = m[1] - m[0]**2
@@ -842,33 +923,3 @@ class bbclassify():
             a = ((l - m[0]) * (l * (m[0] - u) - m[0]**2 + m[0] * u - s2)) / (s2 * (l - u))
             b = ((m[0] - u) * (l * (u - m[0]) + m[0]**2 - m[0] * u + s2)) / (s2 * (u - l))
         return {"alpha":  a, "beta": b, "l": l, "u": u}
-
-
-## TESTS: ###
-# Setting the seed
-np.random.seed(123456)
-from support_functions.betafunctions import cronbachs_alpha, rbeta4p
-
-# Define the parameters for the beta distribution
-a, b = 6, 4
-#The first two parameters are for the location and scale parameters respectively
-p_success = rbeta4p(1000, 6, 4, .15, .85)
-
-# Preallocate a matrix of zeros with 1000 rows and 20 columns
-rawdata = np.zeros((1000, 100))
-
-# Loop over the columns
-for i in range(1000):
-    for j in range(100):
-        rawdata[i, j] = np.random.binomial(1, p_success[i], 1)
-sumscores = list(np.sum(rawdata, axis = 1))
-meanscores = np.mean(rawdata, axis = 1)
-output = bbclassify(sumscores, cronbachs_alpha(rawdata), 0, 100, [50, 75], method = "ll")
-output.modelfit().Modelfit
-output.accuracy().Accuracy
-output.consistency().Consistency
-print(output.accuracy().Accuracy)
-print(o)
-#output.Accuracy().caprint()
-#output.Consistency().caprint()
-#print(f"Accuracy: {output.accuracy}.\nConsistency: {output.consistency}")
