@@ -929,11 +929,15 @@ class reliability():
 
     def alpha(self):
         n = self.covariance_matrix.shape[1]
-        return (n / (n - 1)) * (1 - (sum(np.diag(self.covariance_matrix)) / sum(sum(self.covariance_matrix))))
+        self.alpha = (n / (n - 1)) * (1 - (sum(np.diag(self.covariance_matrix)) / sum(sum(self.covariance_matrix))))
+        return self.alpha
     
     def omega(self):
-        None
         
+        self.covariance_matrix = np.vstack([self.covariance_matrix, self.covariance_matrix[[0], :]])
+        self.covariance_matrix = np.hstack([self.covariance_matrix, self.covariance_matrix[:, [0]]])
+        self.covariance_matrix = self.covariance_matrix[1:, 1:]
+
 if __name__ == "__main__":
     import doctest
     doctest.testmod()
