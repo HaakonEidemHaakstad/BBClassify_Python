@@ -929,14 +929,32 @@ class reliability():
 
     def alpha(self):
         n = self.covariance_matrix.shape[1]
-        self.alpha = (n / (n - 1)) * (1 - (sum(np.diag(self.covariance_matrix)) / sum(sum(self.covariance_matrix))))
-        return self.alpha
+        self.Alpha = (n / (n - 1)) * (1 - (sum(np.diag(self.covariance_matrix)) / sum(sum(self.covariance_matrix))))
+        return self.Alpha
     
     def omega(self):
-        
-        self.covariance_matrix = np.vstack([self.covariance_matrix, self.covariance_matrix[[0], :]])
-        self.covariance_matrix = np.hstack([self.covariance_matrix, self.covariance_matrix[:, [0]]])
-        self.covariance_matrix = self.covariance_matrix[1:, 1:]
+        variance_list = np.diag(self.covariance_matrix)
+        factor_loadings = []
+        for _ in range(len(variance_list)):
+            factor_loading = []
+            covariance_list = [[float(self.covariance_matrix[i + j + 1, i]) for j in range(len(self.covariance_matrix[i:, i]) - 1)] for i in range(len(self.covariance_matrix[0]) - 1)]
+            for i in range(len(covariance_list[0]) - 1):
+                for j in range(len(covariance_list[i + 1])):
+                    # If a covariance is exactly 0, consider it a rounding error and add 0.0001.
+                    if abs(covariance_list[i + 1][j]) == 0: covariance_list[i + 1][j] += .00001
+                    value = [(covariance_list[0][i] * covariance_list[0][i + j + 1])  / abs(covariance_list[i + 1][j]), 1]
+                    if value[0] < 0:
+                        value = [abs(value[0]), -1]
+                    factor_loading.append(value[0]**.5 * value[1])
+            factor_loadings.append(stats.mean(factor_loading))
+            self.covariance_matrix = np.vstack([self.covariance_matrix, self.covariance_matrix[[0], :]])
+            self.covariance_matrix = np.hstack([self.covariance_matrix, self.covariance_matrix[:, [0]]])
+            self.covariance_matrix = self.covariance_matrix[1:, 1:]
+        squared_factor_loadings = [i**2 for i in factor_loadings]
+        factor_loadings_squared = sum(factor_loadings)**2
+        self.Omega = factor_loadings_squared / (sum([variance_list[i] - squared_factor_loadings[i] for i in range(len(variance_list))]) + factor_loadings_squared)
+        return self.Omega
+
 
 if __name__ == "__main__":
     import doctest
