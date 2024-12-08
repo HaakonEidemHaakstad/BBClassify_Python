@@ -767,7 +767,6 @@ class bbclassify():
                 return self._dbeta4p(x, a, b, l, u) * self._dcbinom2(c1, x, N, n1, k, method) * self._dcbinom2(c2, x, N, n2, k, method)
             return quad(f, lower, upper, args = (a, b, l, u, c1, c2, N, n1, n2))
 
-
     def _dfac(self, x: list, r = int): # TODO: Rewrite as list comprehension.
         """
         Calculate the descending factorial for each numeric value in a list.
@@ -928,11 +927,21 @@ class reliability():
         self.covariance_matrix = np.array(self.data.dropna().cov())
 
     def alpha(self):
-        n = self.covariance_matrix.shape[1]
+        n = self.covariance_matrix.shape[0]
         self.Alpha = (n / (n - 1)) * (1 - (sum(np.diag(self.covariance_matrix)) / sum(sum(self.covariance_matrix))))
         return self.Alpha
     
     def omega(self):
+
+        """
+        >>> np.random.seed(1234)
+        >>> from support_functions.betafunctions import cronbachs_alpha, rbeta4p
+        >>> N_resp, N_items, alpha, beta, l, u = 250, 10, 6, 4, .15, .85
+        >>> p_success = rbeta4p(N_resp, alpha, beta, l, u)
+        >>> rawdata = pd.DataFrame([np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)])
+        >>> rel = reliability(rawdata)
+        >>> omega = rel.omega()
+        """
         variance_list = np.diag(self.covariance_matrix)
         factor_loadings = []
         for _ in range(len(variance_list)):
@@ -950,12 +959,20 @@ class reliability():
             self.covariance_matrix = np.vstack([self.covariance_matrix, self.covariance_matrix[[0], :]])
             self.covariance_matrix = np.hstack([self.covariance_matrix, self.covariance_matrix[:, [0]]])
             self.covariance_matrix = self.covariance_matrix[1:, 1:]
+        print(factor_loadings)
         squared_factor_loadings = [i**2 for i in factor_loadings]
         factor_loadings_squared = sum(factor_loadings)**2
         self.Omega = factor_loadings_squared / (sum([variance_list[i] - squared_factor_loadings[i] for i in range(len(variance_list))]) + factor_loadings_squared)
         return self.Omega
 
-
+np.random.seed(1234)
+from support_functions.betafunctions import rbeta4p
+N_resp, N_items, alpha, beta, l, u = 250, 10, 6, 4, .15, .85
+p_success = rbeta4p(N_resp, alpha, beta, l, u)
+rawdata = pd.DataFrame([np.random.binomial(1, p_success[i], N_items).T for i in range(N_resp)])
+rel = reliability(rawdata)
+omega = rel.omega()
+print(omega)
 if __name__ == "__main__":
     import doctest
     doctest.testmod()

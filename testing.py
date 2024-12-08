@@ -47,10 +47,11 @@ for _ in range(len(varlist)):
     arr = np.hstack([arr, arr[:, [0]]])
     arr = arr[1:, 1:]
 
+print(factor_loadings)
+
 
 #exit()
 squared_factor_loadings = [i**2 for i in factor_loadings]
-print(len(varlist), len(squared_factor_loadings))
 factor_loadings_squared = sum(factor_loadings)**2
 Omega = factor_loadings_squared / (sum([varlist[i] - squared_factor_loadings[i] for i in range(len(varlist))]) + factor_loadings_squared)
 print(Omega)
