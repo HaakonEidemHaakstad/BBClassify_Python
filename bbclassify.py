@@ -307,6 +307,35 @@ class bbclassify():
         den = 2 * (mean * (length - mean) - (var - vare))
         return num / den
 
+    def _rbeta4p(n: int, a: float, b: float, l: float = 0, u: float = 1) -> np.array:
+        """
+        Random number generator for the four-parameter beta distribution.
+
+        Parameters
+        ----------
+        n : int
+            Number of random values to draw from the four-parameter beta distribution.
+        a : float
+            Alpha (first shape parameter) of the beta distribution.
+        b : float
+            Beta (second shape parameter) of the beta distribution.
+        l : float, optional
+            Lower bound of the four-parameter beta distribution. Default is 0.
+        u : float, optional
+            Upper bound of the four-parameter beta distribution. Default is 1.
+
+        Returns
+        -------
+        numpy.ndarray
+            Array of length 'n' containing random values drawn from the four-parameter beta distribution.
+
+        Examples
+        --------
+        >>> rbeta4p(n = 5, a = 2, b = 2, l = 0, u = 1)
+        array([0.12, 0.55, 0.23, 0.76, 0.89])
+        """
+        return np.random.beta(a, b, n) * (u - l) + l
+
     def _dbeta4p(self, x: float, a: float, b: float, l: float, u: float) -> float:
         """
         Density function for the four-parameter beta distribution.
@@ -975,7 +1004,7 @@ class reliability():
         print(pd.DataFrame(implied_matrix))
         self.Omega = factor_loadings_squared / (sum([variance_list[i] - squared_factor_loadings[i] for i in range(len(variance_list))]) + factor_loadings_squared)
         return self.Omega 
-
+"""
 np.random.seed(1234)
 from support_functions.betafunctions import rbeta4p
 N_resp, N_items, alpha, beta, l, u = 250, 10, 6, 4, .15, .85
@@ -984,12 +1013,10 @@ rawdata = pd.DataFrame([np.random.binomial(1, p_success[i], N_items).T for i in 
 rel = reliability(rawdata)
 omega = rel.omega()
 print(omega)
-
-"""
 alpha = rel.alpha()
 print(alpha)
 print(omega)
+"""
 if __name__ == "__main__":
     import doctest
     doctest.testmod()
-"""
