@@ -3,7 +3,7 @@ import pandas as pd
 import math
 import statistics as stats
 from support_functions.betafunctions import cronbachs_alpha, rbeta4p
-
+"""
 #np.random.seed(1234)
 #N_resp, N_items, alpha, beta, l, u = 250, 10, 6, 4, .15, .85
 #p_success = rbeta4p(N_resp, alpha, beta, l, u)
@@ -22,26 +22,19 @@ for i in range(arr.shape[0]):
         arr[i, j] = round(arr[i, j], 3)
         #arr[i, j] = arr[i, j]
 
-#print(arr)
-varlist = np.diag(arr)#[float(arr[i, i]) for i in range(arr.shape[0])]
-#print(varlist)
+varlist = np.diag(arr)
 covariance_list = [[float(arr[i + j + 1, i]) for j in range(len(arr[i:, i]) - 1)] for i in range(len(arr[0]) - 1)]
-#print(covariance_list)
-#for i in covariance_list: print(i)
-#exit()
 factor_loadings = []
 for _ in range(len(varlist)):
     factor_loading = []
     covariance_list = [[float(arr[i + j + 1, i]) for j in range(len(arr[i:, i]) - 1)] for i in range(len(arr[0]) - 1)]
     for i in range(len(covariance_list[0]) - 1):
         for j in range(len(covariance_list[i + 1])):
-            # If a covariance is exactly 0, consider it a rounding error and add 0.0001.
             if abs(covariance_list[i + 1][j]) == 0: covariance_list[i + 1][j] += .00001
             value = [(covariance_list[0][i] * covariance_list[0][i + j + 1])  / abs(covariance_list[i + 1][j]), 1]
             if value[0] < 0:
                 value = [abs(value[0]), -1]
             factor_loading.append(value[0]**.5 * value[1])
-            #print(covariance_list[0][i], covariance_list[0][i + j + 1], covariance_list[j + 1][i], round(value[0]**.5, 3))
     factor_loadings.append(stats.mean(factor_loading))
     arr = np.vstack([arr, arr[[0], :]])
     arr = np.hstack([arr, arr[:, [0]]])
@@ -49,14 +42,19 @@ for _ in range(len(varlist)):
 
 print(factor_loadings)
 
-
-#exit()
 squared_factor_loadings = [i**2 for i in factor_loadings]
 factor_loadings_squared = sum(factor_loadings)**2
 Omega = factor_loadings_squared / (sum([varlist[i] - squared_factor_loadings[i] for i in range(len(varlist))]) + factor_loadings_squared)
 print(Omega)
-
-
+"""
+np.random.seed(1234)
+from support_functions.betafunctions import cronbachs_alpha, rbeta4p
+N_resp, N_items, alpha, beta, l, u = 250, 10, 6, 4, .15, .85
+p_success = rbeta4p(N_resp, alpha, beta, l, u)
+rawdata = pd.DataFrame([np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)])
+#rel = reliability(rawdata)
+#mega = rel.omega()
+print(rawdata.cov())
 
 #print(stats.mean(lst))
 

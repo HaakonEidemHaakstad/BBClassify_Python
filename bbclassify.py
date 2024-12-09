@@ -959,11 +959,22 @@ class reliability():
             self.covariance_matrix = np.vstack([self.covariance_matrix, self.covariance_matrix[[0], :]])
             self.covariance_matrix = np.hstack([self.covariance_matrix, self.covariance_matrix[:, [0]]])
             self.covariance_matrix = self.covariance_matrix[1:, 1:]
-        print(factor_loadings)
         squared_factor_loadings = [i**2 for i in factor_loadings]
         factor_loadings_squared = sum(factor_loadings)**2
+        implied_matrix = np.zeros((self.covariance_matrix.shape[0], self.covariance_matrix.shape[0]), float)
+        for i in range(self.covariance_matrix.shape[0]):
+            for j in range(self.covariance_matrix.shape[0]):
+                if i != j:
+                    implied_matrix[i, j] = factor_loadings[i] * factor_loadings[j]
+                else:
+                    implied_matrix[i, j] = self.covariance_matrix[i, j]
+        #for i in range(self.covariance_matrix.shape[0]):
+            #for j in range(self.covariance_matrix.shape[0]):
+                #if i != j:
+                    #implied_matrix[i, j] = round(implied_matrix[i, j], 6)
+        print(pd.DataFrame(implied_matrix))
         self.Omega = factor_loadings_squared / (sum([variance_list[i] - squared_factor_loadings[i] for i in range(len(variance_list))]) + factor_loadings_squared)
-        return self.Omega
+        return self.Omega 
 
 np.random.seed(1234)
 from support_functions.betafunctions import rbeta4p
@@ -973,6 +984,12 @@ rawdata = pd.DataFrame([np.random.binomial(1, p_success[i], N_items).T for i in 
 rel = reliability(rawdata)
 omega = rel.omega()
 print(omega)
+
+"""
+alpha = rel.alpha()
+print(alpha)
+print(omega)
 if __name__ == "__main__":
     import doctest
     doctest.testmod()
+"""

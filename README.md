@@ -6,6 +6,4 @@ Provides Python implementation of the beta-binomial psychometric classification 
 Contributions focusing on improving estimation times and performance increases in general are very welcome.
 
 ## Future directions
-- Turn the cac() function into a class.
-- Implement model fit testing.
-- GUI.
+- GUI/TUI equivalent to bbclass.
