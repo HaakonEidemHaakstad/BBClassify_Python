@@ -979,6 +979,8 @@ class reliability():
             for i in range(len(covariance_list[0]) - 1):
                 for j in range(len(covariance_list[i + 1])):
                     # If a covariance is exactly 0, consider it a rounding error and add 0.0001.
+                    if covariance_list[i + 1][j] < 0:
+                        raise Warning("Negative covariance encountered. Coefficient Omega will not be an appropriate measure of reliability.")
                     if abs(covariance_list[i + 1][j]) == 0: covariance_list[i + 1][j] += .00001
                     value = [(covariance_list[0][i] * covariance_list[0][i + j + 1])  / abs(covariance_list[i + 1][j]), 1]
                     if value[0] < 0:
