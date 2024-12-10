@@ -307,7 +307,7 @@ class bbclassify():
         den = 2 * (mean * (length - mean) - (var - vare))
         return num / den
 
-    def _rbeta4p(n: int, a: float, b: float, l: float = 0, u: float = 1) -> np.array:
+    def _rbeta4p(self, n: int, a: float, b: float, l: float = 0, u: float = 1) -> np.array:
         """
         Random number generator for the four-parameter beta distribution.
 
@@ -331,8 +331,14 @@ class bbclassify():
 
         Examples
         --------
-        >>> rbeta4p(n = 5, a = 2, b = 2, l = 0, u = 1)
-        array([0.12, 0.55, 0.23, 0.76, 0.89])
+        >>> import numpy as np
+        >>> np.random.seed(1234)
+        >>> N_resp, N_items, alpha, beta, l, u = 250, 100, 6, 4, .15, .85
+        >>> p_success = np.random.beta(alpha, beta, N_resp) * (u - l) + l
+        >>> rawdata = pd.DataFrame([np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)])
+        >>> sumscores = [int(i) for i in list(np.sum(rawdata, axis = 1))]
+        >>> bbclassify(sumscores, reliability(rawdata).alpha(), 0, 100, [50])._rbeta4p(5, 6, 4, .25, .75)
+        array([0.53467969, 0.70218754, 0.45730315, 0.5583427 , 0.59158903])
         """
         return np.random.beta(a, b, n) * (u - l) + l
 
@@ -950,9 +956,8 @@ class bbclassify():
         return {"alpha":  a, "beta": b, "l": l, "u": u}
 
 class reliability():
-    def __init__(self, data: pd.DataFrame, coef: str = "alpha") -> float:
+    def __init__(self, data: pd.DataFrame) -> float:
         self.data = data
-        self.coef = coef
         self.covariance_matrix = np.array(self.data.dropna().cov())
 
     def alpha(self):
@@ -961,18 +966,25 @@ class reliability():
         return self.Alpha
     
     def omega(self):
-
         """
         >>> np.random.seed(1234)
-        >>> from support_functions.betafunctions import cronbachs_alpha, rbeta4p
+        >>> from support_functions.betafunctions import rbeta4p
         >>> N_resp, N_items, alpha, beta, l, u = 250, 10, 6, 4, .15, .85
         >>> p_success = rbeta4p(N_resp, alpha, beta, l, u)
         >>> rawdata = pd.DataFrame([np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)])
         >>> rel = reliability(rawdata)
+        >>> alpha = rel.alpha()
+        >>> print(round(alpha, 2))
+        0.32
+        >>> np.random.seed(1234)
+        >>> rawdata = pd.DataFrame([np.random.binomial(5, p_success[i], N_items) for i in range(N_resp)])
+        >>> rel = reliability(rawdata)
         >>> omega = rel.omega()
+        >>> print(round(omega, 2))
+        0.69
         """
         variance_list = np.diag(self.covariance_matrix)
-        factor_loadings = []
+        self.factor_loadings = []
         for _ in range(len(variance_list)):
             factor_loading = []
             covariance_list = [[float(self.covariance_matrix[i + j + 1, i]) for j in range(len(self.covariance_matrix[i:, i]) - 1)] for i in range(len(self.covariance_matrix[0]) - 1)]
@@ -980,44 +992,54 @@ class reliability():
                 for j in range(len(covariance_list[i + 1])):
                     # If a covariance is exactly 0, consider it a rounding error and add 0.0001.
                     if covariance_list[i + 1][j] < 0:
-                        raise Warning("Negative covariance encountered. Coefficient Omega will not be an appropriate measure of reliability.")
+                        raise Warning("Covariance matrix contains negative values. Coefficient Omega will not be an appropriate measure of reliability.")
                     if abs(covariance_list[i + 1][j]) == 0: covariance_list[i + 1][j] += .00001
-                    value = [(covariance_list[0][i] * covariance_list[0][i + j + 1])  / abs(covariance_list[i + 1][j]), 1]
-                    if value[0] < 0:
-                        value = [abs(value[0]), -1]
-                    factor_loading.append(value[0]**.5 * value[1])
-            factor_loadings.append(stats.mean(factor_loading))
+                    value = (covariance_list[0][i] * covariance_list[0][i + j + 1])  / covariance_list[i + 1][j]
+                    factor_loading.append(value**.5)
+            self.factor_loadings.append(stats.mean(factor_loading))
             self.covariance_matrix = np.vstack([self.covariance_matrix, self.covariance_matrix[[0], :]])
             self.covariance_matrix = np.hstack([self.covariance_matrix, self.covariance_matrix[:, [0]]])
             self.covariance_matrix = self.covariance_matrix[1:, 1:]
-        squared_factor_loadings = [i**2 for i in factor_loadings]
-        factor_loadings_squared = sum(factor_loadings)**2
-        implied_matrix = np.zeros((self.covariance_matrix.shape[0], self.covariance_matrix.shape[0]), float)
-        for i in range(self.covariance_matrix.shape[0]):
-            for j in range(self.covariance_matrix.shape[0]):
-                if i != j:
-                    implied_matrix[i, j] = factor_loadings[i] * factor_loadings[j]
-                else:
-                    implied_matrix[i, j] = self.covariance_matrix[i, j]
-        #for i in range(self.covariance_matrix.shape[0]):
-            #for j in range(self.covariance_matrix.shape[0]):
-                #if i != j:
-                    #implied_matrix[i, j] = round(implied_matrix[i, j], 6)
-        print(pd.DataFrame(implied_matrix))
+        squared_factor_loadings = [i**2 for i in self.factor_loadings]
+        factor_loadings_squared = sum(self.factor_loadings)**2
+        def omega_gfi():
+            implied_matrix = np.zeros((self.covariance_matrix.shape[0], self.covariance_matrix.shape[0]), float)
+            for i in range(self.covariance_matrix.shape[0]):
+                for j in range(self.covariance_matrix.shape[0]):
+                    if i != j:
+                        implied_matrix[i, j] = self.factor_loadings[i] * self.factor_loadings[j]
+                    else:
+                        implied_matrix[i, j] = self.covariance_matrix[i, j]
+            self.Omega_GFI = 1 - (((self.covariance_matrix - implied_matrix).mean())**2 / self.covariance_matrix.mean())
+            return self.Omega_GFI
+        self.omega_gfi = omega_gfi
         self.Omega = factor_loadings_squared / (sum([variance_list[i] - squared_factor_loadings[i] for i in range(len(variance_list))]) + factor_loadings_squared)
-        return self.Omega 
+        return self.Omega
+"""
 """
 np.random.seed(1234)
 from support_functions.betafunctions import rbeta4p
 N_resp, N_items, alpha, beta, l, u = 250, 10, 6, 4, .15, .85
 p_success = rbeta4p(N_resp, alpha, beta, l, u)
-rawdata = pd.DataFrame([np.random.binomial(1, p_success[i], N_items).T for i in range(N_resp)])
+rawdata = pd.DataFrame([np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)])
 rel = reliability(rawdata)
-omega = rel.omega()
-print(omega)
 alpha = rel.alpha()
-print(alpha)
-print(omega)
+print(round(alpha, 2))
+np.random.seed(1234)
+rawdata = pd.DataFrame([np.random.binomial(5, p_success[i], N_items) for i in range(N_resp)])
+rel = reliability(rawdata)
+rel.omega()
+rel.omega_gfi()
+print(rel.Omega_GFI)
+print(rel.Omega)
+
+"""
+np.random.seed(1234)
+N_resp, N_items, alpha, beta, l, u = 250, 100, 6, 4, .15, .85
+p_success = np.random.beta(alpha, beta, N_resp) * (u - l) + l
+rawdata = pd.DataFrame([np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)])
+sumscores = [int(i) for i in list(np.sum(rawdata, axis = 1))]
+print(bbclassify(sumscores, reliability(rawdata).alpha(), 0, 100, [50])._rbeta4p(5, 6, 4, .25, .75))
 """
 if __name__ == "__main__":
     import doctest
