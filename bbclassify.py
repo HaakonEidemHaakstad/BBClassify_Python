@@ -957,10 +957,35 @@ class bbclassify():
 
 class reliability():
     def __init__(self, data: pd.DataFrame) -> float:
+        """      
+        >>> np.random.seed(1234)
+        >>> from support_functions.betafunctions import rbeta4p
+        >>> N_resp, N_items, alpha, beta, l, u = 250, 5, 6, 4, .15, .85
+        >>> p_success = np.random.beta(alpha, beta, N_resp) * (u - l) + l
+        >>> rawdata = pd.DataFrame([np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)])
+        >>> rel = reliability(rawdata)
+        >>> print(rel.covariance_matrix)
+        [[ 0.24689157  0.00293976  0.01241767 -0.02012851 -0.00817671]
+         [ 0.00293976  0.24869076  0.00178313  0.01653012  0.02549398]
+         [ 0.01241767  0.00178313  0.24322892  0.03934137  0.0055743 ]
+         [-0.02012851  0.01653012  0.03934137  0.2499759   0.05113253]
+         [-0.00817671  0.02549398  0.0055743   0.05113253  0.241751  ]]
+        """
         self.data = data
         self.covariance_matrix = np.array(self.data.dropna().cov())
 
     def alpha(self):
+        """        
+        >>> np.random.seed(1234)
+        >>> from support_functions.betafunctions import rbeta4p
+        >>> N_resp, N_items, alpha, beta, l, u = 250, 10, 6, 4, .15, .85
+        >>> p_success = np.random.beta(alpha, beta, N_resp) * (u - l) + l
+        >>> rawdata = pd.DataFrame([np.random.binomial(5, p_success[i], N_items) for i in range(N_resp)])
+        >>> rel = reliability(rawdata)
+        >>> alpha = rel.alpha()
+        >>> print(round(alpha, 2))
+        0.71
+        """
         n = self.covariance_matrix.shape[0]
         self.Alpha = (n / (n - 1)) * (1 - (sum(np.diag(self.covariance_matrix)) / sum(sum(self.covariance_matrix))))
         return self.Alpha
@@ -970,18 +995,12 @@ class reliability():
         >>> np.random.seed(1234)
         >>> from support_functions.betafunctions import rbeta4p
         >>> N_resp, N_items, alpha, beta, l, u = 250, 10, 6, 4, .15, .85
-        >>> p_success = rbeta4p(N_resp, alpha, beta, l, u)
-        >>> rawdata = pd.DataFrame([np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)])
-        >>> rel = reliability(rawdata)
-        >>> alpha = rel.alpha()
-        >>> print(round(alpha, 2))
-        0.32
-        >>> np.random.seed(1234)
+        >>> p_success = np.random.beta(alpha, beta, N_resp) * (u - l) + l
         >>> rawdata = pd.DataFrame([np.random.binomial(5, p_success[i], N_items) for i in range(N_resp)])
         >>> rel = reliability(rawdata)
         >>> omega = rel.omega()
         >>> print(round(omega, 2))
-        0.69
+        0.72
         """
         variance_list = np.diag(self.covariance_matrix)
         self.factor_loadings = []
@@ -992,7 +1011,7 @@ class reliability():
                 for j in range(len(covariance_list[i + 1])):
                     # If a covariance is exactly 0, consider it a rounding error and add 0.0001.
                     if covariance_list[i + 1][j] < 0:
-                        raise Warning("Covariance matrix contains negative values. Coefficient Omega will not be an appropriate measure of reliability.")
+                        raise ValueError("Covariance matrix contains negative values. Coefficient Omega will not be an appropriate measure of reliability.")
                     if abs(covariance_list[i + 1][j]) == 0: covariance_list[i + 1][j] += .00001
                     value = (covariance_list[0][i] * covariance_list[0][i + j + 1])  / covariance_list[i + 1][j]
                     factor_loading.append(value**.5)
@@ -1019,7 +1038,7 @@ class reliability():
 """
 np.random.seed(1234)
 from support_functions.betafunctions import rbeta4p
-N_resp, N_items, alpha, beta, l, u = 250, 10, 6, 4, .15, .85
+N_resp, N_items, alpha, beta, l, u = 250, 5, 6, 4, .15, .85
 p_success = rbeta4p(N_resp, alpha, beta, l, u)
 rawdata = pd.DataFrame([np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)])
 rel = reliability(rawdata)
@@ -1028,6 +1047,7 @@ print(round(alpha, 2))
 np.random.seed(1234)
 rawdata = pd.DataFrame([np.random.binomial(5, p_success[i], N_items) for i in range(N_resp)])
 rel = reliability(rawdata)
+print(rel.covariance_matrix)
 rel.omega()
 rel.omega_gfi()
 print(rel.Omega_GFI)
