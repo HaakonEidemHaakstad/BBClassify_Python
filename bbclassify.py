@@ -50,15 +50,15 @@ class bbclassify():
         
         Examples
         --------
+        >>> import numpy as np
+        >>> import pandas as pd
         >>> np.random.seed(1234)
-        >>> from support_functions.betafunctions import cronbachs_alpha, rbeta4p
-
         >>> N_resp, N_items, alpha, beta, l, u = 250, 100, 6, 4, .15, .85
-        >>> p_success = rbeta4p(N_resp, alpha, beta, l, u)
-        >>> rawdata = [np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)]
+        >>> p_success = np.random.beta(alpha, beta, N_resp) * (u - l) + l
+        >>> rawdata = pd.DataFrame([np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)])
         >>> sumscores = [int(i) for i in list(np.sum(rawdata, axis = 1))]
         
-        >>> bb_ll = bbclassify(data = sumscores, reliability = cronbachs_alpha(rawdata), min_score= 0, max_score = 100, cut_scores = [50, 75], method = "ll")
+        >>> bb_ll = bbclassify(data = sumscores, reliability = reliability(rawdata).alpha(), min_score= 0, max_score = 100, cut_scores = [50, 75], method = "ll")
         >>> print(bb_ll.Parameters)
         {'alpha': 3.877386083988672, 'beta': 3.9727308136649238, 'l': 0.2681195709670965, 'u': 0.8706384086828665, 'etl': 99.96892140618861, 'etl rounded': 100, 'lords_k': 0}
         
@@ -67,14 +67,14 @@ class bbclassify():
         [41.57098815343608, 46, 0.6581136565975114]
 
         >>> bb_ll.accuracy()
-        >>> print(bb_ll.Accuracy)
+        >>> print(float(bb_ll.Accuracy))
         0.8438848734448846
 
         >>> bb_ll.consistency()
         >>> print(bb_ll.Consistency)
         0.7811757067805466
 
-        >>> bb_hb = bbclassify(data = sumscores, reliability = cronbachs_alpha(rawdata), min_score= 0, max_score = 100, cut_scores = [50, 75], method = "hb")
+        >>> bb_hb = bbclassify(data = sumscores, reliability = reliability(rawdata).alpha(), min_score= 0, max_score = 100, cut_scores = [50, 75], method = "hb")
         >>> print(bb_hb.Parameters)
         {'alpha': 3.878383371886145, 'beta': 3.974443224813199, 'l': 0.2680848232389114, 'u': 0.8707270089303472, 'lords_k': -0.015544127802040899}
         >>> bb_hb.modelfit()
@@ -103,7 +103,7 @@ class bbclassify():
         self.Modelfit_degrees_of_freedom = "Model fit not yet estimated. Call .modelfit() to estimate model fit."
         self.Modelfit_p_value = "Model fit not yet estimated. Call .modelfit() to estimate model fit."
         self.Accuracy = "Accuracy not yet estimated. Call .accuracy() to estimate model fit."
-        self.Consistency = "Consistency not yet estimated, Call .consistency() to estiamte model fit."
+        self.Consistency = "Consistency not yet estimated, Call .consistency() to estiamate model fit."
 
         if isinstance(self.data, dict): # Parameters do not have to be estimated if a dict of parameter values is supplied.
             self.Parameters = self.data
@@ -203,7 +203,7 @@ class bbclassify():
                     self.confusionmatrix[i, j] = sum(confmat[self.cut_scores[i]:, j])
         # Compute overall accuracy by summing the values in the diagonal of the confusion matrix.
         self.Accuracy = sum([self.confusionmatrix[i, i] for i in range(len(self.cut_scores) - 1)])
-        return self.Accuracy
+        #return self.Accuracy
 
     # Function for estimating classification consistency.
     def consistency(self):
@@ -256,7 +256,7 @@ class bbclassify():
                     self.consistencymatrix[i, j] = sum(sum(consmat[self.cut_scores[i]:self.cut_scores[i + 1] + 1, self.cut_scores[j]:self.cut_scores[j + 1] + 1]))
         # Compute overall consistency by summing the values in the diagonal of the consistency matrix.
         self.Consistency = sum([self.consistencymatrix[i, i] for i in range(len(self.cut_scores) - 1)])
-        return self.Consistency
+        #return self.Consistency
         
     def _calculate_etl(self, mean: float, var: float, reliability: float, min: float = 0, max: float = 1) -> float:
         """
@@ -282,14 +282,15 @@ class bbclassify():
 
         Examples
         --------
+        >>> import numpy as np
+        >>> import pandas as pd
         >>> np.random.seed(1234)
-        >>> from support_functions.betafunctions import cronbachs_alpha, rbeta4p
         >>> N_resp, N_items, alpha, beta, l, u = 250, 100, 6, 4, .15, .85
-        >>> p_success = rbeta4p(N_resp, alpha, beta, l, u)
-        >>> rawdata = [np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)]
+        >>> p_success = np.random.beta(alpha, beta, N_resp) * (u - l) + l
+        >>> rawdata = pd.DataFrame([np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)])
         >>> sumscores = [int(i) for i in list(np.sum(rawdata, axis = 1))]
-        >>> bb_ll = bbclassify(data = sumscores, reliability = cronbachs_alpha(rawdata), min_score= 0, max_score = 100, cut_scores = [50, 75], method = "ll")
-        >>> print(bb_ll._calculate_etl(mean = stats.mean(sumscores), var = stats.variance(sumscores), reliability = cronbachs_alpha(rawdata), min = 0, max = 100))
+        >>> bb_ll = bbclassify(data = sumscores, reliability = reliability(rawdata).alpha(), min_score= 0, max_score = 100, cut_scores = [50, 75], method = "ll")
+        >>> print(bb_ll._calculate_etl(mean = stats.mean(sumscores), var = stats.variance(sumscores), reliability = reliability(rawdata).alpha(), min = 0, max = 100))
         99.96892140618861
         """
         return ((mean - min) * (max - mean) - (reliability * var)) / (var * (1 - reliability))
@@ -316,14 +317,15 @@ class bbclassify():
 
         Examples
         --------
+        >>> import numpy as np
+        >>> import pandas as pd
         >>> np.random.seed(1234)
-        >>> from support_functions.betafunctions import cronbachs_alpha, rbeta4p
         >>> N_resp, N_items, alpha, beta, l, u = 250, 100, 6, 4, .15, .85
-        >>> p_success = rbeta4p(N_resp, alpha, beta, l, u)
-        >>> rawdata = [np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)]
+        >>> p_success = np.random.beta(alpha, beta, N_resp) * (u - l) + l
+        >>> rawdata = pd.DataFrame([np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)])
         >>> sumscores = [int(i) for i in list(np.sum(rawdata, axis = 1))]
-        >>> bb_hb = bbclassify(data = sumscores, reliability = cronbachs_alpha(rawdata), min_score= 0, max_score = 100, cut_scores = [50, 75], method = "hb")
-        >>> print(bb_hb._calculate_lords_k(mean = stats.mean(sumscores), var = stats.variance(sumscores), reliability = cronbachs_alpha(rawdata), length = 100))
+        >>> bb_hb = bbclassify(data = sumscores, reliability = reliability(rawdata).alpha(), min_score= 0, max_score = 100, cut_scores = [50, 75], method = "hb")
+        >>> print(bb_hb._calculate_lords_k(mean = stats.mean(sumscores), var = stats.variance(sumscores), reliability = reliability(rawdata).alpha(), length = 100))
         -0.015544127802040899
         """
         vare = var * (1 - reliability)
@@ -356,6 +358,7 @@ class bbclassify():
         Examples
         --------
         >>> import numpy as np
+        >>> import pandas as pd
         >>> np.random.seed(1234)
         >>> N_resp, N_items, alpha, beta, l, u = 250, 100, 6, 4, .15, .85
         >>> p_success = np.random.beta(alpha, beta, N_resp) * (u - l) + l
@@ -390,13 +393,14 @@ class bbclassify():
 
         Examples
         --------
+        >>> import numpy as np
+        >>> import pandas as pd
         >>> np.random.seed(1234)
-        >>> from support_functions.betafunctions import cronbachs_alpha, rbeta4p
         >>> N_resp, N_items, alpha, beta, l, u = 250, 100, 6, 4, .15, .85
-        >>> p_success = rbeta4p(N_resp, alpha, beta, l, u)
-        >>> rawdata = [np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)]
+        >>> p_success = np.random.beta(alpha, beta, N_resp) * (u - l) + l
+        >>> rawdata = pd.DataFrame([np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)])
         >>> sumscores = [int(i) for i in list(np.sum(rawdata, axis = 1))]
-        >>> bb_hb = bbclassify(data = sumscores, reliability = cronbachs_alpha(rawdata), min_score= 0, max_score = 100, cut_scores = [50, 75], method = "hb")
+        >>> bb_hb = bbclassify(data = sumscores, reliability = reliability(rawdata).alpha(), min_score= 0, max_score = 100, cut_scores = [50, 75], method = "hb")
         >>> print(bb_hb._dbeta4p(x = 0.5, a = 6, b = 4, l = 0.15, u = 0.85))
         2.8124999999999996
         """
@@ -427,13 +431,14 @@ class bbclassify():
 
         Examples
         --------
+        >>> import numpy as np
+        >>> import pandas as pd
         >>> np.random.seed(1234)
-        >>> from support_functions.betafunctions import cronbachs_alpha, rbeta4p
         >>> N_resp, N_items, alpha, beta, l, u = 250, 100, 6, 4, .15, .85
-        >>> p_success = rbeta4p(N_resp, alpha, beta, l, u)
-        >>> rawdata = [np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)]
+        >>> p_success = np.random.beta(alpha, beta, N_resp) * (u - l) + l
+        >>> rawdata = pd.DataFrame([np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)])
         >>> sumscores = [int(i) for i in list(np.sum(rawdata, axis = 1))]
-        >>> bb_hb = bbclassify(data = sumscores, reliability = cronbachs_alpha(rawdata), min_score= 0, max_score = 100, cut_scores = [50, 75], method = "hb")
+        >>> bb_hb = bbclassify(data = sumscores, reliability = reliability(rawdata).alpha(), min_score= 0, max_score = 100, cut_scores = [50, 75], method = "hb")
         >>> bb_hb._dcbinom(p = 0.5, N = 10, n = 5, k = 2.0)
         0.3007812500000001
         """
@@ -471,13 +476,14 @@ class bbclassify():
         
         Examples
         --------
+        >>> import numpy as np
+        >>> import pandas as pd
         >>> np.random.seed(1234)
-        >>> from support_functions.betafunctions import cronbachs_alpha, rbeta4p
         >>> N_resp, N_items, alpha, beta, l, u = 250, 100, 6, 4, .15, .85
-        >>> p_success = rbeta4p(N_resp, alpha, beta, l, u)
-        >>> rawdata = [np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)]
+        >>> p_success = np.random.beta(alpha, beta, N_resp) * (u - l) + l
+        >>> rawdata = pd.DataFrame([np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)])
         >>> sumscores = [int(i) for i in list(np.sum(rawdata, axis = 1))]
-        >>> bb_hb = bbclassify(data = sumscores, reliability = cronbachs_alpha(rawdata), min_score = 0, max_score = 100, cut_scores = [50], method = "hb")
+        >>> bb_hb = bbclassify(data = sumscores, reliability = reliability(rawdata).alpha(), min_score = 0, max_score = 100, cut_scores = [50], method = "hb")
         """
         a = x[0]*(p**n)*(1 - p)**(N - n)
         if method != "ll":
@@ -504,13 +510,14 @@ class bbclassify():
 
         Examples
         --------
+        >>> import numpy as np
+        >>> import pandas as pd
         >>> np.random.seed(1234)
-        >>> from support_functions.betafunctions import cronbachs_alpha, rbeta4p
         >>> N_resp, N_items, alpha, beta, l, u = 250, 100, 6, 4, .15, .85
-        >>> p_success = rbeta4p(N_resp, alpha, beta, l, u)
-        >>> rawdata = [np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)]
+        >>> p_success = np.random.beta(alpha, beta, N_resp) * (u - l) + l
+        >>> rawdata = pd.DataFrame([np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)])
         >>> sumscores = [int(i) for i in list(np.sum(rawdata, axis = 1))]
-        >>> bb = bbclassify(data = sumscores, reliability = cronbachs_alpha(rawdata), min_score = 0, max_score = 100, cut_scores = [50])
+        >>> bb = bbclassify(data = sumscores, reliability = reliability(rawdata).alpha(), min_score = 0, max_score = 100, cut_scores = [50])
         >>> print(bb._da_factorial(5))
         120
         >>> print(bb._da_factorial(0))
@@ -541,13 +548,14 @@ class bbclassify():
         
         Examples
         --------
+        >>> import numpy as np
+        >>> import pandas as pd
         >>> np.random.seed(1234)
-        >>> from support_functions.betafunctions import cronbachs_alpha, rbeta4p
         >>> N_resp, N_items, alpha, beta, l, u = 250, 100, 6, 4, .15, .85
-        >>> p_success = rbeta4p(N_resp, alpha, beta, l, u)
-        >>> rawdata = [np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)]
+        >>> p_success = np.random.beta(alpha, beta, N_resp) * (u - l) + l
+        >>> rawdata = pd.DataFrame([np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)])
         >>> sumscores = [int(i) for i in list(np.sum(rawdata, axis = 1))]
-        >>> bb = bbclassify(data = sumscores, reliability = cronbachs_alpha(rawdata), min_score = 0, max_score = 100, cut_scores = [50])
+        >>> bb = bbclassify(data = sumscores, reliability = reliability(rawdata).alpha(), min_score = 0, max_score = 100, cut_scores = [50])
         >>> print(bb._choose(10, 5))
         252
         """
@@ -575,13 +583,14 @@ class bbclassify():
 
         Examples
         --------
+        >>> import numpy as np
+        >>> import pandas as pd
         >>> np.random.seed(1234)
-        >>> from support_functions.betafunctions import cronbachs_alpha, rbeta4p
         >>> N_resp, N_items, alpha, beta, l, u = 250, 100, 6, 4, .15, .85
-        >>> p_success = rbeta4p(N_resp, alpha, beta, l, u)
-        >>> rawdata = [np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)]
+        >>> p_success = np.random.beta(alpha, beta, N_resp) * (u - l) + l
+        >>> rawdata = pd.DataFrame([np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)])
         >>> sumscores = [int(i) for i in list(np.sum(rawdata, axis = 1))]
-        >>> bb = bbclassify(data = sumscores, reliability = cronbachs_alpha(rawdata), min_score = 0, max_score = 100, cut_scores = [50])
+        >>> bb = bbclassify(data = sumscores, reliability = reliability(rawdata).alpha(), min_score = 0, max_score = 100, cut_scores = [50])
         >>> print(bb._choose_functions(10, 5))
         (252, 56, 70, 56)
         """        
@@ -629,13 +638,14 @@ class bbclassify():
 
         Examples
         --------
+        >>> import numpy as np
+        >>> import pandas as pd
         >>> np.random.seed(1234)
-        >>> from support_functions.betafunctions import cronbachs_alpha, rbeta4p
         >>> N_resp, N_items, alpha, beta, l, u = 250, 100, 6, 4, .15, .85
-        >>> p_success = rbeta4p(N_resp, alpha, beta, l, u)
-        >>> rawdata = [np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)]
+        >>> p_success = np.random.beta(alpha, beta, N_resp) * (u - l) + l
+        >>> rawdata = pd.DataFrame([np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)])
         >>> sumscores = [int(i) for i in list(np.sum(rawdata, axis = 1))]
-        >>> bb_hb = bbclassify(data = sumscores, reliability = cronbachs_alpha(rawdata), min_score = 0, max_score = 100, cut_scores = [50])
+        >>> bb_hb = bbclassify(data = sumscores, reliability = reliability(rawdata).alpha(), min_score = 0, max_score = 100, cut_scores = [50])
         >>> print(bb_hb._bbintegrate1(6, 4, 0.15, 0.85, 10, 5, 1, 0, 1, method = 'll'))
         (0.18771821236360686, 1.0678646219550548e-08)
         """
@@ -688,13 +698,14 @@ class bbclassify():
 
         Examples
         --------
+        >>> import numpy as np
+        >>> import pandas as pd
         >>> np.random.seed(1234)
-        >>> from support_functions.betafunctions import cronbachs_alpha, rbeta4p
         >>> N_resp, N_items, alpha, beta, l, u = 250, 100, 6, 4, .15, .85
-        >>> p_success = rbeta4p(N_resp, alpha, beta, l, u)
-        >>> rawdata = [np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)]
+        >>> p_success = np.random.beta(alpha, beta, N_resp) * (u - l) + l
+        >>> rawdata = pd.DataFrame([np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)])
         >>> sumscores = [int(i) for i in list(np.sum(rawdata, axis = 1))]
-        >>> bb_hb = bbclassify(data = sumscores, reliability = cronbachs_alpha(rawdata), min_score = 0, max_score = 100, cut_scores = [50], method = "hb")
+        >>> bb_hb = bbclassify(data = sumscores, reliability = reliability(rawdata).alpha(), min_score = 0, max_score = 100, cut_scores = [50], method = "hb")
         >>> cf = bb_hb._choose_functions(10, 5)
         >>> print(bb_hb._bbintegrate1_1(6, 4, 0.15, 0.85, cf, 10, 5, 1, 0, 1, method = 'll'))
         (0.18771821236360692, 1.0678646219447462e-08)
@@ -745,13 +756,14 @@ class bbclassify():
 
         Examples
         --------
+        >>> import numpy as np
+        >>> import pandas as pd
         >>> np.random.seed(1234)
-        >>> from support_functions.betafunctions import cronbachs_alpha, rbeta4p
         >>> N_resp, N_items, alpha, beta, l, u = 250, 100, 6, 4, .15, .85
-        >>> p_success = rbeta4p(N_resp, alpha, beta, l, u)
-        >>> rawdata = [np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)]
+        >>> p_success = np.random.beta(alpha, beta, N_resp) * (u - l) + l
+        >>> rawdata = pd.DataFrame([np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)])
         >>> sumscores = [int(i) for i in list(np.sum(rawdata, axis = 1))]
-        >>> bb_hb = bbclassify(data = sumscores, reliability = cronbachs_alpha(rawdata), min_score = 0, max_score = 100, cut_scores = [50], method = "hb")
+        >>> bb_hb = bbclassify(data = sumscores, reliability = reliability(rawdata).alpha(), min_score = 0, max_score = 100, cut_scores = [50], method = "hb")
         >>> print(bb_hb._bbintegrate2(6, 4, 0.15, 0.85, 10, 5, 5, 1, 0, 1, method = 'll'))
         (0.03843435178500844, 4.336562943457941e-10)
         """
@@ -806,13 +818,14 @@ class bbclassify():
 
         Examples
         --------
+        >>> import numpy as np
+        >>> import pandas as pd
         >>> np.random.seed(1234)
-        >>> from support_functions.betafunctions import cronbachs_alpha, rbeta4p
         >>> N_resp, N_items, alpha, beta, l, u = 250, 100, 6, 4, .15, .85
-        >>> p_success = rbeta4p(N_resp, alpha, beta, l, u)
-        >>> rawdata = [np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)]
+        >>> p_success = np.random.beta(alpha, beta, N_resp) * (u - l) + l
+        >>> rawdata = pd.DataFrame([np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)])
         >>> sumscores = [int(i) for i in list(np.sum(rawdata, axis = 1))]
-        >>> bb_hb = bbclassify(data = sumscores, reliability = cronbachs_alpha(rawdata), min_score = 0, max_score = 100, cut_scores = [50], method = "hb")
+        >>> bb_hb = bbclassify(data = sumscores, reliability = reliability(rawdata).alpha(), min_score = 0, max_score = 100, cut_scores = [50], method = "hb")
         >>> cf = bb_hb._choose_functions(10, 5)
         >>> print(bb_hb._bbintegrate2_1(6, 4, 0.15, 0.85, cf, cf, 10, 5, 5, 1, 0, 1, method = 'll'))
         (0.03843435178500849, 4.336562889266626e-10)
@@ -847,13 +860,14 @@ class bbclassify():
 
         Examples
         --------
+        >>> import numpy as np
+        >>> import pandas as pd
         >>> np.random.seed(1234)
-        >>> from support_functions.betafunctions import cronbachs_alpha, rbeta4p
         >>> N_resp, N_items, alpha, beta, l, u = 250, 100, 6, 4, .15, .85
-        >>> p_success = rbeta4p(N_resp, alpha, beta, l, u)
-        >>> rawdata = [np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)]
+        >>> p_success = np.random.beta(alpha, beta, N_resp) * (u - l) + l
+        >>> rawdata = pd.DataFrame([np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)])
         >>> sumscores = [int(i) for i in list(np.sum(rawdata, axis = 1))]
-        >>> bb_hb = bbclassify(data = sumscores, reliability = cronbachs_alpha(rawdata), min_score = 0, max_score = 100, cut_scores = [50], method = "hb")
+        >>> bb_hb = bbclassify(data = sumscores, reliability = reliability(rawdata).alpha(), min_score = 0, max_score = 100, cut_scores = [50], method = "hb")
         >>> bb_hb._dfac([5, 6, 7], 3)
         [60, 120, 210]
 
@@ -895,13 +909,14 @@ class bbclassify():
 
         Examples
         --------
+        >>> import numpy as np
+        >>> import pandas as pd
         >>> np.random.seed(1234)
-        >>> from support_functions.betafunctions import cronbachs_alpha, rbeta4p
         >>> N_resp, N_items, alpha, beta, l, u = 250, 100, 6, 4, .15, .85
-        >>> p_success = rbeta4p(N_resp, alpha, beta, l, u)
-        >>> rawdata = [np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)]
+        >>> p_success = np.random.beta(alpha, beta, N_resp) * (u - l) + l
+        >>> rawdata = pd.DataFrame([np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)])
         >>> sumscores = [int(i) for i in list(np.sum(rawdata, axis = 1))]
-        >>> bb_hb = bbclassify(data = sumscores, reliability = cronbachs_alpha(rawdata), min_score = 0, max_score = 100, cut_scores = [50], method = "hb")
+        >>> bb_hb = bbclassify(data = sumscores, reliability = reliability(rawdata).alpha(), min_score = 0, max_score = 100, cut_scores = [50], method = "hb")
         >>> print(bb_hb._tsm(sumscores, 100, bb_hb.Parameters['lords_k']))
         [0.56572, 0.33029356244956504, 0.19847130696480725, 0.12240805759909551]
         """
@@ -947,16 +962,17 @@ class bbclassify():
 
         Examples
         --------
+        >>> import numpy as np
+        >>> import pandas as pd
         >>> np.random.seed(1234)
-        >>> from support_functions.betafunctions import cronbachs_alpha, rbeta4p
         >>> N_resp, N_items, alpha, beta, l, u = 250, 100, 6, 4, .15, .85
-        >>> p_success = rbeta4p(N_resp, alpha, beta, l, u)
-        >>> rawdata = [np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)]
+        >>> p_success = np.random.beta(alpha, beta, N_resp) * (u - l) + l
+        >>> rawdata = pd.DataFrame([np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)])
         >>> sumscores = [int(i) for i in list(np.sum(rawdata, axis = 1))]
-        >>> bb_hb = bbclassify(data = sumscores, reliability = cronbachs_alpha(rawdata), min_score = 0, max_score = 100, cut_scores = [50], method = "hb")
+        >>> bb_hb = bbclassify(data = sumscores, reliability = reliability(rawdata).alpha(), min_score = 0, max_score = 100, cut_scores = [50], method = "hb")
         >>> print(bb_hb.Parameters)
         {'alpha': 3.878383371886145, 'beta': 3.974443224813199, 'l': 0.2680848232389114, 'u': 0.8707270089303472, 'lords_k': -0.015544127802040899}
-        >>> bb_ll = bbclassify(data = sumscores, reliability = cronbachs_alpha(rawdata), min_score= 0, max_score = 100, cut_scores = [50, 75], model = 2, l = 0.25, u = 0.85, method = "ll")
+        >>> bb_ll = bbclassify(data = sumscores, reliability = reliability(rawdata).alpha(), min_score= 0, max_score = 100, cut_scores = [50, 75], model = 2, l = 0.25, u = 0.85, method = "ll")
         >>> print(bb_ll.Parameters)
         {'alpha': 4.079875519795486, 'beta': 3.673593731051123, 'l': 0.25, 'u': 0.85, 'etl': 99.96892140618861, 'etl rounded': 100, 'lords_k': 0}
         """
@@ -982,8 +998,9 @@ class bbclassify():
 class reliability():
     def __init__(self, data: pd.DataFrame) -> float:
         """      
+        >>> import numpy as np
+        >>> import pandas as pd
         >>> np.random.seed(1234)
-        >>> from support_functions.betafunctions import rbeta4p
         >>> N_resp, N_items, alpha, beta, l, u = 250, 5, 6, 4, .15, .85
         >>> p_success = np.random.beta(alpha, beta, N_resp) * (u - l) + l
         >>> rawdata = pd.DataFrame([np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)])
@@ -1000,15 +1017,16 @@ class reliability():
 
     def alpha(self):
         """        
+        >>> import numpy as np
+        >>> import pandas as pd
         >>> np.random.seed(1234)
-        >>> from support_functions.betafunctions import rbeta4p
-        >>> N_resp, N_items, alpha, beta, l, u = 250, 10, 6, 4, .15, .85
+        >>> N_resp, N_items, alpha, beta, l, u = 250, 100, 6, 4, .15, .85
         >>> p_success = np.random.beta(alpha, beta, N_resp) * (u - l) + l
-        >>> rawdata = pd.DataFrame([np.random.binomial(5, p_success[i], N_items) for i in range(N_resp)])
+        >>> rawdata = pd.DataFrame([np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)])
         >>> rel = reliability(rawdata)
         >>> alpha = rel.alpha()
         >>> print(round(alpha, 2))
-        0.71
+        0.81
         """
         n = self.covariance_matrix.shape[0]
         self.Alpha = (n / (n - 1)) * (1 - (sum(np.diag(self.covariance_matrix)) / sum(sum(self.covariance_matrix))))
@@ -1016,8 +1034,9 @@ class reliability():
     
     def omega(self):
         """
+        >>> import numpy as np
+        >>> import pandas as pd
         >>> np.random.seed(1234)
-        >>> from support_functions.betafunctions import rbeta4p
         >>> N_resp, N_items, alpha, beta, l, u = 250, 10, 6, 4, .15, .85
         >>> p_success = np.random.beta(alpha, beta, N_resp) * (u - l) + l
         >>> rawdata = pd.DataFrame([np.random.binomial(5, p_success[i], N_items) for i in range(N_resp)])
@@ -1059,7 +1078,6 @@ class reliability():
         self.Omega = factor_loadings_squared / (sum([variance_list[i] - squared_factor_loadings[i] for i in range(len(variance_list))]) + factor_loadings_squared)
         return self.Omega
 """
-"""
 np.random.seed(1234)
 from support_functions.betafunctions import rbeta4p
 N_resp, N_items, alpha, beta, l, u = 250, 5, 6, 4, .15, .85
@@ -1076,6 +1094,7 @@ rel.omega()
 rel.omega_gfi()
 print(rel.Omega_GFI)
 print(rel.Omega)
+"""
 
 """
 np.random.seed(1234)
