@@ -67,10 +67,12 @@ class bbclassify():
         [41.57098815343608, 46, 0.6581136565975114]
 
         >>> bb_ll.accuracy()
-        >>> print(float(bb_ll.Accuracy))
+        0.8438848734448846
+        >>> print(bb_ll.Accuracy)
         0.8438848734448846
 
         >>> bb_ll.consistency()
+        0.7811757067805466
         >>> print(bb_ll.Consistency)
         0.7811757067805466
 
@@ -81,9 +83,11 @@ class bbclassify():
         >>> print([bb_hb.Modelfit_chi_squared, bb_hb.Modelfit_degrees_of_freedom, bb_hb.Modelfit_p_value])
         [41.568240407567785, 46, 0.6582260821176256]
         >>> bb_hb.accuracy()
+        0.8440449341145039
         >>> print(bb_hb.Accuracy)
         0.8440449341145039
         >>> bb_hb.consistency()
+        0.7814787747625861
         >>> print(bb_hb.Consistency)
         0.7814787747625861
         """
@@ -202,8 +206,8 @@ class bbclassify():
                 else:
                     self.confusionmatrix[i, j] = sum(confmat[self.cut_scores[i]:, j])
         # Compute overall accuracy by summing the values in the diagonal of the confusion matrix.
-        self.Accuracy = sum([self.confusionmatrix[i, i] for i in range(len(self.cut_scores) - 1)])
-        #return self.Accuracy
+        self.Accuracy = float(sum([self.confusionmatrix[i, i] for i in range(len(self.cut_scores) - 1)]))
+        return self.Accuracy
 
     # Function for estimating classification consistency.
     def consistency(self):
@@ -255,8 +259,8 @@ class bbclassify():
                     # Bottom-right corner
                     self.consistencymatrix[i, j] = sum(sum(consmat[self.cut_scores[i]:self.cut_scores[i + 1] + 1, self.cut_scores[j]:self.cut_scores[j + 1] + 1]))
         # Compute overall consistency by summing the values in the diagonal of the consistency matrix.
-        self.Consistency = sum([self.consistencymatrix[i, i] for i in range(len(self.cut_scores) - 1)])
-        #return self.Consistency
+        self.Consistency = float(sum([self.consistencymatrix[i, i] for i in range(len(self.cut_scores) - 1)]))
+        return self.Consistency
         
     def _calculate_etl(self, mean: float, var: float, reliability: float, min: float = 0, max: float = 1) -> float:
         """
@@ -494,7 +498,7 @@ class bbclassify():
             return a - e * (b - 2*c + d)
         return a
 
-    def _da_factorial(self, x: int):
+    def _da_factorial(self, x: int) -> int:
         """
         Calculate the factorial of a number using direct arithmetic.
 
@@ -561,7 +565,7 @@ class bbclassify():
         """
         return int(self._da_factorial(N) / (self._da_factorial(n) * self._da_factorial(N - n)))
 
-    def _choose_functions(self, N, n):
+    def _choose_functions(self, N, n) -> tuple:
         """
         Compute coefficients for the compound beta-binomial distribution.
 
@@ -600,7 +604,7 @@ class bbclassify():
         d = self._choose(N - 2, n - 2)
         return (a, b, c, d)
 
-    def _bbintegrate1(self, a: float, b: float, l: float, u: float, N: int, n: int, k: float, lower: float, upper: float, method: str = "ll") -> float:
+    def _bbintegrate1(self, a: float, b: float, l: float, u: float, N: int, n: int, k: float, lower: float, upper: float, method: str = "ll") -> tuple:
         """
         Compute the integral of a univariate beta-binomial distribution over a specified range.
 
@@ -839,7 +843,7 @@ class bbclassify():
                 return self._dbeta4p(x, a, b, l, u) * self._dcbinom2(c1, x, N, n1, k, method) * self._dcbinom2(c2, x, N, n2, k, method)
             return quad(f, lower, upper, args = (a, b, l, u, c1, c2, N, n1, n2))
 
-    def _dfac(self, x: list, r = int):
+    def _dfac(self, x: list, r = int) -> list:
         """
         Calculate the descending factorial for each numeric value in a list.
 
@@ -884,7 +888,7 @@ class bbclassify():
                         x1[i] = x1[i] * (x[i] - j + 1)
         return x1
 
-    def _tsm(self, x: list, n: int, k: float):
+    def _tsm(self, x: list, n: int, k: float) -> list:
         """
         Calculate the first four moments of the true-score distribution.
 
@@ -929,7 +933,7 @@ class bbclassify():
             m[i] = (b / a) + c
         return m
 
-    def _betaparameters(self, x: list, n: int, k: float, model: int = 4, l: float = 0, u: float = 1):
+    def _betaparameters(self, x: list, n: int, k: float, model: int = 4, l: float = 0, u: float = 1) -> dict:
         """
         Estimate the parameters of a two- or four-parameter beta distribution for the true-score distribution.
 
@@ -996,7 +1000,7 @@ class bbclassify():
         return {"alpha":  a, "beta": b, "l": l, "u": u}
 
 class reliability():
-    def __init__(self, data: pd.DataFrame) -> float:
+    def __init__(self, data: pd.DataFrame):
         """
         Initialize the reliability object, calculating the covariance matrix from the raw data.
 
@@ -1019,7 +1023,7 @@ class reliability():
         self.data = data
         self.covariance_matrix = np.array(self.data.dropna().cov())
 
-    def alpha(self):
+    def alpha(self) -> float:
         """
         Calculate the Cronbach's Alpha reliability coefficient.
 
@@ -1045,7 +1049,7 @@ class reliability():
         self.Alpha = (n / (n - 1)) * (1 - (sum(np.diag(self.covariance_matrix)) / sum(sum(self.covariance_matrix))))
         return self.Alpha
     
-    def omega(self):
+    def omega(self) -> float:
         """
         Calculate the McDonald's Omega reliability coefficient using the unweighed least squares method.
 
