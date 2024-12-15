@@ -839,7 +839,7 @@ class bbclassify():
                 return self._dbeta4p(x, a, b, l, u) * self._dcbinom2(c1, x, N, n1, k, method) * self._dcbinom2(c2, x, N, n2, k, method)
             return quad(f, lower, upper, args = (a, b, l, u, c1, c2, N, n1, n2))
 
-    def _dfac(self, x: list, r = int): # TODO: Rewrite as list comprehension.
+    def _dfac(self, x: list, r = int):
         """
         Calculate the descending factorial for each numeric value in a list.
 
@@ -884,9 +884,9 @@ class bbclassify():
                         x1[i] = x1[i] * (x[i] - j + 1)
         return x1
 
-    def _tsm(self, x: list, n: int, k: float): # TODO: Refactor as list comprehension.
+    def _tsm(self, x: list, n: int, k: float):
         """
-        Calculate the first four raw moments of the true-score distribution.
+        Calculate the first four moments of the true-score distribution.
 
         Parameters
         ----------
@@ -901,11 +901,11 @@ class bbclassify():
         Returns
         -------
         list
-            A list containing the first four raw moments of the true-score distribution, in order:
+            A list containing the first four moments of the true-score distribution, in order:
             - [0] : The mean.
-            - [1] : The second raw moment.
-            - [2] : The third raw moment.
-            - [3] : The fourth raw moment.
+            - [1] : The variance.
+            - [2] : The skewness.
+            - [3] : The kurtosis.
 
         Examples
         --------
@@ -997,7 +997,11 @@ class bbclassify():
 
 class reliability():
     def __init__(self, data: pd.DataFrame) -> float:
-        """      
+        """
+        Initialize the reliability object, calculating the covariance matrix from the raw data.
+
+        Examples
+        --------
         >>> import numpy as np
         >>> import pandas as pd
         >>> np.random.seed(1234)
@@ -1016,7 +1020,16 @@ class reliability():
         self.covariance_matrix = np.array(self.data.dropna().cov())
 
     def alpha(self):
-        """        
+        """
+        Calculate the Cronbach's Alpha reliability coefficient.
+
+        Returns
+        -------
+        float
+            A float value representing Cronbach's Alpha.
+
+        Examples
+        --------
         >>> import numpy as np
         >>> import pandas as pd
         >>> np.random.seed(1234)
@@ -1034,6 +1047,15 @@ class reliability():
     
     def omega(self):
         """
+        Calculate the McDonald's Omega reliability coefficient using the unweighed least squares method.
+
+        Returns
+        -------
+        float
+            A float value representing McDonald's Omega.
+
+        Examples
+        --------
         >>> import numpy as np
         >>> import pandas as pd
         >>> np.random.seed(1234)
@@ -1077,33 +1099,7 @@ class reliability():
         self.omega_gfi = omega_gfi
         self.Omega = factor_loadings_squared / (sum([variance_list[i] - squared_factor_loadings[i] for i in range(len(variance_list))]) + factor_loadings_squared)
         return self.Omega
-"""
-np.random.seed(1234)
-from support_functions.betafunctions import rbeta4p
-N_resp, N_items, alpha, beta, l, u = 250, 5, 6, 4, .15, .85
-p_success = rbeta4p(N_resp, alpha, beta, l, u)
-rawdata = pd.DataFrame([np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)])
-rel = reliability(rawdata)
-alpha = rel.alpha()
-print(round(alpha, 2))
-np.random.seed(1234)
-rawdata = pd.DataFrame([np.random.binomial(5, p_success[i], N_items) for i in range(N_resp)])
-rel = reliability(rawdata)
-print(rel.covariance_matrix)
-rel.omega()
-rel.omega_gfi()
-print(rel.Omega_GFI)
-print(rel.Omega)
-"""
 
-"""
-np.random.seed(1234)
-N_resp, N_items, alpha, beta, l, u = 250, 100, 6, 4, .15, .85
-p_success = np.random.beta(alpha, beta, N_resp) * (u - l) + l
-rawdata = pd.DataFrame([np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)])
-sumscores = [int(i) for i in list(np.sum(rawdata, axis = 1))]
-print(bbclassify(sumscores, reliability(rawdata).alpha(), 0, 100, [50])._rbeta4p(5, 6, 4, .25, .75))
-"""
 if __name__ == "__main__":
     import doctest
     doctest.testmod()
