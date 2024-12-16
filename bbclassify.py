@@ -91,6 +91,32 @@ class bbclassify():
         >>> print(bb_hb.Consistency)
         0.7814787747625861
         """
+        # Input validation
+        if not isinstance(data, (list, tuple)):
+            raise TypeError("data must be a list or tuple of scores.")
+        if not all(isinstance(d, (int, float)) for d in data):
+            raise ValueError("All elements in data must be integers or floats.")
+        if True in [True if (i < min_score or i > max_score) else False for i in data]:
+            raise ValueError("Values in data can not be smaller than the specified minimum or greater than the specified maximum possible score.")
+        if not isinstance(reliability, float) or not (0 <= reliability <= 1):
+            raise ValueError("reliability must be a float between 0 and 1.")
+        if not isinstance(min_score, (int, float)) or not isinstance(max_score, (int, float)):
+            raise TypeError("min_score and max_score must be numeric.")
+        if min_score >= max_score:
+            raise ValueError("min_score must be less than max_score.")
+        if not isinstance(cut_scores, list) or not all(isinstance(cs, (int, float)) for cs in cut_scores):
+            raise TypeError("cut_scores must be a list of numeric values.")
+        if not all(min_score < cs < max_score for cs in cut_scores):
+            raise ValueError("All cut_scores must be between min_score and max_score.")
+        if method not in ["ll", "hb"]:
+            raise ValueError("method must be 'll' or 'hb'.")
+        if model not in [2, 4]:
+            raise ValueError("model must be 2 or 4.")
+        if not (0 <= l < u <= 1):
+            raise ValueError("l and u must satisfy 0 <= l < u <= 1.")
+        if not isinstance(failsafe, bool):
+            raise TypeError("failsafe must be a boolean.")
+
         self.data = data
         self.reliability = reliability
         self.min_score = min_score
@@ -158,7 +184,7 @@ class bbclassify():
         else: # Otherwise, simply count frequencies of each score from 0 to N items.
             observed = [self.data.count(i) for i in range(self.N + 1)]
 
-        # Collapse (first left-to-right, then right-to-left) cells with expected values less than 1.
+        # Collapse -- first left-to-right, then right-to-left --- cells with expected values less than 1.
         for _ in range(2):
             length = len(expected)
             for i in range(length):
@@ -297,6 +323,14 @@ class bbclassify():
         >>> print(bb_ll._calculate_etl(mean = stats.mean(sumscores), var = stats.variance(sumscores), reliability = reliability(rawdata).alpha(), min = 0, max = 100))
         99.96892140618861
         """
+        if not isinstance(mean, (int, float)) or not isinstance(var, (int, float)):
+            raise TypeError("mean and var must be numeric.")
+        if not isinstance(reliability, float) or not (0 <= reliability <= 1):
+            raise ValueError("reliability must be a float between 0 and 1.")
+        if not isinstance(min, (int, float)) or not isinstance(max, (int, float)):
+            raise TypeError("min and max must be numeric.")
+        if min >= max:
+            raise ValueError("min must be less than max.")
         return ((mean - min) * (max - mean) - (reliability * var)) / (var * (1 - reliability))
     
     def _calculate_lords_k(self, mean: float, var: float, reliability: float, length: int) -> float:
