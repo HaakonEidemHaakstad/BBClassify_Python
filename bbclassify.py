@@ -325,6 +325,8 @@ class bbclassify():
         """
         if not isinstance(mean, (int, float)) or not isinstance(var, (int, float)):
             raise TypeError("mean and var must be numeric.")
+        if (min > mean) or (max < mean):
+            raise ValueError("mean must be a value between min and max.")
         if not isinstance(reliability, float) or not (0 <= reliability <= 1):
             raise ValueError("reliability must be a float between 0 and 1.")
         if not isinstance(min, (int, float)) or not isinstance(max, (int, float)):
@@ -366,9 +368,17 @@ class bbclassify():
         >>> print(bb_hb._calculate_lords_k(mean = stats.mean(sumscores), var = stats.variance(sumscores), reliability = reliability(rawdata).alpha(), length = 100))
         -0.015544127802040899
         """
+        if not isinstance(mean, (int, float)) or not isinstance(var, (int, float)):
+            raise TypeError("mean and var must be numeric.")
+        if (0 > mean) or (length < mean):
+            raise ValueError("mean must be a value between 0 and length.")
+        if not isinstance(reliability, float) or not (0 <= reliability <= 1):
+            raise ValueError("reliability must be a float between 0 and 1.")
+        if not isinstance(length, (int, float)) or not length % 1 == 0 or not length <= 0:
+            raise TypeError("length must be positive numeric (integer).")
         vare = var * (1 - reliability)
         num = length * ((length - 1) * (var - vare) - length * var + mean * (length - mean))
-        den = 2 * (mean * (length - mean) - (var - vare))
+        den = 2 * (mean * (length - mean) - (var - vare)) 
         return num / den
 
     def _rbeta4p(self, n: int, a: float, b: float, l: float = 0, u: float = 1) -> np.array:
@@ -405,6 +415,15 @@ class bbclassify():
         >>> bbclassify(sumscores, reliability(rawdata).alpha(), 0, 100, [50])._rbeta4p(5, 6, 4, .25, .75)
         array([0.53467969, 0.70218754, 0.45730315, 0.5583427 , 0.59158903])
         """
+
+        if not isinstance(n, int) or n <= 0:
+            raise TypeError("n must be a positive integer.")
+        if not isinstance(a, (int, float)):
+            raise ValueError("a (alpha) must be numeric.")
+        if not isinstance(b, (int, float)):
+            raise ValueError("b (beta) must be numeric.")
+        if not l < u:
+            raise ValueError("l must be less than u.")
         return np.random.beta(a, b, n) * (u - l) + l
 
     def _dbeta4p(self, x: float, a: float, b: float, l: float, u: float) -> float:
@@ -442,6 +461,19 @@ class bbclassify():
         >>> print(bb_hb._dbeta4p(x = 0.5, a = 6, b = 4, l = 0.15, u = 0.85))
         2.8124999999999996
         """
+        if not isinstance(x, (int, float)):
+            raise TypeError("x must be numeric.")
+        if not isinstance(a, (int, float)):
+            raise TypeError("a (alpha) must be numeric.")
+        if not isinstance(b, (int, float)):
+            raise TypeError("b (beta) must be numeric.")
+        if not isinstance(l, (int, float)):
+            raise TypeError("l must be numeric.")
+        if not isinstance(u, (int, float)):
+            raise ValueError("u must be numeric.")
+        if not l < u:
+            raise ValueError("l must be less than u.")
+
         if x < l or x > u:
             return 0
         else:
