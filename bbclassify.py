@@ -93,30 +93,40 @@ class bbclassify():
         """
         # Input validation.
         if not isinstance(data, (list, tuple)):
-            raise TypeError("data must be a list or tuple of scores.")
-        if not all(isinstance(d, (int, float)) for d in data):
-            raise ValueError("All elements in data must be integers or floats.")
-        if True in [True if (i < min_score or i > max_score) else False for i in data]:
-            raise ValueError("Values in data can not be smaller than the specified minimum or greater than the specified maximum possible score.")
-        if not isinstance(reliability, float) or not (0 <= reliability <= 1):
-            raise ValueError("reliability must be a float between 0 and 1.")
-        if not isinstance(min_score, (int, float)) or not isinstance(max_score, (int, float)):
-            raise TypeError("min_score and max_score must be numeric.")
+            raise TypeError("Parameter 'data' must be a list or tuple of numeric values.")
+        if any(isinstance(i, (float, int)) for i in data):
+            raise TypeError("All values contained in 'data' must be numeric.")
+        if not isinstance(reliability, float):
+            raise TypeError("Parameter 'reliability' must be a float value between 0 and 1.")
+        if 0 >= reliability >= 1:
+            raise ValueError("Parameter 'reliability' must be a float value between 0 and 1.")
+        if not isinstance(min_score, (float, int)):
+            raise TypeError("Parameter 'min_score' must be a numeric value.")
+        if not isinstance(max_score, (float, int)):
+            raise TypeError("Parameter 'max_value' must be a numeric value.")
+        if any(i < min_score or i > max_score for i in data):
+            raise ValueError("Values in 'data' cannot be less than 'min_score' or greater than 'max_score'.")
         if min_score >= max_score:
-            raise ValueError("min_score must be less than max_score.")
-        if not isinstance(cut_scores, list) or not all(isinstance(cs, (int, float)) for cs in cut_scores):
-            raise TypeError("cut_scores must be a list of numeric values.")
-        if not all(min_score < cs < max_score for cs in cut_scores):
-            raise ValueError("All cut_scores must be between min_score and max_score.")
-        if method not in ["ll", "hb"]:
-            raise ValueError("method must be 'll' or 'hb'.")
-        if model not in [2, 4]:
-            raise ValueError("model must be 2 or 4.")
-        if not (0 <= l < u <= 1):
-            raise ValueError("l and u must satisfy 0 <= l < u <= 1.")
+            raise ValueError("The value of 'min_score' must be lower than the value of 'max_score'.")
+        if not isinstance(cut_scores, list):
+            raise TypeError("Parameter 'cut_scores' must be a list of numeric values.")
+        if any(i <= min_score or i >= max_score for i in cut_scores):
+            raise ValueError("Values in 'cut_scores' must fall between 'min_score' and 'max_score'.")
+        if not isinstance(method, str):
+            raise TypeError("Parameter 'method' must be a string.")
+        if not isinstance(model, (float, int)):
+            raise TypeError("Parameter 'model' must be a numeric value.")
+        if model not in [4, 4.0, 2, 2.0]:
+            raise ValueError("The value of 'model' must be either 4 or 2.")
+        if not isinstance(l, (float, int)) or not isinstance(u, (float, int)):
+            raise TypeError("Parameters 'l' and 'u' must be numeric.")
+        if (l < 0 or u < 0) or (l > 1 or u > 1):
+            raise ValueError("The values of parameters 'l' and 'u' must fall between 0 and 1.")
+        if l >= u:
+            raise ValueError("The value of 'l' must be lower than that of 'u'.")
         if not isinstance(failsafe, bool):
-            raise TypeError("failsafe must be a boolean.")
-
+            raise TypeError("Parameter 'failsafe' must be a boolean value (True or False).")
+        
         self.data = data
         self.reliability = reliability
         self.min_score = min_score
