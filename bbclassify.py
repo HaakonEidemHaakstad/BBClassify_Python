@@ -529,7 +529,7 @@ class bbclassify():
         if 0 > u > 1:
             raise ValueError("Parameter 'u' must fall between 0 and 1.")
         if l > u:
-            raise ValueError("Parameter 'l' must be greater than 'u'.")
+            raise ValueError("Parameter 'l' must be lesser than 'u'.")
 
         if x < l or x > u:
             return 0
@@ -570,6 +570,22 @@ class bbclassify():
         0.3007812500000001
         """
         # Input validation.
+        if not isinstance(p, (float, int)):
+            raise TypeError("Parameter 'p' must be numeric.")
+        if p < 0 or p > 1:
+            raise ValueError("Parameter 'p' must fall within the interval [0, 1].")
+        if not isinstance(N, (float, int)):
+            raise TypeError("Parameter 'N' must be an integer.")
+        if N % 1 != 0:
+            raise TypeError("Parameter 'N' must be an integer.")
+        if not isinstance(n, (float, int)):
+            raise TypeError("Parameter 'n' must be an integer.")
+        if n % 1 != 0:
+            raise TypeError("Parameter 'n' must be an integer.")
+        if n > N:
+            raise ValueError("Parameter 'N' must be greater than 'n'.")
+        if not isinstance(k, (float, int)):
+            raise TypeError("Parameter 'k' must be numeric.")
 
         a = binom.pmf(n, N, p)
         b = binom.pmf(n, N - 2, p)
