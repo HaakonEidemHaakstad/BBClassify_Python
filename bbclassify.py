@@ -514,18 +514,22 @@ class bbclassify():
         2.8124999999999996
         """
         # Input validation.
-        if not isinstance(x, (int, float)):
-            raise TypeError("x must be numeric.")
-        if not isinstance(a, (int, float)):
-            raise TypeError("a (alpha) must be numeric.")
-        if not isinstance(b, (int, float)):
-            raise TypeError("b (beta) must be numeric.")
-        if not isinstance(l, (int, float)):
-            raise TypeError("l must be numeric.")
-        if not isinstance(u, (int, float)):
-            raise ValueError("u must be numeric.")
-        if not l < u:
-            raise ValueError("l must be less than u.")
+        if not isinstance(x, (float, int)):
+            raise TypeError("Parameter 'x' must be numeric.")
+        if not isinstance(a, (float, int)):
+            raise TypeError("Parameter 'a' must be numeric.")
+        if not isinstance(b, (float, int)):
+            raise TypeError("Parameter 'b' must be numeric.")
+        if not isinstance(l, (float, int)):
+            raise TypeError("Parameter 'l' must be numeric.")
+        if 0 > l > 1:
+            raise ValueError("Parameter 'l' must fall between 0 and 1.")
+        if not isinstance(u, (float, int)):
+            raise TypeError("Parameter 'u' must be numeric.")
+        if 0 > u > 1:
+            raise ValueError("Parameter 'u' must fall between 0 and 1.")
+        if l > u:
+            raise ValueError("Parameter 'l' must be greater than 'u'.")
 
         if x < l or x > u:
             return 0
