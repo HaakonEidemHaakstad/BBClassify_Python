@@ -60,7 +60,7 @@ class bbclassify():
         
         >>> bb_ll = bbclassify(data = sumscores, reliability = reliability(rawdata).alpha(), min_score= 0, max_score = 100, cut_scores = [50, 75], method = "ll")
         >>> print(bb_ll.Parameters)
-        {'alpha': 3.877386083988672, 'beta': 3.9727308136649238, 'l': 0.2681195709670965, 'u': 0.8706384086828665, 'etl': 99.96892140618861, 'etl rounded': 100, 'lords_k': 0}
+        {'alpha': 3.877386083988672, 'beta': 3.9727308136649238, 'l': 0.2681195709670965, 'u': 0.8706384086828665, 'etl': 99.96892140618861, 'etl rounded': 100, 'lords k': 0}
         
         >>> bb_ll.modelfit()
         >>> print([bb_ll.Modelfit_chi_squared, bb_ll.Modelfit_degrees_of_freedom, bb_ll.Modelfit_p_value])
@@ -78,23 +78,23 @@ class bbclassify():
 
         >>> bb_hb = bbclassify(data = sumscores, reliability = reliability(rawdata).alpha(), min_score= 0, max_score = 100, cut_scores = [50, 75], method = "hb")
         >>> print(bb_hb.Parameters)
-        {'alpha': 3.878383371886145, 'beta': 3.974443224813199, 'l': 0.2680848232389114, 'u': 0.8707270089303472, 'lords_k': -0.015544127802040899}
+        {'alpha': 3.878383371886145, 'beta': 3.974443224813199, 'l': 0.2680848232389114, 'u': 0.8707270089303472, 'lords k': -0.015544127802040899}
         >>> bb_hb.modelfit()
         >>> print([bb_hb.Modelfit_chi_squared, bb_hb.Modelfit_degrees_of_freedom, bb_hb.Modelfit_p_value])
-        [41.568240407567785, 46, 0.6582260821176256]
+        [41.56824040756796, 46, 0.6582260821176182]
         >>> bb_hb.accuracy()
-        0.8440449341145039
+        0.8440449341145049
         >>> print(bb_hb.Accuracy)
-        0.8440449341145039
+        0.8440449341145049
         >>> bb_hb.consistency()
-        0.7814787747625861
+        0.7814787747625881
         >>> print(bb_hb.Consistency)
-        0.7814787747625861
+        0.7814787747625881
         """
         # Input validation.
         if not isinstance(data, (list, tuple, dict)):
             raise TypeError("Parameter 'data' must be a list or tuple of numeric values or a dict of parameter values.")
-        if any(isinstance(i, (float, int)) for i in data):
+        if not isinstance(data, dict) and not any(isinstance(i, (float, int)) for i in data):
             raise TypeError("All values contained in 'data' must be numeric.")
         if not isinstance(reliability, float):
             raise TypeError("Parameter 'reliability' must be a float value between 0 and 1.")
@@ -194,7 +194,7 @@ class bbclassify():
         # Make a list of the model-implied (expected) frequency-distribution.
         expected = [
                     self._bbintegrate1_1(self.Parameters["alpha"], self.Parameters["beta"], self.Parameters["l"], self.Parameters["u"],
-                            self.choose_values[i], self.N, i, self.Parameters["lords_k"], 0, 1, self.method)[0] * n_respondents 
+                            self.choose_values[i], self.N, i, self.Parameters["lords k"], 0, 1, self.method)[0] * n_respondents 
                             for i in range(self.N + 1)
                     ]
         # Make a list of the actual observed-score frequency-distribution.
@@ -243,7 +243,7 @@ class bbclassify():
         for i in range(len(self.cut_scores) - 1):
             for j in range(self.N + 1):
                 confmat[j, i] = self._bbintegrate1_1(self.Parameters["alpha"], self.Parameters["beta"], self.Parameters["l"], self.Parameters["u"], 
-                                               self.choose_values[j], self.N, j, self.Parameters["lords_k"], self.cut_truescores[i], self.cut_truescores[i + 1], self.method)[0]
+                                               self.choose_values[j], self.N, j, self.Parameters["lords k"], self.cut_truescores[i], self.cut_truescores[i + 1], self.method)[0]
         # Initialize the confusion matrix collapsing (summing) the values in "confmat" into ranges of observed-values corresponding to each category.
         self.confusionmatrix = np.zeros((len(self.cut_scores) - 1, len(self.cut_scores) - 1))
         for i in range(len(self.cut_scores) - 1):
@@ -265,7 +265,7 @@ class bbclassify():
             for j in range(self.N + 1):
                 if i <= j:
                     consmat[i, j] = self._bbintegrate2_1(self.Parameters["alpha"], self.Parameters["beta"], self.Parameters["l"], self.Parameters["u"], 
-                                                   self.choose_values[i], self.choose_values[j], self.N, i, j, self.Parameters["lords_k"], 0, 1, self.method)[0]
+                                                   self.choose_values[i], self.choose_values[j], self.N, i, j, self.Parameters["lords k"], 0, 1, self.method)[0]
         lower_triangle = np.tril_indices(consmat.shape[0], 0)
         # Transpose the lower triangle and insert into the upper triangle to fill out the matrix.
         consmat[lower_triangle] = consmat.T[lower_triangle]
@@ -345,16 +345,6 @@ class bbclassify():
         99.96892140618861
         """
         # Input validation.
-        if not isinstance(mean, (int, float)) or not isinstance(var, (int, float)):
-            raise TypeError("mean and var must be numeric.")
-        if (min > mean) or (max < mean):
-            raise ValueError("mean must be a value between min and max.")
-        if not isinstance(reliability, float) or not (0 <= reliability <= 1):
-            raise ValueError("reliability must be a float between 0 and 1.")
-        if not isinstance(min, (int, float)) or not isinstance(max, (int, float)):
-            raise TypeError("min and max must be numeric.")
-        if min >= max:
-            raise ValueError("min must be less than max.")
 
         return ((mean - min) * (max - mean) - (reliability * var)) / (var * (1 - reliability))
     
@@ -392,14 +382,6 @@ class bbclassify():
         -0.015544127802040899
         """
         # Input validation.
-        if not isinstance(mean, (int, float)) or not isinstance(var, (int, float)):
-            raise TypeError("mean and var must be numeric.")
-        if (0 > mean) or (length < mean):
-            raise ValueError("mean must be a value between 0 and length.")
-        if not isinstance(reliability, float) or not (0 <= reliability <= 1):
-            raise ValueError("reliability must be a float between 0 and 1.")
-        if not isinstance(length, (int, float)) or not length % 1 == 0 or not length <= 0:
-            raise TypeError("length must be positive numeric (integer).")
 
         vare = var * (1 - reliability)
         num = length * ((length - 1) * (var - vare) - length * var + mean * (length - mean))
@@ -441,14 +423,6 @@ class bbclassify():
         array([0.53467969, 0.70218754, 0.45730315, 0.5583427 , 0.59158903])
         """
         # Input validation.
-        if not isinstance(n, int) or n <= 0:
-            raise TypeError("n must be a positive integer.")
-        if not isinstance(a, (int, float)):
-            raise ValueError("a (alpha) must be numeric.")
-        if not isinstance(b, (int, float)):
-            raise ValueError("b (beta) must be numeric.")
-        if not l < u:
-            raise ValueError("l must be less than u.")
 
         return np.random.beta(a, b, n) * (u - l) + l
 
@@ -540,20 +514,6 @@ class bbclassify():
         0.3007812500000001
         """
         # Input validation.
-        if not isinstance(p, (int, float)):
-            raise TypeError("Parameter 'p' must be a float.")
-        if not (0 <= p <= 1):
-            raise ValueError("Parameter 'p' must be between 0 and 1, inclusive.")        
-        if not isinstance(N, (int, float)) or not N % 1 == 0 or not N <= 0:
-            raise TypeError("Parameter 'N' must be an integer.")
-        if N < 0:
-            raise ValueError("Parameter 'N' must be non-negative.")        
-        if not isinstance(n, (int, float)) or not n % 1 == 0 or not n <= 0:
-            raise TypeError("Parameter 'n' must be an integer.")
-        if not (0 <= n <= N):
-            raise ValueError("Parameter 'n' must be between 0 and 'N', inclusive.")        
-        if not isinstance(k, (int, float)):
-            raise TypeError("Parameter 'k' must be numeric.")
 
         a = binom.pmf(n, N, p)
         b = binom.pmf(n, N - 2, p)
@@ -599,28 +559,6 @@ class bbclassify():
         >>> bb_hb = bbclassify(data = sumscores, reliability = reliability(rawdata).alpha(), min_score = 0, max_score = 100, cut_scores = [50], method = "hb")
         """
         # Input validation.
-        if not isinstance(x, (tuple, list)):
-            raise TypeError("Parameter 'x' must be a tuple or list.")
-        if len(x) != 4:
-            raise ValueError("Parameter 'x' must contain exactly 4 elements.")
-        if not all(isinstance(i, (int, float)) for i in x):
-            raise TypeError("All elements of 'x' must be integers or floats.")
-        if not isinstance(p, (int, float)):
-            raise TypeError("Parameter 'p' must be a float.")
-        if not (0 <= p <= 1):
-            raise ValueError("Parameter 'p' must be between 0 and 1, inclusive.")        
-        if not isinstance(N, (int, float)) or not N % 1 == 0 or not N <= 0:
-            raise TypeError("Parameter 'N' must be an integer.")
-        if N < 0:
-            raise ValueError("Parameter 'N' must be non-negative.")
-        if not isinstance(n, (int, float)):
-            raise TypeError("Parameter 'n' must be an integer.")
-        if not (0 <= n <= N):
-            raise ValueError("Parameter 'n' must be between 0 and 'N', inclusive.")
-        if not isinstance(k, (int, float)):
-            raise TypeError("Parameter 'k' must be numeric.")
-        if not isinstance(method, str):
-            raise TypeError("Parameter 'method' must be a string.")
 
         a = x[0]*(p**n)*(1 - p)**(N - n)
         if method != "ll":
@@ -661,8 +599,6 @@ class bbclassify():
         1
         """
         # Input validation.
-        if not isinstance(x, (int, float)):
-            raise TypeError("Parameter 'x' must be numeric.")
 
         if x > 0:
             return math.prod([i for i in range(1, x + 1)])
@@ -698,13 +634,9 @@ class bbclassify():
         >>> sumscores = [int(i) for i in list(np.sum(rawdata, axis = 1))]
         >>> bb = bbclassify(data = sumscores, reliability = reliability(rawdata).alpha(), min_score = 0, max_score = 100, cut_scores = [50])
         >>> print(bb._choose(10, 5))
-        252
+        252.0
         """
         # Input validation.
-        if not isinstance(N, (int, float)):
-            raise TypeError("Parameter 'N' must be numeric.")
-        if not isinstance(n, (int, float)):
-            raise TypeError("Parameter 'n' must be numeric.")
 
         return self._da_factorial(N) / (self._da_factorial(n) * self._da_factorial(N - n))
 
@@ -739,13 +671,9 @@ class bbclassify():
         >>> sumscores = [int(i) for i in list(np.sum(rawdata, axis = 1))]
         >>> bb = bbclassify(data = sumscores, reliability = reliability(rawdata).alpha(), min_score = 0, max_score = 100, cut_scores = [50])
         >>> print(bb._choose_functions(10, 5))
-        (252, 56, 70, 56)
+        (252.0, 56.0, 70.0, 56.0)
         """
         # Input validation.
-        if not isinstance(N, (int, float)):
-            raise TypeError("Parameter 'N' must be numeric.")
-        if not isinstance(n, (int, float)):
-            raise TypeError("Parameter 'n' must be numeric.")
 
         a = self._choose(N, n)
         b = self._choose(N - 2, n)
@@ -803,22 +731,6 @@ class bbclassify():
         (0.18771821236360686, 1.0678646219550548e-08)
         """
         # Input validation.
-        if not isinstance(a, (int, float)) or a <= 0:
-            raise ValueError("Parameter 'a' must be a positive numeric.")
-        if not isinstance(b, (int, float)) or b <= 0:
-            raise ValueError("Parameter 'b' must be a positive numeric.")
-        if not isinstance(l, (int, float)) or not isinstance(u, (int, float)) or l >= u:
-            raise ValueError("Parameters 'l' and 'u' must be numerics with l < u.")
-        if not isinstance(N, (int, float)) or N % 1 != 0 or N < 0:
-            raise ValueError("Parameter 'N' must be a non-negative integer.")
-        if not isinstance(n, (int, float)) or n % 1 != 0 or not (0 <= n <= N):
-            raise ValueError("Parameter 'n' must be an integer value between 0 and 'N'.")
-        if not isinstance(k, (int, float)) or k < 0:
-            raise ValueError("Parameter 'k' must be numeric.")
-        if not isinstance(lower, (int, float)) or not isinstance(upper, (int, float)) or lower >= upper:
-            raise ValueError("Parameters 'lower' and 'upper' must be numerics with lower < upper.")
-        if not isinstance(method, str):
-            raise TypeError("Parameter 'method' must be a string.")
         
         if method != "ll":
             def f(x, a, b, l, u, N, n, k):
@@ -882,24 +794,6 @@ class bbclassify():
         (0.18771821236360692, 1.0678646219447462e-08)
         """
         # Input validation.
-        if not isinstance(a, (int, float)) or a <= 0:
-            raise ValueError("Parameter 'a' must be a positive float.")
-        if not isinstance(b, (int, float)) or b <= 0:
-            raise ValueError("Parameter 'b' must be a positive float.")
-        if not isinstance(l, (int, float)) or not isinstance(u, (int, float)) or l >= u:
-            raise ValueError("Parameters 'l' and 'u' must be floats with l < u.")
-        if not isinstance(c, tuple) or not all(isinstance(ci, (int, float)) for ci in c):
-            raise ValueError("Parameter 'c' must be a tuple of numeric coefficients.")
-        if not isinstance(N, (int, float)) or N % 1 != 0 or N < 0:
-            raise ValueError("Parameter 'N' must be a non-negative integer.")
-        if not isinstance(n, (int, float)) or n % 1 != 0 or not (0 <= n <= N):
-            raise ValueError("Parameter 'n' must be an integer value between 0 and 'N'.")
-        if not isinstance(k, (int, float)) or k < 0:
-            raise ValueError("Parameter 'k' must be numeric.")
-        if not isinstance(lower, (int, float)) or not isinstance(upper, (int, float)) or lower >= upper:
-            raise ValueError("Parameters 'lower' and 'upper' must be floats with lower < upper.")
-        if not isinstance(method, str):
-            raise TypeError("Parameter 'method' must be a string.")
         if method != "ll":
             def f(x, a, b, l, u, c, N, n, k):
                 return self._dbeta4p(x, a, b, l, u) * self._dcbinom2(c, x, N, n, k, method)
@@ -958,24 +852,6 @@ class bbclassify():
         (0.03843435178500844, 4.336562943457941e-10)
         """
         # Input validation.
-        if not isinstance(a, (int, float)) or a <= 0:
-            raise ValueError("Parameter 'a' must be a positive float.")
-        if not isinstance(b, (int, float)) or b <= 0:
-            raise ValueError("Parameter 'b' must be a positive float.")
-        if not isinstance(l, (int, float)) or not isinstance(u, (int, float)) or l >= u:
-            raise ValueError("Parameters 'l' and 'u' must be floats with l < u.")
-        if not isinstance(N, (int, float)) or N % 1 != 0 or N < 0:
-            raise ValueError("Parameter 'N' must be a non-negative integer.")
-        if not isinstance(n1, (int, float)) or n1 % 1 != 0 or not (0 <= n1 <= N):
-            raise ValueError("Parameter 'n1' must be an integer value between 0 and 'N'.")
-        if not isinstance(n2, (int, float)) or n2 % 1 != 0 or not (0 <= n2 <= N):
-            raise ValueError("Parameter 'n2' must be an integer value between 0 and 'N'.")
-        if not isinstance(k, (int, float)) or k < 0:
-            raise ValueError("Parameter 'k' must be numeric.")
-        if not isinstance(lower, (int, float)) or not isinstance(upper, (int, float)) or lower >= upper:
-            raise ValueError("Parameters 'lower' and 'upper' must be floats with lower < upper.")
-        if not isinstance(method, str):
-            raise TypeError("Parameter 'method' must be a string.")
         
         if method != "ll":
             def f(x, a, b, l, u, N, n1, n2, k):
@@ -1041,28 +917,7 @@ class bbclassify():
         (0.03843435178500849, 4.336562889266626e-10)
         """
         # Input validation
-        if not isinstance(a, (int, float)) or a <= 0:
-            raise ValueError("Parameter 'a' must be a positive float.")
-        if not isinstance(b, (int, float)) or b <= 0:
-            raise ValueError("Parameter 'b' must be a positive float.")
-        if not isinstance(l, (int, float)) or not isinstance(u, (int, float)) or l >= u:
-            raise ValueError("Parameters 'l' and 'u' must be floats with l < u.")
-        if not isinstance(c1, tuple):
-            raise TypeError("Parameter 'c1' must be a tuple of precomputed coefficients.")
-        if not isinstance(c2, tuple):
-            raise TypeError("Parameter 'c2' must be a tuple of precomputed coefficients.")
-        if not isinstance(N, (int, float)) or N % 1 != 0 or N < 0:
-            raise ValueError("Parameter 'N' must be a non-negative integer.")
-        if not isinstance(n1, (int, float)) or n1 % 1 != 0 or not (0 <= n1 <= N):
-            raise ValueError("Parameter 'n1' must be an integer value between 0 and 'N'.")
-        if not isinstance(n2, (int, float)) or n2 % 1 != 0 or not (0 <= n2 <= N):
-            raise ValueError("Parameter 'n2' must be an integer value between 0 and 'N'.")
-        if not isinstance(k, (int, float)) or k < 0:
-            raise ValueError("Parameter 'k' must be numeric.")
-        if not isinstance(lower, (int, float)) or not isinstance(upper, (int, float)) or lower >= upper:
-            raise ValueError("Parameters 'lower' and 'upper' must be floats with lower < upper.")
-        if not isinstance(method, str):
-            raise TypeError("Parameter 'method' must be a string.")
+
         if method != "ll":
             def f(x, a, b, l, u, c1, c2, N, n1, n2, k):
                 return self._dbeta4p(x, a, b, l, u) * self._dcbinom2(c1, x, N, n1, k, method) * self._dcbinom2(c2, x, N, n2, k, method)
@@ -1108,10 +963,6 @@ class bbclassify():
         [4, 3]
         """
         # Input validation
-        if not isinstance(x, list) or not all(isinstance(i, (int, float)) for i in x):
-            raise TypeError("Parameter 'x' must be a list of numeric values.")
-        if not isinstance(r, (int, float)) or r % 1 != 0 or r < 1:
-            raise ValueError("Parameter 'r' must be a positive integer.")
 
         x1 = x.copy()
         for i in range(len(x)):
@@ -1156,16 +1007,11 @@ class bbclassify():
         >>> rawdata = pd.DataFrame([np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)])
         >>> sumscores = [int(i) for i in list(np.sum(rawdata, axis = 1))]
         >>> bb_hb = bbclassify(data = sumscores, reliability = reliability(rawdata).alpha(), min_score = 0, max_score = 100, cut_scores = [50], method = "hb")
-        >>> print(bb_hb._tsm(sumscores, 100, bb_hb.Parameters['lords_k']))
+        >>> print(bb_hb._tsm(sumscores, 100, bb_hb.Parameters['lords k']))
         [0.56572, 0.33029356244956504, 0.19847130696480725, 0.12240805759909551]
         """
         # Input validation
-        if not isinstance(x, list) or not all(isinstance(i, (int, float)) for i in x):
-            raise TypeError("Parameter 'x' must be a list of numeric values.")
-        if not isinstance(n, (int, float)) or n % 1 != 0 or n <= 0:
-            raise ValueError("Parameter 'n' must be a positive integer.")
-        if not isinstance(k, (int, float)):
-            raise TypeError("Parameter 'k' must be numeric.")
+
         m = [stats.mean(x) / n, 0, 0, 0]
         for i in range(1, 4):
             M = i + 1
@@ -1217,24 +1063,13 @@ class bbclassify():
         >>> sumscores = [int(i) for i in list(np.sum(rawdata, axis = 1))]
         >>> bb_hb = bbclassify(data = sumscores, reliability = reliability(rawdata).alpha(), min_score = 0, max_score = 100, cut_scores = [50], method = "hb")
         >>> print(bb_hb.Parameters)
-        {'alpha': 3.878383371886145, 'beta': 3.974443224813199, 'l': 0.2680848232389114, 'u': 0.8707270089303472, 'lords_k': -0.015544127802040899}
+        {'alpha': 3.878383371886145, 'beta': 3.974443224813199, 'l': 0.2680848232389114, 'u': 0.8707270089303472, 'lords k': -0.015544127802040899}
         >>> bb_ll = bbclassify(data = sumscores, reliability = reliability(rawdata).alpha(), min_score= 0, max_score = 100, cut_scores = [50, 75], model = 2, l = 0.25, u = 0.85, method = "ll")
         >>> print(bb_ll.Parameters)
-        {'alpha': 4.079875519795486, 'beta': 3.673593731051123, 'l': 0.25, 'u': 0.85, 'etl': 99.96892140618861, 'etl rounded': 100, 'lords_k': 0}
+        {'alpha': 4.079875519795486, 'beta': 3.673593731051123, 'l': 0.25, 'u': 0.85, 'etl': 99.96892140618861, 'etl rounded': 100, 'lords k': 0}
         """
         # Input validation
-        if not isinstance(x, list) or not all(isinstance(i, (int, float)) for i in x):
-            raise TypeError("Parameter 'x' must be a list of numeric values.")
-        if not isinstance(n, (int, float)) or n % 1 != 0 or n <= 0:
-            raise ValueError("Parameter 'n' must be a positive integer.")
-        if not isinstance(k, (int, float)):
-            raise TypeError("Parameter 'k' must be numeric.")
-        if not isinstance(model, int) or model not in [2, 4]:
-            raise ValueError("Parameter 'model' must be either 2 (two-parameter) or 4 (four-parameter).")
-        if not isinstance(l, (int, float)) or not isinstance(u, (int, float)):
-            raise TypeError("Parameters 'l' and 'u' must be numeric.")
-        if l >= u:
-            raise ValueError("Parameter 'l' must be less than 'u'.")
+        
         m = self._tsm(x, n, k)
         s2 = m[1] - m[0]**2
         g3 = (m[2] - 3 * m[0] * m[1] + 2 * m[0]**3) / (math.sqrt(s2)**3)
@@ -1280,8 +1115,6 @@ class reliability():
          [-0.02012851  0.01653012  0.03934137  0.2499759   0.05113253]
          [-0.00817671  0.02549398  0.0055743   0.05113253  0.241751  ]]
         """
-        if not isinstance(data, pd.DataFrame):
-            raise TypeError("'data' must be a Pandas DataFrame.")
         self.data = data
         self.covariance_matrix = np.array(self.data.dropna().cov())
 
