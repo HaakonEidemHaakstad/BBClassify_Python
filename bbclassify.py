@@ -631,6 +631,32 @@ class bbclassify():
         >>> bb_hb = bbclassify(data = sumscores, reliability = reliability(rawdata).alpha(), min_score = 0, max_score = 100, cut_scores = [50], method = "hb")
         """
         # Input validation.
+        """
+        if not isinstance(x, (list, tuple)):
+            raise TypeError("Parameter 'x' must be a list or tuple of integer values.")
+        if not all(isinstance(i, (float, int)) for i in x):
+            raise TypeError("All values in 'x' must be integers.")
+        if any(i % 1 != 0 for i in x):
+            raise ValueError("All values in 'x' must be integers.")
+        if not isinstance(p, (float, int)):
+            raise TypeError("Parameter 'p' must be numeric.")
+        if p < 0 or p > 1:
+            raise ValueError("Parameter 'p' must fall within the interval [0, 1].")
+        if not isinstance(N, (float, int)):
+            raise TypeError("Parameter 'N' must be an integer.")
+        if N % 1 != 0:
+            raise TypeError("Parameter 'N' must be an integer.")
+        if not isinstance(n, (float, int)):
+            raise TypeError("Parameter 'n' must be an integer.")
+        if n % 1 != 0:
+            raise TypeError("Parameter 'n' must be an integer.")
+        if n > N:
+            raise ValueError("Parameter 'N' must be greater than 'n'.")
+        if not isinstance(method, str):
+            raise TypeError("Parameter 'method' must be a string.")
+        if method != "ll" and not isinstance(k, (float, int)) :
+            raise TypeError("Parameter 'k' must be numeric.")
+        """
 
         a = x[0]*(p**n)*(1 - p)**(N - n)
         if method != "ll":
@@ -671,6 +697,10 @@ class bbclassify():
         1
         """
         # Input validation.
+        """
+        if not isinstance(x, (float, int)):
+            raise TypeError("Parameter 'x' must be numeric.")
+        """
 
         if x > 0:
             return math.prod([i for i in range(1, x + 1)])
@@ -709,6 +739,18 @@ class bbclassify():
         252.0
         """
         # Input validation.
+        """
+        if not isinstance(N, (float, int)):
+            raise TypeError("Parameter 'N' must be an integer.")
+        if N % 1 != 0:
+            raise TypeError("Parameter 'N' must be an integer.")
+        if not isinstance(n, (float, int)):
+            raise TypeError("Parameter 'n' must be an integer.")
+        if n % 1 != 0:
+            raise TypeError("Parameter 'n' must be an integer.")
+        if n > N:
+            raise ValueError("Parameter 'N' must be greater than 'n'.")
+        """
 
         return self._da_factorial(N) / (self._da_factorial(n) * self._da_factorial(N - n))
 
@@ -746,6 +788,18 @@ class bbclassify():
         (252.0, 56.0, 70.0, 56.0)
         """
         # Input validation.
+        """
+        if not isinstance(N, (float, int)):
+            raise TypeError("Parameter 'N' must be an integer.")
+        if N % 1 != 0:
+            raise TypeError("Parameter 'N' must be an integer.")
+        if not isinstance(n, (float, int)):
+            raise TypeError("Parameter 'n' must be an integer.")
+        if n % 1 != 0:
+            raise TypeError("Parameter 'n' must be an integer.")
+        if n > N:
+            raise ValueError("Parameter 'N' must be greater than 'n'.")
+        """
 
         a = self._choose(N, n)
         b = self._choose(N - 2, n)
