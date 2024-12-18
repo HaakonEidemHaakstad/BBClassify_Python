@@ -345,6 +345,22 @@ class bbclassify():
         99.96892140618861
         """
         # Input validation.
+        if not isinstance(mean, (float, int)):
+            raise TypeError("Parameter 'mean' must be numeric.")
+        if not isinstance(var, (float, int)) or var <= 0:
+            raise TypeError("Parameter 'var' must be positive numeric.")
+        if not isinstance(reliability, float) or reliability <= 0:
+            raise TypeError("Parameter 'reliability' must be a float.")
+        if reliability <= 0 or reliability >= 1:
+            raise ValueError("Parameter 'reliability must fall within the range 0 and 1.")
+        if not isinstance(min, (float, int)):
+            raise TypeError("Parameter 'min' must be a numeric value.")
+        if min > mean:
+            raise ValueError("Minimum possible score ('min') must be less than or equal to 'mean'.")
+        if not isinstance(max, (float, int)):
+            raise TypeError("Parameter 'max' must be a numeric value.")
+        if max < mean:
+            raise ValueError("Maximum possible score ('max') must be greater than or equal to 'mean'.")
 
         return ((mean - min) * (max - mean) - (reliability * var)) / (var * (1 - reliability))
     
