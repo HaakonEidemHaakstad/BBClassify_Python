@@ -113,7 +113,19 @@ class bbclassify():
         if any(i <= min_score or i >= max_score for i in cut_scores):
             raise ValueError("Values in 'cut_scores' must fall between 'min_score' and 'max_score'.")
         if not isinstance(method, str):
-            raise TypeError("Parameter 'method' must be a string.")
+            raise TypeError("Parameter 'method' must be a string.")        
+        if method != "ll" and any(i % i != 0 for i in data):
+            raise ValueError("All values in 'data' must be integers under the Hanson and Brennan approach.")
+        if method != "ll" and any(i < 0 for i in data):
+            raise ValueError("Values in 'data' cannot be less than 0 under the Hanson and Brennan approach.")        
+        if (method == "ll" and isinstance(data, dict)) and not all(i in ["alpha", "beta", "l", "u", "etl rounded"] for i in data):
+            raise ValueError("Dictionary 'data' does not contain the necessary parameters")
+        if (method == "ll" and isinstance(data, dict)) and data["etl rounded"] % 1 != 0:
+            raise ValueError("Dictionary entry 'etl rounded' must be an integer.")
+        if (method != "ll" and isinstance(data, dict)) and not all(i in ["alpha", "beta", "l", "u", "atl", "lords k"] for i in data):
+            raise ValueError("Dictionary 'data' does not contain the necessary parameters")
+        if (method != "ll" and isinstance(data, dict)) and data["atl"] % 1 != 0:
+            raise ValueError("Dictionary entry 'atl' must be an integer.")
         if not isinstance(model, (float, int)):
             raise TypeError("Parameter 'model' must be a numeric value.")
         if model not in [4, 4.0, 2, 2.0]:
@@ -126,16 +138,6 @@ class bbclassify():
             raise ValueError("The value of 'l' must be lower than that of 'u'.")
         if not isinstance(failsafe, bool):
             raise TypeError("Parameter 'failsafe' must be a boolean value (True or False).")
-        if (method == "ll" and isinstance(data, dict)) and not all(i in ["alpha", "beta", "l", "u", "etl rounded"] for i in data):
-            raise ValueError("Dictionary 'data' does not contain the necessary parameters")
-        if (method == "ll" and isinstance(data, dict)) and data["etl rounded"] % 1 != 0:
-            raise ValueError("Dictionary entry 'etl rounded' must be an integer.")
-        if (method != "ll" and isinstance(data, dict)) and not all(i in ["alpha", "beta", "l", "u", "atl", "lords k"] for i in data):
-            raise ValueError("Dictionary 'data' does not contain the necessary parameters")
-        if (method != "ll" and isinstance(data, dict)) and data["atl"] % 1 != 0:
-            raise ValueError("Dictionary entry 'atl' must be an integer.")
-        if method != "ll" and any(i % i != 0 for i in data):
-            raise ValueError("All values in 'data' must be integers under the Hanson and Brennan approach.")
         
         self.data = data
         self.reliability = reliability
@@ -398,6 +400,18 @@ class bbclassify():
         -0.015544127802040899
         """
         # Input validation.
+        if not isinstance(mean, (float, int)):
+            raise TypeError("Parameter 'mean' must be numeric.")
+        if mean < 0 or mean > length:
+            raise ValueError("Value of 'mean' must fall between 0 and 'length'.")
+        if not isinstance(var, (float, int)) or var <= 0:
+            raise TypeError("Parameter 'var' must be positive numeric.")
+        if not isinstance(reliability, float) or reliability <= 0:
+            raise TypeError("Parameter 'reliability' must be a float.")
+        if reliability <= 0 or reliability >= 1:
+            raise ValueError("Parameter 'reliability must fall within the range 0 and 1.")
+        if length % 1 != 0:
+            raise TypeError("Parameter 'length' must be an integer.")
 
         vare = var * (1 - reliability)
         num = length * ((length - 1) * (var - vare) - length * var + mean * (length - mean))
