@@ -453,6 +453,28 @@ class bbclassify():
         array([0.53467969, 0.70218754, 0.45730315, 0.5583427 , 0.59158903])
         """
         # Input validation.
+        if not isinstance(n, (float, int)):
+            raise TypeError("Parameter 'n' must be an integer.")
+        if n % 1 != 0:
+            raise ValueError("Parameter 'n' must be an integer.")
+        if not isinstance(a, (float, int)):
+            raise TypeError("Parameter 'a' must be numeric.")
+        if a < 0:
+            raise ValueError("Value of 'a' must be greater than 0.")
+        if not isinstance(b, (float, int)):
+            raise TypeError("Parameter 'b' must be numeric.")
+        if b < 0:
+            raise ValueError("Value of 'b' must be greater than 0.")
+        if not isinstance(l, (float, int)):
+            raise TypeError("Parameter 'l' must be numeric.")
+        if 0 > l > 1:
+            raise ValueError("Parameter 'l' must fall between 0 and 1.")
+        if not isinstance(u, (float, int)):
+            raise TypeError("Parameter 'u' must be numeric.")
+        if 0 > u > 1:
+            raise ValueError("Parameter 'u' must fall between 0 and 1.")
+        if l > u:
+            raise ValueError("Parameter 'l' must be greater than 'u'.")
 
         return np.random.beta(a, b, n) * (u - l) + l
 
