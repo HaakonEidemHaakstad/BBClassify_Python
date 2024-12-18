@@ -92,8 +92,8 @@ class bbclassify():
         0.7814787747625861
         """
         # Input validation.
-        if not isinstance(data, (list, tuple)):
-            raise TypeError("Parameter 'data' must be a list or tuple of numeric values.")
+        if not isinstance(data, (list, tuple, dict)):
+            raise TypeError("Parameter 'data' must be a list or tuple of numeric values or a dict of parameter values.")
         if any(isinstance(i, (float, int)) for i in data):
             raise TypeError("All values contained in 'data' must be numeric.")
         if not isinstance(reliability, float):
@@ -126,6 +126,16 @@ class bbclassify():
             raise ValueError("The value of 'l' must be lower than that of 'u'.")
         if not isinstance(failsafe, bool):
             raise TypeError("Parameter 'failsafe' must be a boolean value (True or False).")
+        if (method == "ll" and isinstance(data, dict)) and not all(i in ["alpha", "beta", "l", "u", "etl rounded"] for i in data):
+            raise ValueError("Dictionary 'data' does not contain the necessary parameters")
+        if (method == "ll" and isinstance(data, dict)) and data["etl rounded"] % 1 != 0:
+            raise ValueError("Dictionary entry 'etl rounded' must be an integer.")
+        if (method != "ll" and isinstance(data, dict)) and not all(i in ["alpha", "beta", "l", "u", "atl", "lords k"] for i in data):
+            raise ValueError("Dictionary 'data' does not contain the necessary parameters")
+        if (method != "ll" and isinstance(data, dict)) and data["atl"] % 1 != 0:
+            raise ValueError("Dictionary entry 'atl' must be an integer.")
+        if method != "ll" and any(i % i != 0 for i in data):
+            raise ValueError("All values in 'data' must be integers under the Hanson and Brennan approach.")
         
         self.data = data
         self.reliability = reliability
@@ -148,7 +158,8 @@ class bbclassify():
         if isinstance(self.data, dict): # Parameters do not have to be estimated if a dict of parameter values is supplied.
             self.Parameters = self.data
             if self.method == "ll":
-                self.N = self.Parameters["etl"]
+                self.Parameters["lords k"] = 0
+                self.N = self.Parameters["etl rounded"]
             else:
                 self.N = self.Parameters["atl"]
         else: # If raw data is supplied, estimate parameters from the data.
@@ -156,15 +167,15 @@ class bbclassify():
                 self.effective_test_length = self._calculate_etl(stats.mean(self.data), stats.variance(self.data), float(self.reliability), self.min_score, self.max_score)
                 self.N = round(self.effective_test_length)
                 self.K = 0
-                self.Parameters = self._betaparameters(self.data, self.N, 0, self.model, self.l, self.u)
+                self.Parameters = self._betaparameters(self.data, self.N, self.K, self.model, self.l, self.u)
                 self.Parameters["etl"] = self.effective_test_length
                 self.Parameters["etl rounded"] = self.N
-                self.Parameters["lords_k"] = 0
+                self.Parameters["lords k"] = 0
             else: # For the Hanson and Brennan method:
                 self.N = self.max_score
                 self.K = float(self._calculate_lords_k(stats.mean(self.data), stats.variance(self.data), self.reliability, self.N))
                 self.Parameters = self._betaparameters(self.data, self.N, self.K, self.model, self.l, self.u)
-                self.Parameters["lords_k"] = self.K
+                self.Parameters["lords k"] = self.K
             # If a four-parameter fitting procedure produced invalid location parameter estimates, and the failsafe was specified to
             # engage in such a circumstance, fit a two-parameter model instead with the location-parameters specified by the user.
             if (self.failsafe == True and self.model == 4) and (self.Parameters["l"] < 0 or self.Parameters["u"] > 1):
