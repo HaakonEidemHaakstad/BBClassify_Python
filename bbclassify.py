@@ -738,10 +738,10 @@ class bbclassify():
         if N % 1 != 0:
             raise TypeError("Parameter 'N' must be an integer.")
         if not isinstance(n, (float, int)):
+            raise TypeError("Parameter 'n' must be an integer.")
+        if n % 1 != 0:
             raise TypeError("Parameter 'n' must be an integer.")        
         """
-        if n % 1 != 0:
-            raise TypeError("Parameter 'n' must be an integer.")
         if n > N:
             raise ValueError("Parameter 'N' must be greater than 'n'.")
         """
