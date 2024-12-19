@@ -786,10 +786,8 @@ class bbclassify():
             raise TypeError("Parameter 'n' must be an integer.")
         if n % 1 != 0:
             raise TypeError("Parameter 'n' must be an integer.")
-        """
         if n > N:
             raise ValueError("Parameter 'N' must be greater than 'n'.")
-        """
 
         a = self._choose(N, n)
         b = self._choose(N - 2, n)
