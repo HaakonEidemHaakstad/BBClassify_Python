@@ -794,67 +794,7 @@ class bbclassify():
         c = self._choose(N - 2, n - 1)
         d = self._choose(N - 2, n - 2)
         return (a, b, c, d)
-
-    def _bbintegrate1(self, a: float, b: float, l: float, u: float, N: int, n: int, k: float, lower: float, upper: float, method: str = "ll") -> tuple:
-        """
-        Compute the integral of a univariate beta-binomial distribution over a specified range.
-
-        Parameters
-        ----------
-        a : float
-            Alpha (first shape parameter) of the beta distribution.
-        b : float
-            Beta (second shape parameter) of the beta distribution.
-        l : float
-            Lower bound of the four-parameter beta distribution.
-        u : float
-            Upper bound of the four-parameter beta distribution.
-        N : int
-            Total number of trials.
-        n : int
-            Number of observed successes.
-        k : float
-            Lord's k parameter (used for the Hanson and Brennan method).
-        lower : float
-            Lower limit of the integral.
-        upper : float
-            Upper limit of the integral.
-        method : str, optional
-            The method to compute the integral:
-            - 'll' for the Livingston and Lewis approach (default).
-            - Any other string for the Hanson and Brennan approach.
-
-        Returns
-        -------
-        tuple
-            The computed area under the curve for the beta-binomial distribution over the specified range.
-            - [0] : The area under the curve.
-            - [1] : Error estimate.
-
-        Examples
-        --------
-        >>> import numpy as np
-        >>> import pandas as pd
-        >>> np.random.seed(1234)
-        >>> N_resp, N_items, alpha, beta, l, u = 250, 100, 6, 4, .15, .85
-        >>> p_success = np.random.beta(alpha, beta, N_resp) * (u - l) + l
-        >>> rawdata = pd.DataFrame([np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)])
-        >>> sumscores = [int(i) for i in list(np.sum(rawdata, axis = 1))]
-        >>> bb_hb = bbclassify(data = sumscores, reliability = reliability(rawdata).alpha(), min_score = 0, max_score = 100, cut_scores = [50])
-        >>> print(bb_hb._bbintegrate1(6, 4, 0.15, 0.85, 10, 5, 1, 0, 1, method = 'll'))
-        (0.18771821236360686, 1.0678646219550548e-08)
-        """
-        # Input validation.
-        
-        if method != "ll":
-            def f(x, a, b, l, u, N, n, k):
-                return self._dbeta4p(x, a, b, l, u) * self._dcbinom(x, N, n, k)
-            return quad(f, lower, upper, args = (a, b, l, u, N, n, k))
-        else:
-            def f(x, a, b, l, u, N, n):
-                return self._dbeta4p(x, a, b, l, u) * binom.pmf(n, N, x)
-            return quad(f, lower, upper, args = (a, b, l, u, N, n))
-        
+    
     def _bbintegrate1_1(self, a: float, b: float, l: float, u: float, c: tuple, N: int, n: int, k: float, lower: float, upper: float, method: str = "ll") -> float:
         """
         Compute the integral of a univariate beta-binomial distribution using precomputed coefficients.
