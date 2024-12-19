@@ -1163,6 +1163,8 @@ class bbclassify():
         # Input validation
         if not isinstance(x, (list, tuple)):
             raise TypeError("Parameter 'x' must be a list or  tuple.")
+        if not all(isinstance(i, (float, int)) for i in x):
+            raise TypeError("All values contained in 'x' mut be numeric.")
         if not isinstance(n, (float, int)):
             raise TypeError("Parameter 'n' must be an integer.")
         if n % 1 != 0:
