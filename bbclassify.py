@@ -631,13 +631,10 @@ class bbclassify():
         >>> bb_hb = bbclassify(data = sumscores, reliability = reliability(rawdata).alpha(), min_score = 0, max_score = 100, cut_scores = [50], method = "hb")
         """
         # Input validation.
-        """
         if not isinstance(x, (list, tuple)):
             raise TypeError("Parameter 'x' must be a list or tuple of integer values.")
         if not all(isinstance(i, (float, int)) for i in x):
-            raise TypeError("All values in 'x' must be integers.")
-        if any(i % 1 != 0 for i in x):
-            raise ValueError("All values in 'x' must be integers.")
+            raise TypeError("All values in 'x' must be numeric.")
         if not isinstance(p, (float, int)):
             raise TypeError("Parameter 'p' must be numeric.")
         if p < 0 or p > 1:
@@ -656,8 +653,7 @@ class bbclassify():
             raise TypeError("Parameter 'method' must be a string.")
         if method != "ll" and not isinstance(k, (float, int)) :
             raise TypeError("Parameter 'k' must be numeric.")
-        """
-
+        
         a = x[0]*(p**n)*(1 - p)**(N - n)
         if method != "ll":
             b = x[1]*(p**n)*(1 - p)**(N - n)
@@ -697,10 +693,8 @@ class bbclassify():
         1
         """
         # Input validation.
-        """
         if not isinstance(x, (float, int)):
             raise TypeError("Parameter 'x' must be numeric.")
-        """
 
         if x > 0:
             return math.prod([i for i in range(1, x + 1)])
