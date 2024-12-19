@@ -1161,6 +1161,22 @@ class bbclassify():
         {'alpha': 4.079875519795486, 'beta': 3.673593731051123, 'l': 0.25, 'u': 0.85, 'etl': 99.96892140618861, 'etl rounded': 100, 'lords k': 0}
         """
         # Input validation
+        if not isinstance(x, (list, tuple)):
+            raise TypeError("Parameter 'x' must be a list or  tuple.")
+        if not isinstance(n, (float, int)):
+            raise TypeError("Parameter 'n' must be an integer.")
+        if n % 1 != 0:
+            raise TypeError("Parameter 'n' must be an integer.")
+        if not isinstance(k, (float, int)):
+            raise TypeError("Parameter 'k' must be numeric.")
+        if model not in [4, 4.0, 2, 2.0]:
+            raise ValueError("The value of 'model' must be either 4 or 2.")
+        if not isinstance(l, (float, int)) or not isinstance(u, (float, int)):
+            raise TypeError("Parameters 'l' and 'u' must be numeric.")
+        if (l < 0 or u < 0) or (l > 1 or u > 1):
+            raise ValueError("The values of parameters 'l' and 'u' must fall between 0 and 1.")
+        if l >= u:
+            raise ValueError("The value of 'l' must be lower than that of 'u'.")
         
         m = self._tsm(x, n, k)
         s2 = m[1] - m[0]**2
