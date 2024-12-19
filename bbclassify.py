@@ -949,6 +949,51 @@ class bbclassify():
         (0.03843435178500849, 4.336562889266626e-10)
         """
         # Input validation
+        if not isinstance(a, (float, int)):
+            raise TypeError("Parameter 'a' must be numeric.")
+        if not isinstance(b, (float, int)):
+            raise TypeError("Parameter 'b' must be numeric.")
+        if not isinstance(l, (float, int)):
+            raise TypeError("Parameter 'l' must be numeric.")
+        if 0 > l > 1:
+            raise ValueError("Parameter 'l' must fall between 0 and 1.")
+        if not isinstance(u, (float, int)):
+            raise TypeError("Parameter 'u' must be numeric.")
+        if 0 > u > 1:
+            raise ValueError("Parameter 'u' must fall between 0 and 1.")
+        if l > u:
+            raise ValueError("Parameter 'l' must be lesser than 'u'.")
+        if not isinstance(c1, (list, tuple)):
+            raise TypeError("Parameter 'c' must be a list or tuple.")
+        if not all(isinstance(i, (float, int)) for i in c1):
+            raise ValueError("Values in the list or tuple supplied to parameter 'c' must contain only numeric values.")
+        if len(c1) != 4:
+            raise ValueError("List or Tuple supplied to parameter 'c' must contain four numeric entries.")
+        if not isinstance(c2, (list, tuple)):
+            raise TypeError("Parameter 'c' must be a list or tuple.")
+        if not all(isinstance(i, (float, int)) for i in c2):
+            raise ValueError("Values in the list or tuple supplied to parameter 'c' must contain only numeric values.")
+        if len(c2) != 4:
+            raise ValueError("List or Tuple supplied to parameter 'c' must contain four numeric entries.")
+        if not isinstance(N, (float, int)):
+            raise TypeError("Parameter 'N' must be an integer.")
+        if N % 1 != 0:
+            raise TypeError("Parameter 'N' must be an integer.")
+        if not isinstance(n1, (float, int)):
+            raise TypeError("Parameter 'n' must be an integer.")
+        if n1 % 1 != 0:
+            raise TypeError("Parameter 'n' must be an integer.")
+        if n2 % 1 != 0:
+            raise TypeError("Parameter 'n' must be an integer.")
+        if not isinstance(k, (float, int)):
+            raise TypeError("Parameter 'k' must be numeric.")
+        if not isinstance(lower, (float, int)):
+            raise TypeError("Parameter 'lower' must be numeric.")
+        if not isinstance(upper, (float, int)):
+            raise TypeError("Parameter 'upper' must be numeric.")
+        if not isinstance(method, str):
+            raise TypeError("Parameter 'method' must be a string.")
+        
 
         if method != "ll":
             def f(x, a, b, l, u, c1, c2, N, n1, n2, k):
