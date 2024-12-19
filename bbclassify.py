@@ -195,7 +195,7 @@ class bbclassify():
         n_respondents = len(self.data)
         # Make a list of the model-implied (expected) frequency-distribution.
         expected = [
-                    self._bbintegrate1_1(self.Parameters["alpha"], self.Parameters["beta"], self.Parameters["l"], self.Parameters["u"],
+                    self._bbintegrate1(self.Parameters["alpha"], self.Parameters["beta"], self.Parameters["l"], self.Parameters["u"],
                             self.choose_values[i], self.N, i, self.Parameters["lords k"], 0, 1, self.method)[0] * n_respondents 
                             for i in range(self.N + 1)
                     ]
@@ -244,7 +244,7 @@ class bbclassify():
         confmat = np.zeros((self.N + 1, len(self.cut_scores) - 1))
         for i in range(len(self.cut_scores) - 1):
             for j in range(self.N + 1):
-                confmat[j, i] = self._bbintegrate1_1(self.Parameters["alpha"], self.Parameters["beta"], self.Parameters["l"], self.Parameters["u"], 
+                confmat[j, i] = self._bbintegrate1(self.Parameters["alpha"], self.Parameters["beta"], self.Parameters["l"], self.Parameters["u"], 
                                                self.choose_values[j], self.N, j, self.Parameters["lords k"], self.cut_truescores[i], self.cut_truescores[i + 1], self.method)[0]
         # Initialize the confusion matrix collapsing (summing) the values in "confmat" into ranges of observed-values corresponding to each category.
         self.confusionmatrix = np.zeros((len(self.cut_scores) - 1, len(self.cut_scores) - 1))
@@ -795,7 +795,7 @@ class bbclassify():
         d = self._choose(N - 2, n - 2)
         return (a, b, c, d)
     
-    def _bbintegrate1_1(self, a: float, b: float, l: float, u: float, c: tuple, N: int, n: int, k: float, lower: float, upper: float, method: str = "ll") -> float:
+    def _bbintegrate1(self, a: float, b: float, l: float, u: float, c: tuple, N: int, n: int, k: float, lower: float, upper: float, method: str = "ll") -> float:
         """
         Compute the integral of a univariate beta-binomial distribution using precomputed coefficients.
 
@@ -844,7 +844,7 @@ class bbclassify():
         >>> sumscores = [int(i) for i in list(np.sum(rawdata, axis = 1))]
         >>> bb_hb = bbclassify(data = sumscores, reliability = reliability(rawdata).alpha(), min_score = 0, max_score = 100, cut_scores = [50], method = "hb")
         >>> cf = bb_hb._choose_functions(10, 5)
-        >>> print(bb_hb._bbintegrate1_1(6, 4, 0.15, 0.85, cf, 10, 5, 1, 0, 1, method = 'll'))
+        >>> print(bb_hb._bbintegrate1(6, 4, 0.15, 0.85, cf, 10, 5, 1, 0, 1, method = 'll'))
         (0.18771821236360692, 1.0678646219447462e-08)
         """
         # Input validation.
