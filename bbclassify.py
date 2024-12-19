@@ -1225,6 +1225,8 @@ class reliability():
          [-0.02012851  0.01653012  0.03934137  0.2499759   0.05113253]
          [-0.00817671  0.02549398  0.0055743   0.05113253  0.241751  ]]
         """
+        if not isinstance(data, pd.DataFrame):
+            raise TypeError("Parameter 'data' must be a pandas dataframe.")
         self.data = data
         self.covariance_matrix = np.array(self.data.dropna().cov())
 
