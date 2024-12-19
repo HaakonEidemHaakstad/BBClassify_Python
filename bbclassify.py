@@ -992,8 +992,7 @@ class bbclassify():
         if not isinstance(upper, (float, int)):
             raise TypeError("Parameter 'upper' must be numeric.")
         if not isinstance(method, str):
-            raise TypeError("Parameter 'method' must be a string.")
-        
+            raise TypeError("Parameter 'method' must be a string.")        
 
         if method != "ll":
             def f(x, a, b, l, u, c1, c2, N, n1, n2, k):
@@ -1040,6 +1039,12 @@ class bbclassify():
         [4, 3]
         """
         # Input validation
+        if not isinstance(x, list):
+            raise TypeError("Parameter 'x' must be a list.")
+        if not isinstance(r, (float, int)):
+            raise TypeError("Parameter 'r' must be an integer.")
+        if r % 1 != 0:
+            raise TypeError("Parameter 'r' must be an integer.")
 
         x1 = x.copy()
         for i in range(len(x)):
