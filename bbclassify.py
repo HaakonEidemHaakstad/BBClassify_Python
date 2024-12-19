@@ -266,7 +266,7 @@ class bbclassify():
         for i in range(self.N + 1):
             for j in range(self.N + 1):
                 if i <= j:
-                    consmat[i, j] = self._bbintegrate2_1(self.Parameters["alpha"], self.Parameters["beta"], self.Parameters["l"], self.Parameters["u"], 
+                    consmat[i, j] = self._bbintegrate2(self.Parameters["alpha"], self.Parameters["beta"], self.Parameters["l"], self.Parameters["u"], 
                                                    self.choose_values[i], self.choose_values[j], self.N, i, j, self.Parameters["lords k"], 0, 1, self.method)[0]
         lower_triangle = np.tril_indices(consmat.shape[0], 0)
         # Transpose the lower triangle and insert into the upper triangle to fill out the matrix.
@@ -857,7 +857,7 @@ class bbclassify():
                 return self._dbeta4p(x, a, b, l, u) * self._dcbinom2(c, x, N, n, k, method)
             return quad(f, lower, upper, args = (a, b, l, u, c, N, n))
 
-    def _bbintegrate2_1(self, a: float, b: float, l: float, u: float, c1: tuple, c2: tuple, N: int, n1: int, n2: int, k: float, lower: float, upper: float, method: str = "ll") -> float:
+    def _bbintegrate2(self, a: float, b: float, l: float, u: float, c1: tuple, c2: tuple, N: int, n1: int, n2: int, k: float, lower: float, upper: float, method: str = "ll") -> float:
         """
         Compute the integral of a univariate beta-binomial distribution using precomputed coefficients.
 
@@ -908,7 +908,7 @@ class bbclassify():
         >>> sumscores = [int(i) for i in list(np.sum(rawdata, axis = 1))]
         >>> bb_hb = bbclassify(data = sumscores, reliability = reliability(rawdata).alpha(), min_score = 0, max_score = 100, cut_scores = [50], method = "hb")
         >>> cf = bb_hb._choose_functions(10, 5)
-        >>> print(bb_hb._bbintegrate2_1(6, 4, 0.15, 0.85, cf, cf, 10, 5, 5, 1, 0, 1, method = 'll'))
+        >>> print(bb_hb._bbintegrate2(6, 4, 0.15, 0.85, cf, cf, 10, 5, 5, 1, 0, 1, method = 'll'))
         (0.03843435178500849, 4.336562889266626e-10)
         """
         # Input validation
