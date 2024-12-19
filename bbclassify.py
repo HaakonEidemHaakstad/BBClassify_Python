@@ -733,9 +733,9 @@ class bbclassify():
         252.0
         """
         # Input validation.
-        """
         if not isinstance(N, (float, int)):
-            raise TypeError("Parameter 'N' must be an integer.")
+            raise TypeError("Parameter 'N' must be an integer.")        
+        """
         if N % 1 != 0:
             raise TypeError("Parameter 'N' must be an integer.")
         if not isinstance(n, (float, int)):
