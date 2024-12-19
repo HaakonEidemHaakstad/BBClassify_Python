@@ -1093,6 +1093,16 @@ class bbclassify():
         [0.56572, 0.33029356244956504, 0.19847130696480725, 0.12240805759909551]
         """
         # Input validation
+        if not isinstance(x, (list, tuple)):
+            raise TypeError("Parameter 'x' must be a list or tuple.")
+        if not all(isinstance(i, (float, int)) for i in x):
+            raise TypeError("All values contained in 'x' must be numeric.")
+        if not isinstance(n, (float, int)):
+            raise TypeError("Parameter 'n' must be an integer.")
+        if n % 1 != 0:
+            raise TypeError("Parameter 'n' must be an integer.")
+        if not isinstance(k, (float, int)):
+            raise TypeError("Parameter 'k' must be numeric.")
 
         m = [stats.mean(x) / n, 0, 0, 0]
         for i in range(1, 4):
