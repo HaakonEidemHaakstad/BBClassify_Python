@@ -740,11 +740,7 @@ class bbclassify():
         if not isinstance(n, (float, int)):
             raise TypeError("Parameter 'n' must be an integer.")
         if n % 1 != 0:
-            raise TypeError("Parameter 'n' must be an integer.")        
-        """
-        if n > N:
-            raise ValueError("Parameter 'N' must be greater than 'n'.")
-        """
+            raise TypeError("Parameter 'n' must be an integer.")
 
         return self._da_factorial(N) / (self._da_factorial(n) * self._da_factorial(N - n))
 
