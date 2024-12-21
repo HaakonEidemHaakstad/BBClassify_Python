@@ -1,4 +1,5 @@
 import sys
+import bbclassify
 
 def process_content(content):
     """Process the content from the input file.
