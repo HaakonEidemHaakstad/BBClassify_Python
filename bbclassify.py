@@ -418,66 +418,6 @@ class bbclassify():
         den = 2 * (mean * (length - mean) - (var - vare)) 
         return num / den
 
-    def _rbeta4p(self, n: int, a: float, b: float, l: float = 0, u: float = 1) -> np.array:
-        """
-        Random number generator for the four-parameter beta distribution.
-
-        Parameters
-        ----------
-        n : int
-            Number of random values to draw from the four-parameter beta distribution.
-        a : float
-            Alpha (first shape parameter) of the beta distribution.
-        b : float
-            Beta (second shape parameter) of the beta distribution.
-        l : float, optional
-            Lower bound of the four-parameter beta distribution. Default is 0.
-        u : float, optional
-            Upper bound of the four-parameter beta distribution. Default is 1.
-
-        Returns
-        -------
-        numpy.ndarray
-            Array of length 'n' containing random values drawn from the four-parameter beta distribution.
-
-        Examples
-        --------
-        >>> import numpy as np
-        >>> import pandas as pd
-        >>> np.random.seed(1234)
-        >>> N_resp, N_items, alpha, beta, l, u = 250, 100, 6, 4, .15, .85
-        >>> p_success = np.random.beta(alpha, beta, N_resp) * (u - l) + l
-        >>> rawdata = pd.DataFrame([np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)])
-        >>> sumscores = [int(i) for i in list(np.sum(rawdata, axis = 1))]
-        >>> bbclassify(sumscores, reliability(rawdata).alpha(), 0, 100, [50])._rbeta4p(5, 6, 4, .25, .75)
-        array([0.53467969, 0.70218754, 0.45730315, 0.5583427 , 0.59158903])
-        """
-        # Input validation.
-        if not isinstance(n, (float, int)):
-            raise TypeError("Parameter 'n' must be an integer.")
-        if n % 1 != 0:
-            raise ValueError("Parameter 'n' must be an integer.")
-        if not isinstance(a, (float, int)):
-            raise TypeError("Parameter 'a' must be numeric.")
-        if a < 0:
-            raise ValueError("Value of 'a' must be greater than 0.")
-        if not isinstance(b, (float, int)):
-            raise TypeError("Parameter 'b' must be numeric.")
-        if b < 0:
-            raise ValueError("Value of 'b' must be greater than 0.")
-        if not isinstance(l, (float, int)):
-            raise TypeError("Parameter 'l' must be numeric.")
-        if 0 > l > 1:
-            raise ValueError("Parameter 'l' must fall between 0 and 1.")
-        if not isinstance(u, (float, int)):
-            raise TypeError("Parameter 'u' must be numeric.")
-        if 0 > u > 1:
-            raise ValueError("Parameter 'u' must fall between 0 and 1.")
-        if l > u:
-            raise ValueError("Parameter 'l' must be greater than 'u'.")
-
-        return np.random.beta(a, b, n) * (u - l) + l
-
     def _dbeta4p(self, x: float, a: float, b: float, l: float, u: float) -> float:
         """
         Density function for the four-parameter beta distribution.
@@ -794,6 +734,87 @@ class bbclassify():
         c = self._choose(N - 2, n - 1)
         d = self._choose(N - 2, n - 2)
         return (a, b, c, d)
+    
+    def _rbeta4p(self, n: int, a: float, b: float, l: float = 0, u: float = 1) -> np.array:
+        """
+        Random number generator for the four-parameter beta distribution.
+
+        Parameters
+        ----------
+        n : int
+            Number of random values to draw from the four-parameter beta distribution.
+        a : float
+            Alpha (first shape parameter) of the beta distribution.
+        b : float
+            Beta (second shape parameter) of the beta distribution.
+        l : float, optional
+            Lower bound of the four-parameter beta distribution. Default is 0.
+        u : float, optional
+            Upper bound of the four-parameter beta distribution. Default is 1.
+
+        Returns
+        -------
+        numpy.ndarray
+            Array of length 'n' containing random values drawn from the four-parameter beta distribution.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> import pandas as pd
+        >>> np.random.seed(1234)
+        >>> N_resp, N_items, alpha, beta, l, u = 250, 100, 6, 4, .15, .85
+        >>> p_success = np.random.beta(alpha, beta, N_resp) * (u - l) + l
+        >>> rawdata = pd.DataFrame([np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)])
+        >>> sumscores = [int(i) for i in list(np.sum(rawdata, axis = 1))]
+        >>> bbclassify(sumscores, reliability(rawdata).alpha(), 0, 100, [50])._rbeta4p(5, 6, 4, .25, .75)
+        array([0.53467969, 0.70218754, 0.45730315, 0.5583427 , 0.59158903])
+        """
+        # Input validation.
+        if not isinstance(n, (float, int)):
+            raise TypeError("Parameter 'n' must be an integer.")
+        if n % 1 != 0:
+            raise ValueError("Parameter 'n' must be an integer.")
+        if not isinstance(a, (float, int)):
+            raise TypeError("Parameter 'a' must be numeric.")
+        if a < 0:
+            raise ValueError("Value of 'a' must be greater than 0.")
+        if not isinstance(b, (float, int)):
+            raise TypeError("Parameter 'b' must be numeric.")
+        if b < 0:
+            raise ValueError("Value of 'b' must be greater than 0.")
+        if not isinstance(l, (float, int)):
+            raise TypeError("Parameter 'l' must be numeric.")
+        if 0 > l > 1:
+            raise ValueError("Parameter 'l' must fall between 0 and 1.")
+        if not isinstance(u, (float, int)):
+            raise TypeError("Parameter 'u' must be numeric.")
+        if 0 > u > 1:
+            raise ValueError("Parameter 'u' must fall between 0 and 1.")
+        if l > u:
+            raise ValueError("Parameter 'l' must be greater than 'u'.")
+
+        return np.random.beta(a, b, n) * (u - l) + l
+    
+    def _rbetabinom(self, x, a, b, l, u, n, N, k, method):
+        """
+        Random number generator for the beta compound binomial distribution.
+
+        Parameters
+        ----------
+        x : int
+            Number of random values to draw from the distribution.
+
+        """
+        choose_functions = self._choose_functions(N, n)
+        probabilities  = self._rbeta4p(x, a, b, l, u)
+        values = []
+        for p in probabilities:
+            p_for_x = [self._dcbinom2(choose_functions, p, N, i, k, method) for i in range(N + 1)]
+
+            
+
+
+            None
     
     def _bbintegrate1(self, a: float, b: float, l: float, u: float, c: tuple, N: int, n: int, k: float, lower: float, upper: float, method: str = "ll") -> float:
         """
