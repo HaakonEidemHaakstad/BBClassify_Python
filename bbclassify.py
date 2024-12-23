@@ -795,7 +795,7 @@ class bbclassify():
 
         return np.random.beta(a, b, n) * (u - l) + l
     
-    def _rbetabinom(self, x, a, b, l, u, n, N, k, method):
+    def _rcbinom(self, p, a, b, l, u, n, N, k, method):
         """
         Random number generator for the beta compound binomial distribution.
 
@@ -805,16 +805,22 @@ class bbclassify():
             Number of random values to draw from the distribution.
 
         """
-        choose_functions = self._choose_functions(N, n)
-        probabilities  = self._rbeta4p(x, a, b, l, u)
+        from random import choices
+        N_items = range(N + 1)
+        N_persons = range(len(p))
+        choose_functions = [self._choose_functions(N, i) for i in N_items]
         values = []
-        for p in probabilities:
-            p_for_x = [self._dcbinom2(choose_functions, p, N, i, k, method) for i in range(N + 1)]
-
+        for i in N_persons:
+            probabilities = [self._dcbinom2(choose_functions[j], p[i], N, j, k) for j in N_items]
+            if any(j < 0 for j in probabilities):
+                min_value = min(probabilities)
+                probabilities = [j + abs(min_value) for j in probabilities]
+            total = sum(probabilities)
+            probabilities = [i / total for i in probabilities]
+                
+            values.append(choices(N_items, probabilities, k = 1))
             
-
-
-            None
+        return values
     
     def _bbintegrate1(self, a: float, b: float, l: float, u: float, c: tuple, N: int, n: int, k: float, lower: float, upper: float, method: str = "ll") -> float:
         """
