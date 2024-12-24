@@ -2,6 +2,7 @@ from warnings import warn
 from typing import Union
 from scipy.integrate import quad
 from scipy.stats import binom, chi2
+from random import choices
 import scipy.special
 import statistics as stats
 import math
@@ -795,30 +796,66 @@ class bbclassify():
 
         return np.random.beta(a, b, n) * (u - l) + l
     
-    def _rcbinom(self, p, a, b, l, u, n, N, k, method):
+    def _rcbinom(self, p: list, N: int, k: float) -> list:
         """
-        Random number generator for the beta compound binomial distribution.
+        Random number generator for the compound binomial distribution.
 
         Parameters
         ----------
-        x : int
-            Number of random values to draw from the distribution.
-
+        p : list
+            List of probabilities for success / true-scores.
+        N : int
+            Total number of trials / test items.
+        k : float
+            Lord's k parameter.
+        
+        Returns
+        -------
+        list
+            List of randomly drawn values from the compound binomial distribution. Same length as 'p'.
+        
+        Examples
+        --------
+        >>> import numpy as np
+        >>> import pandas as pd
+        >>> np.random.seed(1234)
+        >>> N_resp, N_items, alpha, beta, l, u = 250, 100, 6, 4, .15, .85
+        >>> p_success = np.random.beta(alpha, beta, N_resp) * (u - l) + l
+        >>> rawdata = pd.DataFrame([np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)])
+        >>> sumscores = [int(i) for i in list(np.sum(rawdata, axis = 1))]
+        >>> bb = bbclassify(sumscores, reliability(rawdata).alpha(), 0, 100, [50])
+        >>> rv = bb._rcbinom(p_success[0:9], 100, 1)
+        >>> type(rv)
+        <class 'list'>
+        >>> all(isinstance(i, int) for i in rv)
+        True
         """
-        from random import choices
+        # Input validation.
+        if not isinstance(p, (list, tuple, np.ndarray)):
+            raise TypeError("Parameter 'p' must be a list, tuple, or a numpy array.")
+        if not all(isinstance(i, (float, int)) for i in list(p)):
+            raise TypeError("All values in 'p' must be float or integer.")
+        if not all(0 <= i <= 1 for i in p):
+            raise ValueError("All values in 'p' must be between 0 and 1.")
+        if not isinstance(N, (float, int)):
+            raise TypeError("Parameter 'N' must be an integer.")
+        if N % 1 != 0:
+            raise TypeError("Parameter 'N' must be an integer.")
+        if not isinstance(k, (float, int)):
+            raise TypeError("Parameter 'k' must be a float or integer.")
+        
         N_items = range(N + 1)
         N_persons = range(len(p))
         choose_functions = [self._choose_functions(N, i) for i in N_items]
         values = []
         for i in N_persons:
-            probabilities = [self._dcbinom2(choose_functions[j], p[i], N, j, k) for j in N_items]
+            probabilities = [self._dcbinom2(choose_functions[j], p[i], N, j, k, "") for j in N_items]
             if any(j < 0 for j in probabilities):
                 min_value = min(probabilities)
                 probabilities = [j + abs(min_value) for j in probabilities]
             total = sum(probabilities)
             probabilities = [i / total for i in probabilities]
-                
-            values.append(choices(N_items, probabilities, k = 1))
+            values.append(choices(N_items, probabilities, k = 1)[0])
             
         return values
     
