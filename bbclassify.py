@@ -849,14 +849,20 @@ class bbclassify():
         choose_functions = [self._choose_functions(N, i) for i in N_items]
         values = []
         for i in N_persons:
+            # For each person, compute probability of each final score under the compound binomial model.
             probabilities = [self._dcbinom2(choose_functions[j], p[i], N, j, k, "") for j in N_items]
             if any(j < 0 for j in probabilities):
+                # The compound binomial model can yield nonsensical negative probabilities.
+                # Therefore, if there are negative probabilities of outcomes, add the absolute value
+                # of the lowest value to each observation to ensure no negative probabilities.
                 min_value = min(probabilities)
                 probabilities = [j + abs(min_value) for j in probabilities]
+            # It's possible that the probabilities will not add up to 1. Therefore, divide each
+            # value by the sum of the probabilities to ensure that they add up to 1.
             total = sum(probabilities)
             probabilities = [i / total for i in probabilities]
             values.append(choices(N_items, probabilities, k = 1)[0])
-            
+
         return values
     
     def _bbintegrate1(self, a: float, b: float, l: float, u: float, c: tuple, N: int, n: int, k: float, lower: float, upper: float, method: str = "ll") -> float:
