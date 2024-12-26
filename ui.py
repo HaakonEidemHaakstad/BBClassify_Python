@@ -1,6 +1,5 @@
 import sys
 import bbclassify
-import sys
 
 def read_first_three_lines(file_path):
     """Read the first three lines of a text file.
@@ -26,15 +25,20 @@ def read_first_three_lines(file_path):
     return lines
 
 def process_content(content):
-    """Process the content.
+    """Process the content by splitting each line into words.
 
     Args:
         content (list of str): Lines of content to process.
 
     Returns:
-        str: The processed content as a single string.
+        str: The processed content as a single string, with each line's words
+        separated by a space and line-separated in the output.
     """
-    return "\n".join(line.upper() for line in content)
+    processed_lines = []
+    for line in content:
+        words = line.split(" ")  # Split the line by spaces
+        processed_lines.append(" | ".join(words))  # Join words with a delimiter
+    return "\n".join(processed_lines)
 
 def main():
     """Main function to handle file input and output."""
