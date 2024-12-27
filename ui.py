@@ -1,31 +1,16 @@
+import os
 import sys
 import bbclassify
 
-def read_csv_file(file_path):
-    """Read a two-column CSV-like file.
+def prep_data(filename):
+    with open (filename, 'r') as file:
+        lines = file.readlines()
+    
+    lines = [i.lower().split() for i in lines]
+    lines = [[float(i) if i.replace(".", "", 1).replace("-", "", 1).isdigit() else i for i in j] for j in lines]
+    return lines[0:3]
 
-    Args:
-        file_path (str): Path to the input CSV-like file.
 
-    Returns:
-        list of tuple: A list of tuples, each containing a value and its count.
-    """
-    data = []
-    try:
-        with open(file_path, 'r') as file:
-            for line in file:
-                line = line.strip()
-                if line:
-                    try:
-                        value, count = line.split(",")
-                        data.append((value.strip(), int(count.strip())))
-                    except ValueError:
-                        print(f"Invalid line format: {line}")
-    except FileNotFoundError:
-        print(f"Error: File '{file_path}' not found.")
-    except Exception as e:
-        print(f"An error occurred: {e}")
-    return data
 
 def expand_values(data):
     """Expand values based on their counts.
@@ -65,6 +50,8 @@ def main():
     except Exception as e:
         print(f"An error occurred while writing to '{output_file}': {e}")
         sys.exit(1)
+
+    "".endswith
 
 if __name__ == "__main__":
     main()

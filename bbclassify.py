@@ -189,10 +189,69 @@ class bbclassify():
         self.choose_values = [self._choose_functions(self.N, i) for i in range(self.N + 1)]
     
     # Function for testing model fit.
-    def modelfit(self):
+    def modelfit(self, minimum_expected_value: int = 1):
+        """
+        Test model fit using the Pearson chi-square test.
+
+        Parameters
+        ----------
+        minimum_expected_value : int
+            The minimum number of expected observations for each bin. In accordance with Lord's suggestion this value is set to a default of 1.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> import pandas as pd
+        >>> np.random.seed(1234)
+        >>> N_resp, N_items, alpha, beta, l, u = 250, 100, 6, 4, .15, .85
+        >>> p_success = np.random.beta(alpha, beta, N_resp) * (u - l) + l
+        >>> rawdata = pd.DataFrame([np.random.binomial(1, p_success[i], N_items) for i in range(N_resp)])
+        >>> sumscores = [int(i) for i in list(np.sum(rawdata, axis = 1))]
+
+        >>> bb_ll = bbclassify(data = sumscores, reliability = reliability(rawdata).alpha(), min_score= 0, max_score = 100, cut_scores = [50, 75], method = "ll")
+        >>> bb_ll.modelfit()
+        >>> round(bb_ll.Modelfit_chi_squared, 2)
+        41.57
+        >>> bb_ll.Modelfit_degrees_of_freedom
+        46
+        >>> round(bb_ll.Modelfit_p_value, 2)
+        0.66
+
+        >>> bb_ll.modelfit(0)
+        >>> round(bb_ll.Modelfit_chi_squared, 2)
+        67.56
+        >>> bb_ll.Modelfit_degrees_of_freedom
+        97
+        >>> round(bb_ll.Modelfit_p_value, 2)
+        0.99
+
+        >>> bb_hb = bbclassify(data = sumscores, reliability = reliability(rawdata).alpha(), min_score= 0, max_score = 100, cut_scores = [50, 75], method = "hb")
+        >>> bb_hb.modelfit()
+        >>> round(bb_hb.Modelfit_chi_squared, 2)
+        41.57
+        >>> bb_hb.Modelfit_degrees_of_freedom
+        46
+        >>> round(bb_hb.Modelfit_p_value, 2)
+        0.66
+
+        >>> bb_hb.modelfit(0)
+        >>> round(bb_hb.Modelfit_chi_squared, 2)
+        67.53
+        >>> bb_hb.Modelfit_degrees_of_freedom
+        97
+        >>> round(bb_hb.Modelfit_p_value, 2)
+        0.99
+        """
+        if not isinstance(minimum_expected_value, (float, int)) or minimum_expected_value < 0:
+            raise TypeError("Parameter 'minimum_expected_value must be a positive integer.")
+        if minimum_expected_value % 1 != 0:
+            raise TypeError("Parameter 'minimum_expected_value must be a positive integer.")
+        if minimum_expected_value > self.N:
+            raise ValueError("The value of 'minimum_expected_value' cannot be greater than test-length (for the Hanson and Brennan approach) or the effective test-length (for the Livingston and Lewis approach.)")
         # If the input to the data argument is a dictionary of model-parameters, throw a value error.
         if isinstance(self.data, dict):
             raise ValueError("Model fit testing requires observed test-scores as data input.")
+        
         n_respondents = len(self.data)
         # Make a list of the model-implied (expected) frequency-distribution.
         expected = [
@@ -212,8 +271,8 @@ class bbclassify():
         for _ in range(2):
             length = len(expected)
             for i in range(length):
-                # If the next cell has an expected value less than 1.
-                if expected[i + 1] < 1:
+                # If the next cell has an expected value less than that specified in "minimum_expected_value".
+                if expected[i + 1] < minimum_expected_value:
                     # Add the value of the current cell to the next cell,
                     expected[i + 1] += expected[i]
                     observed[i + 1] += observed[i]
