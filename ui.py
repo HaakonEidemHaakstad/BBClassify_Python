@@ -1,47 +1,49 @@
 import sys
 import bbclassify
 
-def read_first_three_lines(file_path):
-    """Read the first three lines of a text file.
+def read_csv_file(file_path):
+    """Read a two-column CSV-like file.
 
     Args:
-        file_path (str): Path to the text file.
+        file_path (str): Path to the input CSV-like file.
 
     Returns:
-        list of str: A list containing the first three lines of the file.
+        list of tuple: A list of tuples, each containing a value and its count.
     """
-    lines = []
+    data = []
     try:
         with open(file_path, 'r') as file:
-            for _ in range(3):
-                line = file.readline()
-                if line == "":
-                    break
-                lines.append(line.strip())
+            for line in file:
+                line = line.strip()
+                if line:
+                    try:
+                        value, count = line.split(",")
+                        data.append((value.strip(), int(count.strip())))
+                    except ValueError:
+                        print(f"Invalid line format: {line}")
     except FileNotFoundError:
         print(f"Error: File '{file_path}' not found.")
     except Exception as e:
         print(f"An error occurred: {e}")
-    return lines
+    return data
 
-def process_content(content):
-    """Process the content by splitting each line into words.
+def expand_values(data):
+    """Expand values based on their counts.
 
     Args:
-        content (list of str): Lines of content to process.
+        data (list of tuple): A list of tuples, where each tuple contains a value
+                              and its count.
 
     Returns:
-        str: The processed content as a single string, with each line's words
-        separated by a space and line-separated in the output.
+        list: A list of values expanded according to their counts.
     """
-    processed_lines = []
-    for line in content:
-        words = line.split(" ")  # Split the line by spaces
-        processed_lines.append(" | ".join(words))  # Join words with a delimiter
-    return "\n".join(processed_lines)
+    expanded_list = []
+    for value, count in data:
+        expanded_list.extend([value] * count)
+    return expanded_list
 
 def main():
-    """Main function to handle file input and output."""
+    """Main function to process a two-column CSV-like file."""
     if len(sys.argv) != 3:
         print("Usage: script.py <input_file> <output_file>")
         sys.exit(1)
@@ -49,17 +51,17 @@ def main():
     input_file = sys.argv[1]
     output_file = sys.argv[2]
 
-    lines = read_first_three_lines(input_file)
-    if not lines:
-        print(f"No content to process in '{input_file}'.")
+    data = read_csv_file(input_file)
+    if not data:
+        print(f"No valid data found in '{input_file}'.")
         sys.exit(1)
 
-    processed_content = process_content(lines)
+    expanded_list = expand_values(data)
 
     try:
         with open(output_file, 'w') as outfile:
-            outfile.write(processed_content)
-        print(f"Processed content written to {output_file}")
+            outfile.write("\n".join(expanded_list))
+        print(f"Expanded list written to {output_file}")
     except Exception as e:
         print(f"An error occurred while writing to '{output_file}': {e}")
         sys.exit(1)
