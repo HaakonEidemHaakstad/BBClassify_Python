@@ -3,13 +3,20 @@ import sys
 import bbclassify
 
 def prep_data(filename):
+    if os.path.isabs(filename):
+        file_path = filename
+    else:
+        base_dir = os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else os.getcwd()
+        file_path = os.path.join(base_dir, filename)
+    if not os.path.isfile(filename):
+        raise FileNotFoundError(f"The file '{filename}' does not exist at '{file_path}'")
+    
     with open (filename, 'r') as file:
         lines = file.readlines()
     
     lines = [i.lower().split() for i in lines]
     lines = [[float(i) if i.replace(".", "", 1).replace("-", "", 1).isdigit() else i for i in j] for j in lines]
     return lines[0:3]
-
 
 
 def expand_values(data):
