@@ -16,9 +16,32 @@ def read_input(filename: str) -> list:
     lines = [i.lower().split() for i in lines]
     lines = [[float(i) if i.replace(".", "", 1).replace("-", "", 1).isdigit() else i for i in j] for j in lines]
     
+    if len(lines[0]) == 3:
+        lines[0].append(0)
+    
     # Input validation.
+
+    ## Line 1
+    if len(lines[0]) not in [3, 4]:
+        raise ImportError("The first line of the input file must have at least 3 and at most 4 entries.")
     if lines[0[0].lower()] not in ["hb", "ll"]:
-        raise ValueError(f"The first value in the first row of the input file ({filename}) must be either 'hb' (specifying the Hanson and Brennan approach) or 'll' (specifying the Livingston and Lewis approach).")
+        raise ValueError(f"The first value in the first row of the input file ({filename}) must be either 'hb' (specifying the Hanson and Brennan procedure) or 'll' (specifying the Livingston and Lewis procedure).")
+    if not isinstance(lines[0][1], (float, int)):
+        raise TypeError(f"The second value in the first row of the input file ({filename}) must be a numeric value between 0 and 1 (not inclusive), representing test-score reliability.")
+    if lines[0][2] not in [2, 2.0, 4, 4.0]:
+        raise TypeError(f"The third value in the first row of the input file ({filename}) must be either 2 (for the two-parameter beta true-score distribution) or 4 (the four-parameter beta distribution).") 
+    if len(lines[0] == 4) and (not isinstance(lines[0][3], (float, int)) or lines[0][3] % 1 != 0):
+        raise TypeError(f"The fourth value in the first row of the input file ({filename}) must be an integer.")
+    
+    ## Line 2
+    if len(lines[1]) not in [2, 4, 5]:
+        raise ValueError("The second row of the input file ({filename}) must contain 2 (if raw-score moments are supplied), 4 (if a raw-score- or frequency distribution is supplied). If the Livingston and Lewis procedure is specified in line 1, an optional fifth value can be specified to indicate the minimum possible score to attain on the test (default is 0).")
+    if not isinstance(lines[1][1], str) or lines[1][1] not in ["R", "r", "F", "f", "M", "m"]:
+        raise ValueError(f"The second value in the second row of the input file ({filename}) must be either R or r (indicating that the contents of the data-file ({lines[1][0]} represent final test-scores), F or f (specifying that the contents of {lines[1][1]} represents a frequency distribution, or M or m (specifying that the {lines[1][1]} contains raw-score moments).)")
+    if lines[1][1] not in ["M", "m"] and (not isinstance(lines[1][2], (float, int)) or lines[1][2] % 1 != 0):
+        raise ValueError(f"If the second value in the second row of the input file ({filename}) is not M or m, the column of the data-file ({lines[1][1]}) that contains the test-scores must be specified as the third value in the second row of the input file ({filename}).") 
+    if lines[1][1] in ["F", "f"] and (not isinstance(lines[1][2], (float, int)) or lines[1][2] % 1 != 0):
+        raise ValueError(f"")
     return lines[0:3]
 
 def prepare_data(data: str, control_card_input: list):
@@ -28,7 +51,7 @@ def prepare_data(data: str, control_card_input: list):
         base_dir = os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else os.getcwd()
         file_path = os.path.join(base_dir, data)
     if not os.path.isfile(data):
-        raise FileNotFoundError(f"The file '{data}' does not exist at '{file_path}'")    
+        raise FileNotFoundError(f"The file '{data}' does not exist at '{file_path}'")
     with open (data, 'r') as file:
         lines = file.readlines()
     if all(len(i) == 1 for i in lines):
