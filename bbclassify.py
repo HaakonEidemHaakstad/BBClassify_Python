@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 
 class bbclassify():
-    def __init__(self, data: list, reliability: float, min_score: float, max_score: float, cut_scores: list[float], method: str = "ll", model: int = 4, l: float = 0, u: float = 1, failsafe: bool = False):
+    def __init__(self, data: list, reliability: float, min_score: float, max_score: float, cut_scores: list[float], cut_truescores: list[float] = None, method: str = "ll", model: int = 4, l: float = 0, u: float = 1, failsafe: bool = False):
         """
         Estimate the parameters of the beta-binomial models.
 
@@ -111,6 +111,8 @@ class bbclassify():
             raise ValueError("The value of 'min_score' must be lower than the value of 'max_score'.")
         if not isinstance(cut_scores, list):
             raise TypeError("Parameter 'cut_scores' must be a list of numeric values.")
+        if not isinstance(cut_truescores, (None, list)) or not all(0 >= i >= 1 for i in cut_truescores):
+            raise TypeError("Parameter 'cut_truescores' must be either None or a list of floating point values where all values are between 0 and 1.")
         if any(i <= min_score or i >= max_score for i in cut_scores):
             raise ValueError("Values in 'cut_scores' must fall between 'min_score' and 'max_score'.")
         if not isinstance(method, str):
@@ -145,7 +147,10 @@ class bbclassify():
         self.min_score = min_score
         self.max_score = max_score
         self.cut_scores = [self.min_score] + cut_scores + [self.max_score]
-        self.cut_truescores = [(i - self.min_score) / (self.max_score + self.min_score) for i in self.cut_scores]
+        if cut_truescores == None:
+            self.cut_truescores = [(i - self.min_score) / (self.max_score + self.min_score) for i in self.cut_scores]
+        else:
+            self.cut_truescores = cut_truescores
         self.method = method
         self.model = model
         self.l = l
