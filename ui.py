@@ -38,10 +38,14 @@ def read_input(filename: str) -> list:
         raise ValueError("The second row of the input file ({filename}) must contain 2 (if raw-score moments are supplied), 4 (if a raw-score- or frequency distribution is supplied). If the Livingston and Lewis procedure is specified in line 1, an optional fifth value can be specified to indicate the minimum possible score to attain on the test (default is 0).")
     if not isinstance(lines[1][1], str) or lines[1][1] not in ["R", "r", "F", "f", "M", "m"]:
         raise ValueError(f"The second value in the second row of the input file ({filename}) must be either R or r (indicating that the contents of the data-file ({lines[1][0]} represent final test-scores), F or f (specifying that the contents of {lines[1][1]} represents a frequency distribution, or M or m (specifying that the {lines[1][1]} contains raw-score moments).)")
+    if lines[1][1] in ["M", "m"] and len(lines[1]) != 2:
+        raise ValueError(f"If moment input is specified, the data-file ({filename}) and the input type must be specified in the second ")
     if lines[1][1] not in ["M", "m"] and (not isinstance(lines[1][2], (float, int)) or lines[1][2] % 1 != 0):
         raise ValueError(f"If the second value in the second row of the input file ({filename}) is not M or m, the column of the data-file ({lines[1][1]}) that contains the test-scores must be specified as the third value in the second row of the input file ({filename}).") 
     if lines[1][1] in ["R", "r", "F", "f"] and (not isinstance(lines[1][3], (float, int)) or lines[1][3] % 1 != 0):
-        raise ValueError(f"If the second value in the second row of the input file ({filename} is R or r, or F or f, the fourth value of the second row of the input file must be an integer indicating either the number of test items (if R or r) or the column in the data-file ({filename}) containing the frequencies of sum-score occurances (if F or f).)")
+        raise ValueError(f"If the second value in the second row of the input file ({filename} is R or r, or F or f, the fourth value of the second row of the input file must be an integer specifying either (if a raw-score distribution is specified) the number of test items (for the Hanson and Brennan procedure) or the maximum possible test-score (for the Livingston and Lewis procedure), or (if a frequency distribution is specified) the column in the data-file ({filename}) containing the frequencies of sum-score occurances (if F or f).)")
+    
+    
     return lines[0:3]
 
 def prepare_data(data: str, control_card_input: list):
