@@ -56,14 +56,14 @@ def read_input(filename: str) -> list:
         raise ValueError(f"The fourth value of the second row of the input file ({filename}) must be an integer.")
     
     ## Line 3
-    if len(lines[2]) not in [2, 3]:
+    if len(lines[2]) not in [2, 3]:        
         raise ValueError(f"The third row of the input file ({filename}) must contain at least 2 and at most 3 (if the optional true-score cut-points are supplied) values")
     if not isinstance(lines[2][0], (float, int)) or lines[2][0] % 1 != 0:
         raise TypeError(f"The first value of the third row of the input file ({filename}) must be an integer.")
     if not isinstance(lines[2][0], (float, int)) or lines[2][1] % 1 != 0:
         raise TypeError(f"The second value of the third row of the input file ({filename}) must be an integer.")
     if len(lines[2]) == 3 and (not isinstance(lines[2, 2], float) or 0 >= lines[2][2] >= 1):
-        raise TypeError(f"The third value of the third row of the input file ({filename}) must be a value between 0 and 1.")
+        raise TypeError(f"The third value of the third row of the input file ({filename}) must be a floating point value between 0 and 1.")
     
     return lines[0:3]
 
