@@ -24,7 +24,7 @@ def read_input(filename: str) -> list:
     
     if len(lines[0]) == 3:
         lines[0].append(0)
-    
+    """
     # Input validation.
 
     ## Line 1
@@ -64,7 +64,7 @@ def read_input(filename: str) -> list:
         raise TypeError(f"The second value of the third row of the input file ({filename}) must be an integer.")
     if len(lines[2]) == 3 and (not isinstance(lines[2, 2], float) or 0 >= lines[2][2] >= 1):
         raise TypeError(f"The third value of the third row of the input file ({filename}) must be a floating point value between 0 and 1.")
-    
+    """
     return lines[0:3]
 
 def prepare_data(data: str, control_card_input: list):
