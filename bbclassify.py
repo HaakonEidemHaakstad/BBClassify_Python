@@ -32,6 +32,8 @@ class bbclassify():
             - For the Hanson and Brennan approach: Actual test length (number of items).
         cut_scores : list[float]
             List of cut-scores.
+        cut_truescores : list[float]
+            List of true cut-scores.
         method : str
             Estimation approach to use:
             - "ll": Livingston and Lewis (default)
@@ -93,6 +95,80 @@ class bbclassify():
         0.7814787747625881
         """
         
+        if not isinstance(data, (list, tuple)):
+            raise TypeError(f"Input data must be a list or tuple of numeric values (input is {type(data)}).")
+        if not all(isinstance(i, (float, int)) for i in data):
+            raise TypeError(f"Input data must be a list or tuple of numeric values (input data has types {tuple(set(type(i) for i in data))}).")
+        
+        if not isinstance(reliability, (float, int)):
+            raise TypeError(f"Input reliability must be a numeric value (reliability input type is {type(reliability)}).")
+        if 0 > reliability > 1:
+            raise ValueError(f"Input reliability must be between 0 and 1 (input reliability is {reliability}).")        
+        
+        if not isinstance(min_score, (float, int)):
+            raise TypeError(f"Input min_score must be a numeric value (input is {type(min_score)}).")
+        if min_score > min(data):
+            raise ValueError(f"Input min_score cannot be greater than any value in input data (input min_score is {min_score}, and lowest value in data is {min(data)}).")
+        
+        if not isinstance(max_score, (float, int)):
+            raise TypeError(f"Input min_score must be a numeric value (input is {type(min_score)}).")
+        if max_score < max(data):
+            raise ValueError(f"Input min_score cannot be greater than any value in input data (input max_score is {max_score}, and lowest value in data is {max(data)}).")
+
+        if min_score >= max_score:
+            raise ValueError(f"Input min_score ({min_score}) must be less than input max_score ({max_score}).")
+
+        if not isinstance(cut_scores, list):
+            raise TypeError(f"Input cut_scores must be a list of numeric values (input is {type(data)}).")
+        if not all(isinstance(i, (float, int)) for i in cut_scores):
+            raise ValueError(f"Input cut_scores must be a list of numeric values (input cut_scores has types {tuple(set(type(i) for i in cut_scores))})")
+        if any(min_score > i > max_score for i in cut_scores):
+            raise ValueError(f"Input cut_scores must not contain values lesser than min_score or greater than max_score.")
+        if len(cut_scores) > 1 and any(cut_scores[i] <= cut_scores[i - 1] for i in range(1, len(cut_scores))):
+            raise ValueError(f"Values in cut_scores must be in ascending order (input cut_scores is {cut_scores}).")
+        
+        if cut_truescores is not None:
+            if not isinstance(cut_truescores, list):
+                raise TypeError(f"Input cut_truescores must be a list of float values between 0 and 1 (input is {type(cut_truescores)}).")
+            if not all(isinstance(i, float) for i in cut_truescores):
+                raise TypeError(f"Input cut_truescores must be a list of float values between 0 and 1 (input cut_truescores has types {tuple(set(type(i) for i in cut_truescores))})")
+            if len(cut_truescores) != len(cut_scores):
+                raise TypeError(f"Input cut_truescores ({len(cut_truescores)} values) must contain the same number of values as cut_scores ({len(cut_scores)}).")
+            if len(cut_truescores) > 1 and any(cut_truescores[i] <= cut_truescores[i - 1] for i in range(1, len(cut_truescores))):
+                raise ValueError(f"Values in cut_truescores must be in ascending order (input cut_scores is {cut_truescores}).")
+
+        if not isinstance(method, str):
+            raise TypeError(f"Input method must be a string (input is {type(method)}).")
+
+        if method == "ll" and 0 >= reliability >= 1:
+            raise TypeError(f"Input reliability must be a numeric value between (but not including) 0 and 1 under the Livingston and Lewis procedure (input reliability is {reliability}).")
+        
+        if method != "ll":
+            if 0 > reliability >= 1:
+                raise ValueError(f"Input reliability must be a numeric value between 0 and up to but not including 1 under the Hanson and Brennan procedure (input reliability is {reliability})")
+            if min_score != 0:
+                raise ValueError(f"Input min_score must be 0 under the Hanson and Brennan approach (input min_score is {min_score}).")
+        
+        if not isinstance(model, (float, int)):
+            raise TypeError(f"Input model must be an integer (input type {type(model)}).")
+        if model not in [2, 2.0, 4, 4.0]:
+            raise ValueError(f"Input model must be either 2 or 4 (input value {model}).")
+        
+        if not isinstance(l, (float, int)):
+            raise TypeError(f"Input l must be a numeric value between 0 and 1 (input type {type(l)}).")
+        if not isinstance(u, (float, int)):
+            raise TypeError(f"Input u must be a numeric value between 0 and 1 (input type {type(u)}).")
+        
+        if l > u:
+            raise ValueError(f"Input l (value {l}) must be lesser than u (value {u}).")        
+        if 0 > l > 1:
+            raise ValueError(f"Input l value ({l}) must be between 0 and 1.")
+        if 0 > u > 1:
+            raise ValueError(f"Input u value ({u}) must be between 0 and 1.")
+
+        if not isinstance(failsafe, bool):
+            raise TypeError(f"Input failsafe must be a boolen value (input type {type(failsafe)}).")
+
         self.data = data
         self.reliability = reliability
         self.min_score = min_score
