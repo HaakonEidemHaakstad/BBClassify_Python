@@ -147,7 +147,7 @@ class bbclassify():
             if 0 > reliability >= 1:
                 raise ValueError(f"Input reliability must be a numeric value between 0 and up to but not including 1 under the Hanson and Brennan procedure (input reliability is {reliability})")
             if min_score != 0:
-                raise ValueError(f"Input min_score must be 0 under the Hanson and Brennan approach (input min_score is {min_score}).")
+                raise ValueError(f"Input min_score must be 0 under the Hanson and Brennan procedure (input min_score is {min_score}).")
         
         if not isinstance(model, (float, int)):
             raise TypeError(f"Input model must be an integer (input type {type(model)}).")
@@ -212,7 +212,6 @@ class bbclassify():
                     self.K = 0
                 else:
                     self.K = float(self._calculate_lords_k(stats.mean(self.data), stats.variance(self.data), self.reliability, self.N))
-                #self.K = float(self._calculate_lords_k(stats.mean(self.data), stats.variance(self.data), self.reliability, self.N))
                 self.Parameters = self._betaparameters(self.data, self.N, self.K, self.model, self.l, self.u)
                 self.Parameters["lords k"] = self.K
             # If a four-parameter fitting procedure produced invalid location parameter estimates, and the failsafe was specified to
