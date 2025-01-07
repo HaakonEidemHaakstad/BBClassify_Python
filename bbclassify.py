@@ -99,7 +99,9 @@ class bbclassify():
             raise TypeError("All values contained in 'data' must be numeric.")
         if not isinstance(reliability, float):
             raise TypeError("Parameter 'reliability' must be a float value between 0 and 1.")
-        if 0 >= reliability >= 1:
+        if 0 >= reliability >= 1 and method == "ll":
+            raise ValueError("Parameter 'reliability' must be a float value between 0 and 1.")
+        if 0 > reliability >= 1 and method != "ll":
             raise ValueError("Parameter 'reliability' must be a float value between 0 and 1.")
         if not isinstance(min_score, (float, int)):
             raise TypeError("Parameter 'min_score' must be a numeric value.")
@@ -111,8 +113,10 @@ class bbclassify():
             raise ValueError("The value of 'min_score' must be lower than the value of 'max_score'.")
         if not isinstance(cut_scores, list):
             raise TypeError("Parameter 'cut_scores' must be a list of numeric values.")
-        if not isinstance(cut_truescores, (None, list)) or not all(0 >= i >= 1 for i in cut_truescores):
+        if not isinstance(cut_truescores, (type(None), list)) or not all(0 >= i >= 1 for i in cut_truescores):
             raise TypeError("Parameter 'cut_truescores' must be either None or a list of floating point values where all values are between 0 and 1.")
+        if isinstance(cut_truescores, list) and len(cut_truescores) != len(cut_scores):
+            raise ValueError("The length of 'cut_truescores' must be equal to the length of 'cut_scores'.")                                                    
         if any(i <= min_score or i >= max_score for i in cut_scores):
             raise ValueError("Values in 'cut_scores' must fall between 'min_score' and 'max_score'.")
         if not isinstance(method, str):
@@ -139,7 +143,7 @@ class bbclassify():
             raise ValueError("The values of parameters 'l' and 'u' must fall between 0 and 1.")
         if l >= u:
             raise ValueError("The value of 'l' must be lower than that of 'u'.")
-        if not isinstance(failsafe, bool):
+        if not isinstance(failsafe, bool): 
             raise TypeError("Parameter 'failsafe' must be a boolean value (True or False).")
         
         self.data = data
@@ -181,7 +185,10 @@ class bbclassify():
                 self.Parameters["lords k"] = 0
             else: # For the Hanson and Brennan method:
                 self.N = self.max_score
-                self.K = float(self._calculate_lords_k(stats.mean(self.data), stats.variance(self.data), self.reliability, self.N))
+                if self.reliability == 0:
+                    self.K = 0
+                else:
+                    self.K = float(self._calculate_lords_k(stats.mean(self.data), stats.variance(self.data), self.reliability, self.N))
                 self.Parameters = self._betaparameters(self.data, self.N, self.K, self.model, self.l, self.u)
                 self.Parameters["lords k"] = self.K
             # If a four-parameter fitting procedure produced invalid location parameter estimates, and the failsafe was specified to
