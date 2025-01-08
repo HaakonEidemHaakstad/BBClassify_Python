@@ -4,71 +4,25 @@ import pandas as pd
 import bbclassify
 
 def read_and_parse_input(filename: str) -> list:
-    """
-    try:
-        if os.path.isabs(filename):
-            file_path = filename
-        else:
-            base_dir = os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else os.getcwd()
-            file_path = os.path.join(base_dir, filename)
-        if not os.path.isfile(filename):
-            raise FileNotFoundError(f"The file '{filename}' does not exist at '{file_path}'")
-    except:
-        raise ImportError(f"Error reading file input {filename}.")
-    """
     if not os.path.isabs(filename):
         filename = os.path.join(os.path.abspath(__file__), filename)
     with open (filename, 'r') as file:
         lines = file.readlines()
     lines = [i.lower().split() for i in lines]
     lines = [[float(i) if i.replace(".", "", 1).replace("-", "", 1).isdigit() else i for i in j] for j in lines]
-    
+    datafile: str = lines[1][0]
+    if not os.path.isabs(datafile):
+        datafile = os.path.join(os.path.abspath(__file__), datafile)
+    with open (datafile, 'r') as file:
+        datalines = file.readlines()
+    if lines[1][1].lower() == "r":
+        data = [i[0] for i in datalines]
+    elif lines[1][1].lower() == "f":
+        data = [[i[0] for _ in range(i[1])] for i in datalines]
+        data = [i for j in data for i in j]
     if len(lines[0]) == 3:
         lines[0].append(0)
-    """
-    # Input validation.
-
-    ## Line 1
-    if len(lines[0]) not in [3, 4]:
-        raise ValueError("The first line of the input file must have at least 3 and at most 4 entries.")
-    if lines[0[0].lower()] not in ["hb", "ll"]:
-        raise ValueError(f"The first value in the first row of the input file ({filename}) must be either 'hb' (specifying the Hanson and Brennan procedure) or 'll' (specifying the Livingston and Lewis procedure).")
-    if not isinstance(lines[0][1], (float, int)):
-        raise TypeError(f"The second value in the first row of the input file ({filename}) must be a numeric value between 0 and 1 (not inclusive), representing test-score reliability.")
-    if lines[0][2] not in [2, 2.0, 4, 4.0]:
-        raise TypeError(f"The third value in the first row of the input file ({filename}) must be either 2 (for the two-parameter beta true-score distribution) or 4 (the four-parameter beta distribution).") 
-    if len(lines[0] == 4) and (not isinstance(lines[0][3], (float, int)) or lines[0][3] % 1 != 0):
-        raise TypeError(f"The fourth value in the first row of the input file ({filename}) must be an integer.")
-    
-    ## Line 2
-    if len(lines[1]) not in [2, 4, 5]:
-        raise ValueError(f"The second row of the input file ({filename}) must contain either 2 (if raw-score moments are supplied), 4 (if a raw-score- or frequency distribution is supplied). If the Livingston and Lewis procedure is specified in line 1, an optional fifth value can be specified to indicate the minimum possible score to attain on the test (default is 0).")
-    if not isinstance(lines[1][1], str) or lines[1][1] not in ["R", "r", "F", "f", "M", "m"]:
-        raise ValueError(f"The second value in the second row of the input file ({filename}) must be either R or r (indicating that the contents of the data-file ({lines[1][0]} represent final test-scores), F or f (specifying that the contents of {lines[1][1]} represents a frequency distribution, or M or m (specifying that the {lines[1][1]} contains raw-score moments).)")
-    if lines[1][1] in ["M", "m"] and len(lines[1]) != 2:
-        raise ValueError(f"If moment input is specified, the data-file ({lines[1][0]}) and the input type must be specified in the second ")
-    if lines[1][1] not in ["M", "m"] and (not isinstance(lines[1][2], (float, int)) or lines[1][2] % 1 != 0):
-        raise TypeError(f"If the second value in the second row of the input file ({filename}) is not M or m, the column of the data-file ({lines[1][0]}) that contains the test-scores must be specified as the third value in the second row of the input file ({filename}).") 
-    if lines[1][1] in ["R", "r", "F", "f"] and (not isinstance(lines[1][3], (float, int)) or lines[1][3] % 1 != 0):
-        raise TypeError(f"If the second value in the second row of the input file ({filename} is R or r, or F or f, the fourth value of the second row of the input file must be an integer specifying either (if a raw-score distribution is specified) the number of test items (for the Hanson and Brennan procedure) or the maximum possible test-score (for the Livingston and Lewis procedure), or (if a frequency distribution is specified) the column in the data-file ({filename}) containing the frequencies of sum-score occurances (if F or f).)")
-    if not isinstance(lines[1][2], (float, int)) or lines[1][2] % 1 != 0:
-        raise TypeError(f"The third value of the second rows of the input file ({filename}) must be an integer.")
-    if not isinstance(lines[1][3], (float, int)) or lines[1][3] % 1 != 0:
-        raise ValueError(f"The fourth value of the second row of the input file ({filename}) must be an integer.")
-    
-    ## Line 3
-    if len(lines[2]) not in [2, 3]:        
-        raise ValueError(f"The third row of the input file ({filename}) must contain at least 2 and at most 3 (if the optional true-score cut-points are supplied) values")
-    if not isinstance(lines[2][0], (float, int)) or lines[2][0] % 1 != 0:
-        raise TypeError(f"The first value of the third row of the input file ({filename}) must be an integer.")
-    if not isinstance(lines[2][0], (float, int)) or lines[2][1] % 1 != 0:
-        raise TypeError(f"The second value of the third row of the input file ({filename}) must be an integer.")
-    if len(lines[2]) == 3 and (not isinstance(lines[2, 2], float) or 0 >= lines[2][2] >= 1):
-        raise TypeError(f"The third value of the third row of the input file ({filename}) must be a floating point value between 0 and 1.")
-    """
     return lines[0:3]
-
-
 
 trying = os.path.abspath(__file__)[::-1]
 trying[trying.index("/") - 1:][::-1]
