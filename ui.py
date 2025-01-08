@@ -10,19 +10,22 @@ def read_and_parse_input(filename: str) -> list:
         lines = file.readlines()
     lines = [i.lower().split() for i in lines]
     lines = [[float(i) if i.replace(".", "", 1).replace("-", "", 1).isdigit() else i for i in j] for j in lines]
-    datafile: str = lines[1][0]
+    if len(lines[0]) == 3:
+        lines[0].append(0)
+    return lines
+
+def read_and_parse_data(input: str) -> list:
+    datafile: str = input[1][0]
     if not os.path.isabs(datafile):
         datafile = os.path.join(os.path.abspath(__file__), datafile)
     with open (datafile, 'r') as file:
         datalines = file.readlines()
-    if lines[1][1].lower() == "r":
+    if input[1][1].lower() == "r":
         data = [i[0] for i in datalines]
-    elif lines[1][1].lower() == "f":
+    elif input[1][1].lower() == "f":
         data = [[i[0] for _ in range(i[1])] for i in datalines]
         data = [i for j in data for i in j]
-    if len(lines[0]) == 3:
-        lines[0].append(0)
-    return lines[0:3]
+    return data
 
 trying = os.path.abspath(__file__)[::-1]
 trying[trying.index("/") - 1:][::-1]
@@ -38,7 +41,7 @@ print(read_and_parse_input(trying[trying.index("/"):][::-1] + "ui_test/test_inpu
 #def prepare_data(data: str, control_card_input: list):
 #    if os.path.isabs(data):
 #        file_path = data
-#    else:
+#    else:d
 #        base_dir = os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else os.getcwd()
 #        file_path = os.path.join(base_dir, data)
 #    if not os.path.isfile(data):
