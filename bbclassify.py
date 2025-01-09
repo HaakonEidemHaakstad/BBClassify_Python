@@ -94,7 +94,6 @@ class bbclassify():
         >>> print(bb_hb.Consistency)
         0.7814787747625881
         """
-        
         if not isinstance(data, (list, tuple)):
             raise TypeError(f"Input data must be a list or tuple of numeric values (input is {type(data)}).")
         if not all(isinstance(i, (float, int)) for i in data):
@@ -136,6 +135,8 @@ class bbclassify():
                 raise TypeError(f"Input cut_truescores ({len(cut_truescores)} values) must contain the same number of values as cut_scores ({len(cut_scores)}).")
             if len(cut_truescores) > 1 and any(cut_truescores[i] <= cut_truescores[i - 1] for i in range(1, len(cut_truescores))):
                 raise ValueError(f"Values in cut_truescores must be in ascending order (input cut_scores is {cut_truescores}).")
+            if 0 in cut_truescores or 1 in cut_truescores:
+                raise ValueError(f"Input cut_truescores cannot contain 0 or 1.")
 
         if not isinstance(method, str):
             raise TypeError(f"Input method must be a string (input is {type(method)}).")

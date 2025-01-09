@@ -12,17 +12,27 @@ def read_and_parse_input(filename: str) -> list:
     lines = [[float(i) if i.replace(".", "", 1).replace("-", "", 1).isdigit() else i for i in j] for j in lines]
     if len(lines[0]) == 3:
         lines[0].append(0)
+    if lines[1][1].lower() == "r" and lines[0][0].lower() == "ll":
+        if len(lines[1]) == 4:
+            print("""Warning: The LL procedure requires the specification of a minimum possible test-score.\n
+                          No minimum possible test-score was specified as part of the input.\n
+                          Minimum possible test-score is assumed to be 0.""")
+            lines[1].append(0)
+    if len(lines[2]) == lines[2][1]:
+        lines[2] = [lines[2][0], [lines[2][1:]]]
+    if len(lines[2]) == lines[2][0]*2 - 1:
+        lines[2] = lines[2] = [lines[2][0], lines[2][1:lines[2][0]], lines[2][lines[2][0]:]]
     return lines
 
-def read_and_parse_data(input: str) -> list:
-    datafile: str = input[1][0]
+def read_and_parse_data(input_file: str) -> list:
+    datafile: str = input_file[1][0].removeprefix('"').removesuffix('"')
     if not os.path.isabs(datafile):
         datafile = os.path.join(os.path.abspath(__file__), datafile)
     with open (datafile, 'r') as file:
         datalines = file.readlines()
-    if input[1][1].lower() == "r":
+    if input_file[1][1].lower() == "r":
         data = [i[0] for i in datalines]
-    elif input[1][1].lower() == "f":
+    elif input_file[1][1].lower() == "f":
         data = [[i[0] for _ in range(i[1])] for i in datalines]
         data = [i for j in data for i in j]
     return data
@@ -31,79 +41,46 @@ trying = os.path.abspath(__file__)[::-1]
 trying[trying.index("/") - 1:][::-1]
 print(read_and_parse_input(trying[trying.index("/"):][::-1] + "ui_test/test_input"))
 
-#print(os.path.isabs("ui_test/test_input"))
-#print(os.path.abspath(__file__))
-#trying = os.path.abspath(__file__)[::-1]
-#print(trying[trying.index("/"):][::-1])
+def main():
+    input_file: list = input("Enter path to- or name of the input file.")
+    input_file: list = read_and_parse_input(input_file)
+    data = read_and_parse_data(input_file)
+    reliability = input_file[0][1]
+    if input_file[1][1].lower() == "m":
+        min_score = input_file[1][4]
+        max_score = input_file[1][3]
+    if input_file[1][1].lower() == "f":
+        min_score = input_file[1][5]
+        max_score = input_file[1][4]
+    cut_scores = input_file[2][1]
+    if len(input_file[2]) == 3:
+        cut_truescores = input_file[2][2]
+    else:
+        cut_truescores = None
+    method = input_file[0][0]
+    model = input_file[0][2]
+    minimum_expected_value = input_file[0][3]
 
+    print("INPUT:")
+    print(f" Procedure:         {"Livingston and Lewis ('LL')." if method == "ll" else "Hanson and Brennan ('HB')."}")
+    print(f" Reliability:       {reliability}.")
+    print(f" True-score model:  {model}-parameter Beta distribution.")
+    print(f" Model-fit testing: {1}")
 
-#
-#def prepare_data(data: str, control_card_input: list):
-#    if os.path.isabs(data):
-#        file_path = data
-#    else:d
-#        base_dir = os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else os.getcwd()
-#        file_path = os.path.join(base_dir, data)
-#    if not os.path.isfile(data):
-#        raise FileNotFoundError(f"The file '{data}' does not exist at '{file_path}'")
-#    with open (data, 'r') as file:
-#        lines = file.readlines()
-#    if all(len(i) == 1 for i in lines):
-#        lines = [lines[i][0] for i in lines]
-#        if any(isinstance(i, str) for i in lines[0]):
-#            raise TypeError("All values in the observed-score data file must be numeric.")
-#    elif all(len(i) == 2 for i in lines):
-#        None
-#    else:
-#        raise ImportError("Observed-score data file must have at most two columns. Either a raw-score distribution (one column), or a frequency-distribution (two columns)")
-#    if control_card_input[0[0].lower()] == "hb":
-#        if not all(i % 1 == 0 for i in lines[0]):
-#            raise ValueError("All observed-score values must be integers under the Hanson and Brennan approach.")
+    output = bbclassify.bbclassify(data = data,
+                                   reliability = reliability,
+                                   min_score = min_score,
+                                   max_score = max_score,
+                                   cut_scores = cut_scores,
+                                   cut_truescores = cut_truescores,
+                                   method = method,
+                                   model = model)
+    output.modelfit(minimum_expected_value = minimum_expected_value)
+    output.accuracy()
+    output.consistency()
 
-#def expand_values(data):
-#    """Expand values based on their counts.
-#
-#
-#    Args:
-#        data (list of tuple): A list of tuples, where each tuple contains a value
-#                              and its count.
+if __name__ == "__main__":
+    main()
 
-
-#    Returns:
-#        list: A list of values expanded according to their counts.
-#    """
-#    expanded_list = []
-#    for value, count in data:
-#        expanded_list.extend([value] * count)
-#    return expanded_list
-
-#def main():
-#    """Main function to process a two-column CSV-like file."""
-#    if len(sys.argv) != 3:
-#        print("Usage: script.py <input_file> <output_file>")
-#        sys.exit(1)
-
-#    input_file = sys.argv[1]
-#    output_file = sys.argv[2]
-
-#    data = read_csv_file(input_file)
-#    if not data:
-#        print(f"No valid data found in '{input_file}'.")
-#        sys.exit(1)
-
-#    expanded_list = expand_values(data)
-
-#    try:
-#        with open(output_file, 'w') as outfile:
-#            outfile.write("\n".join(expanded_list))
-#        print(f"Expanded list written to {output_file}")
-#    except Exception as e:
-#        print(f"An error occurred while writing to '{output_file}': {e}")
-#        sys.exit(1)
-
-#    "".endswith
-
-#if __name__ == "__main__":
-#    main()
 
 
