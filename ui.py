@@ -16,7 +16,7 @@ def read_and_parse_input(filename: str) -> list:
         if len(lines[1]) == 4:
             print("""Warning: The LL procedure requires the specification of a minimum possible test-score.\n
                           No minimum possible test-score was specified as part of the input.\n
-                          Minimum possible test-score is assumed to be 0.""")
+                          Minimum possible test-score will be assumed to be 0.""")
             lines[1].append(0)
     if len(lines[2]) == lines[2][1]:
         lines[2] = [lines[2][0], [lines[2][1:]]]
@@ -62,10 +62,18 @@ def main():
     minimum_expected_value = input_file[0][3]
 
     print("INPUT:")
-    print(f" Procedure:         {"Livingston and Lewis ('LL')." if method == "ll" else "Hanson and Brennan ('HB')."}")
-    print(f" Reliability:       {reliability}.")
-    print(f" True-score model:  {model}-parameter Beta distribution.")
-    print(f" Model-fit testing: {1}")
+    print(f" Type of Procedure:     {"Livingston and Lewis ('LL')." if method.lower() == "ll" else "Hanson and Brennan ('HB')."}")
+    print(f" Reliability of scores: {reliability}.")
+    print(f" True-score Beta model: {model}-parameter Beta distribution.")
+    print(f" Model-fit testing:     Minimum expected value of bins set to {minimum_expected_value}.")
+    print(f" Name of data file      {input_file[1][0]}")
+    print(f" Format of input data:  {"Raw scores" if input_file[1][1].lower() == "r" else "Frequency distribution of raw scores"}.")
+    print(f" Max. possible score:   {max_score}.")
+    print(f" Min. possible score:   {min_score}.")
+    print(f" Number of categories:  {input_file[2][0]}.")
+    print(f" Obs. score cut-points: {input_file[2][1]}.")
+    print(f" True-score cut-points: {"None specified" if cut_truescores is None else cut_truescores}.")
+
 
     output = bbclassify.bbclassify(data = data,
                                    reliability = reliability,
