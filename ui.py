@@ -49,6 +49,8 @@ def read_and_parse_input(filename: str) -> list:
         print(f"Specification of the file containing the data must be either the absolute or relative path to the data-file. Current input is '{lines[1][0]}")
         raise TypeError(input_error)
     
+    #if any(False for i in [all(isinstance(j, ))])
+    
     if lines[1][1].lower() not in ["r", "f"]:
         print(f"Data-type specification must be either R for raw-scores, or F for frequency distribution of raw-scores. Current input is '{lines[1][1]}'.")
         raise TypeError(input_error)
@@ -58,7 +60,7 @@ def read_and_parse_input(filename: str) -> list:
             print("Warning: The LL procedure requires the specification of a minimum possible test-score.")
             print(" No minimum possible test-score was specified as part of the input.")
             print(" Minimum possible test-score will be assumed to be 0.")
-            print(" If the minimum possible test-score is not 0, specify the minimum possible value as the fifth value of the second line of the input file.")
+            print(" If the actual minimum possible test-score is not 0, specify the minimum possible value as the fifth value of the second line of the input file.")
             lines[1].append(0)
 
     if lines[1][1].lower() == "f":
