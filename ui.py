@@ -153,24 +153,64 @@ def main():
     print("\n\n")
 
     print("PROGRESS:")
-    print(" Estimating model parameters.")
+    print(" Estimating model parameters...", end = "\r")
     output = bbclassify.bbclassify(data = data[0],
-                                   reliability = reliability,
-                                   min_score = min_score,
-                                   max_score = max_score,
-                                   cut_scores = cut_scores,
-                                   cut_truescores = cut_truescores,
-                                   method = method,
-                                   model = model)
-    print(" Estimating model fit.")
+                                    reliability = reliability,
+                                    min_score = min_score,
+                                    max_score = max_score,
+                                    cut_scores = cut_scores,
+                                    cut_truescores = cut_truescores,
+                                    method = method,
+                                    model = model)
+    print(" Estimating model parameters... \033[92m✓\033[0m")
+    print(" Estimating model fit...", end = "\r")
     output.modelfit(minimum_expected_value = minimum_expected_value)
-    print(" Estimating classification accuracy.")
+    print(" Estimating model fit... \033[92m✓\033[0m")
+    print(" Estimating classification accuracy...", end = "\r")
     output.accuracy()
-    print(" Estimating classification consistency.")
+    print(" Estimating classification accuracy... \033[92m✓\033[0m")
+    print(" Estimating classification consistency... ", end = "\r")
     output.consistency()
+    print(" Estimating classification consistency... \033[92m✓\033[0m")
+
+    with open("BBClassify_output", "w") as file:
+        file.write("*************************************************************************\n")
+        file.write("*** BBClassify: Beta-Binomial Classification Accuracy and Consistency ***\n")
+        file.write("***                            Version 1.0.0                          ***\n")
+        file.write("***                                                                   ***\n")
+        file.write("***                         Haakon E. Haakstad                        ***\n")
+        file.write("***                            Unaffiliated                           ***\n")
+        file.write("***                                                                   ***\n")
+        file.write("***          MIT License (https://opensource.org/license/mit)         ***\n")
+        file.write("***              Copyright (c) 2025 Haakon Eidem Haakstad             ***\n")
+        file.write("*************************************************************************\n")
+        file.write("\n")
+        file.write(f"*** {"Livingston and Lewis" if method.lower() == "ll" else "Hanson and Brennan"} Results ***\n")
+        file.write("\n")
+        file.write(f"*** Listing of Input Specified in the Input File \"{input_file[1][0]}\" ***")
+        file.write("\n")
+        file.write(f" Type of Procedure:     {"Livingston and Lewis ('LL')." if method.lower() == "ll" else "Hanson and Brennan ('HB').\n"}")
+        file.write(f" Reliability of scores: {reliability}\n")
+        file.write(f" True-score Beta model: {model}-parameter Beta distribution.\n")
+        file.write(f" Model-fit testing:     Minimum expected value of bins set to {minimum_expected_value}.\n")
+        file.write(f" Name of data file      {input_file[1][0]}\n")
+        file.write(f" Format of input data:  {"Raw scores" if input_file[1][1].lower() == "r" else "Frequency distribution of raw scores"}.\n")
+        file.write(f" Max. possible score:   {max_score}\n")
+        file.write(f" Min. possible score:   {min_score}\n")
+        file.write(f" Number of categories:  {input_file[2][0]}\n")
+        file.write(f" Obs. score cut-points: {input_file[2][1]}\n")
+        file.write(f" True-score cut-points: {"None specified" if cut_truescores is None else cut_truescores}.\n")
+        file.write("\n")
+        file.write("*** Model Parameter Estimates ***\n")
+        file.write(f"Beta true-score distribution:\n")
+        file.write(f" Alpha: {output.Parameters["alpha"]}\n")
+        file.write(f" Beta: {output.Parameters["beta"]}\n")
+        file.write(f" Lower-bound: {output.Parameters["l"]}\n")
+        file.write(f" Upper-bound: {output.Parameters["u"]}\n")
+        file.write("\n")
+        file.write(f"Binomial error distribution:\n")
+        file.write(f" Lord's k: {output.Parameters["lords k"]} ({"Compound-Binomial error model" if output.Parameters["lords k"] != 0 else "Binomial error model"})\n")
+        file.write(f" Number of 'trials': {output.N} ({"Effective Test Length" if method.lower() == "ll" else "Actual Test Length"})\n")
 
 if __name__ == "__main__":
     main()
-
-
-
