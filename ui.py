@@ -49,8 +49,6 @@ def read_and_parse_input(filename: str) -> list:
         print(f"Specification of the file containing the data must be either the absolute or relative path to the data-file. Current input is '{lines[1][0]}")
         raise TypeError(input_error)
     
-    #if any(False for i in [all(isinstance(j, ))])
-    
     if lines[1][1].lower() not in ["r", "f"]:
         print(f"Data-type specification must be either R for raw-scores, or F for frequency distribution of raw-scores. Current input is '{lines[1][1]}'.")
         raise TypeError(input_error)
@@ -87,8 +85,7 @@ def read_and_parse_input(filename: str) -> list:
         lines[2] = lines[2] = [lines[2][0], lines[2][1:lines[2][0]], lines[2][lines[2][0]:]]
     else:
         print("Number of specified cut-points do not match the number of specified categories.")
-        raise TypeError(input_error)
-    
+        raise TypeError(input_error)    
     return lines
 
 def read_and_parse_data(input_file: str) -> list:
@@ -103,7 +100,17 @@ def read_and_parse_data(input_file: str) -> list:
         xcol = input_file[1][2] - 1
         fcol = input_file[1][3] - 1
         data_full = [[i[xcol] for _ in range(i[fcol])] for i in datalines]
-        data = ([i for j in data for i in j], data_full)
+        data = ([i for j in data for i in j], data_full)    
+    non_numeric = [i for i in data[0] if not isinstance(i, (float, int))]
+    len_non_numeric = len(non_numeric)
+    if len_non_numeric != 0:
+        print(f"All values contained in the data-file must be numeric. Data-file contained {len_non_numeric} non-numeric {"entries" if len_non_numeric > 1 else "entry"}.")
+        print(f"Ensure that the data-file contains no non-numeric entries (e.g., no column-names).")
+        if len_non_numeric < 7:
+            print(f"The data-file contained the following non-numeric {"entries" if len_non_numeric > 1 else "entry"}: {non_numeric}.")
+        else:
+            print(f"The first six non-numeric entries encountered in the data-file were: {non_numeric[:6]}.")
+        raise TypeError("Input error. Execution terminated.")
     return data
 
 trying = os.path.abspath(__file__)[::-1]
