@@ -5,13 +5,13 @@ import bbclassify
 
 def read_and_parse_input(filename: str) -> list:
     input_error = "Input error. Execution terminated."
-    if not os.path.isabs(filename):
-        filename = os.path.join(os.path.abspath(__file__), filename)
-    try:
-        with open (filename, "r") as file:
-            lines = file.readlines()
-    except:
-        raise ImportError("Error reading input file. Check whether the file-path is correctly specified.")
+    #if not os.path.isabs(filename):
+    #    filename = os.path.join(os.path.abspath(__file__), filename)
+    #try:
+    with open (filename, "r") as file:
+           lines = file.readlines()
+    #except:
+    #    raise ImportError("Error reading input file. Check whether the file-path is correctly specified.")
     lines = [i.lower().split() for i in lines]
     lines = [[float(i) if i.replace(".", "", 1).replace("-", "", 1).isdigit() else i for i in j] for j in lines]
 
@@ -76,16 +76,16 @@ def read_and_parse_input(filename: str) -> list:
     if not isinstance(lines[2][0], (float, int)):
         print(f"All entries in the third line of the input file must be integers. Current input is {[lines[2]]}.")
         raise TypeError(input_error)
-    if len(lines[2]) == 3 and not all(isinstance(i, float) for i in lines[2][2]) or not all(0 > i > 1 for i in lines[2][2]):
+    if len(lines[2]) == 3 and (not all(isinstance(i, float) for i in lines[2][2]) or not all(0 > i > 1 for i in lines[2][2])):
         print(f"All true-score cut-points must be floating point values between 0 and 1 (0 < cut-point < 1). Current input is {lines[2][2]}.")
         raise TypeError(input_error)
-    if len(lines[2]) == lines[2][1]:
-        lines[2] = [lines[2][0], [lines[2][1:]]]
-    elif len(lines[2]) == lines[2][0]*2 - 1:
-        lines[2] = lines[2] = [lines[2][0], lines[2][1:lines[2][0]], lines[2][lines[2][0]:]]
-    else:
-        print("Number of specified cut-points do not match the number of specified categories.")
-        raise TypeError(input_error)    
+    #if len(lines[2]) == lines[2][1]:
+    #    lines[2] = [lines[2][0], [lines[2][1:]]]
+    #elif len(lines[2]) == lines[2][0]*2 - 1:
+    #    lines[2] = lines[2] = [lines[2][0], lines[2][1:lines[2][0]], lines[2][lines[2][0]:]]
+    #else:
+    #    print("Number of specified cut-points do not match the number of specified categories.")
+    #    raise TypeError(input_error)
     return lines
 
 def read_and_parse_data(input_file: str) -> list:
@@ -113,14 +113,15 @@ def read_and_parse_data(input_file: str) -> list:
         raise TypeError("Input error. Execution terminated.")
     return data
 
-trying = os.path.abspath(__file__)[::-1]
-trying[trying.index("/") - 1:][::-1]
-print(read_and_parse_input(trying[trying.index("/"):][::-1] + "ui_test/test_input"))
+#trying = os.path.abspath(__file__)[::-1]
+##trying[trying.index("/") - 1:][::-1]
+#print(read_and_parse_input(trying[trying.index("/"):][::-1] + "ui_test/test_input"))
 
 def main():
-    input_file: list = input("Enter path to- or name of the input file.")
+    input_file: list = input("Enter path to- or name of the input file: ")
     input_file: list = read_and_parse_input(input_file)
     data = read_and_parse_data(input_file)
+    n_observations = len(data[0])
     reliability = input_file[0][1]
     if input_file[1][1].lower() == "r":
         min_score = input_file[1][4] if input_file[0][0].lower() == "ll" else 0
@@ -136,22 +137,7 @@ def main():
     method = input_file[0][0]
     model = input_file[0][2]
     minimum_expected_value = input_file[0][3]
-
-    print("INPUT:")
-    print(f" Type of Procedure:     {"Livingston and Lewis ('LL')." if method.lower() == "ll" else "Hanson and Brennan ('HB')."}")
-    print(f" Reliability of scores: {reliability}.")
-    print(f" True-score Beta model: {model}-parameter Beta distribution.")
-    print(f" Model-fit testing:     Minimum expected value of bins set to {minimum_expected_value}.")
-    print(f" Name of data file      {input_file[1][0]}")
-    print(f" Format of input data:  {"Raw scores" if input_file[1][1].lower() == "r" else "Frequency distribution of raw scores"}.")
-    print(f" Max. possible score:   {max_score}.")
-    print(f" Min. possible score:   {min_score}.")
-    print(f" Number of categories:  {input_file[2][0]}.")
-    print(f" Obs. score cut-points: {input_file[2][1]}.")
-    print(f" True-score cut-points: {"None specified" if cut_truescores is None else cut_truescores}.")
     
-    print("\n\n")
-
     print("PROGRESS:")
     print(" Estimating model parameters...", end = "\r")
     output = bbclassify.bbclassify(data = data[0],
@@ -174,16 +160,16 @@ def main():
     print(" Estimating classification consistency... \033[92m✓\033[0m")
 
     with open("BBClassify_output", "w") as file:
-        file.write("*************************************************************************\n")
-        file.write("*** BBClassify: Beta-Binomial Classification Accuracy and Consistency ***\n")
-        file.write("***                            Version 1.0.0                          ***\n")
-        file.write("***                                                                   ***\n")
-        file.write("***                         Haakon E. Haakstad                        ***\n")
-        file.write("***                            Unaffiliated                           ***\n")
-        file.write("***                                                                   ***\n")
-        file.write("***          MIT License (https://opensource.org/license/mit)         ***\n")
-        file.write("***              Copyright (c) 2025 Haakon Eidem Haakstad             ***\n")
-        file.write("*************************************************************************\n")
+
+        file.write("******************************************************************************\n")
+        file.write("***   BBClassify:  Beta-Binomial Classification Accuracy and Consistency   ***\n")
+        file.write("***                              Version 1.0.0                             ***\n")
+        file.write("***                                                                        ***\n")
+        file.write("***                           Haakon E. Haakstad                           ***\n")
+        file.write("***                                                                        ***\n")
+        file.write("***            MIT License (https://opensource.org/license/mit)            ***\n")
+        file.write("***                Copyright (c) 2025 Haakon Eidem Haakstad                ***\n")
+        file.write("******************************************************************************\n")
         file.write("\n")
         file.write(f"*** {"Livingston and Lewis" if method.lower() == "ll" else "Hanson and Brennan"} Results ***\n")
         file.write("\n")
@@ -198,10 +184,24 @@ def main():
         file.write(f" Max. possible score:   {max_score}\n")
         file.write(f" Min. possible score:   {min_score}\n")
         file.write(f" Number of categories:  {input_file[2][0]}\n")
-        file.write(f" Obs. score cut-points: {input_file[2][1]}\n")
+        file.write(f" Obs.-score cut-points: {cut_scores}\n")
         file.write(f" True-score cut-points: {"None specified" if cut_truescores is None else cut_truescores}.\n")
         file.write("\n")
+        file.write(f"*** Details of data contained in the Data File ***")
+        file.write(f"Total number of observations: {n_observations}\n")
+        file.write("Observed category proportions:\n")
+        file.write(f" Category 1: {len([i for i in data if i < input_file[2][1][0]]) / n_observations}")
+        if input_file[2][0] > 2:
+            for i in range(1, input_file[2][0] - 1):
+                file.write(f" Category {i + 1}: {len([j for j in data if input_file[2][1][i - 1] <= j < input_file[2][1][i + 1]]) / n_observations} ({input_file[2][1][i - 1]})")
+        file.write(f" Category {input_file[2][0]}: {len([i for i in data if i >= input_file[2][1][input_file[2][0] - 1]]) / n_observations}")
         file.write("*** Model Parameter Estimates ***\n")
+        file.write("\n")
+        if output.failsafe_engaged:
+            file.write("Warning: Four-parameter fitting procedure produced impermissible location\n")
+            file.write(" parameter estimates. Reverted to a two-parameter fitting procedure with\n")
+            file.write(" location parameter Lower-bound = 0 and Upper-bound = 1.\n")
+            file.write("\n")
         file.write(f"Beta true-score distribution:\n")
         file.write(f" Alpha: {output.Parameters["alpha"]}\n")
         file.write(f" Beta: {output.Parameters["beta"]}\n")
@@ -211,6 +211,21 @@ def main():
         file.write(f"Binomial error distribution:\n")
         file.write(f" Lord's k: {output.Parameters["lords k"]} ({"Compound-Binomial error model" if output.Parameters["lords k"] != 0 else "Binomial error model"})\n")
         file.write(f" Number of 'trials': {output.N} ({"Effective Test Length" if method.lower() == "ll" else "Actual Test Length"})\n")
+        file.write("\n")
+        file.write(f"Number of moments fit:       {output.model}\n")
+        file.write(f"\n")
+        file.write("*** Model Fit ***\n")
+        file.write(f"        Chi-Square = {output.Modelfit_chi_squared}\n")
+        file.write(f"Degrees of Freedom = {output.Modelfit_degrees_of_freedom}\n")
+        file.write(f"           p-value = {output.Modelfit_p_value}\n")
+        file.write("\n")
+        file.write("*** Classification Accuracy Estimates ***\n")
+        file.write("\n")
+        file.write("Confusion matrix:")
+        file.write(f"{output.confusionmatrix}\n")
+        file.write("\n")
+        file.write(f"Expected proportion of correct classifications (Accuracy): {output.Accuracy}")
+
 
 if __name__ == "__main__":
     main()

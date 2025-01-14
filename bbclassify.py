@@ -185,6 +185,8 @@ class bbclassify():
         self.u = u
         self.failsafe = failsafe
 
+        self.failsafe_engaged = False
+
         self.Modelfit_chi_squared = "Model fit not yet estimated. Call .modelfit() to estimate model fit."
         self.Modelfit_degrees_of_freedom = "Model fit not yet estimated. Call .modelfit() to estimate model fit."
         self.Modelfit_p_value = "Model fit not yet estimated. Call .modelfit() to estimate model fit."
@@ -221,6 +223,7 @@ class bbclassify():
                 warn(f"Failsafe triggered. True-score fitting procedure produced impermissible parameter values (l = {self.Parameters['l']}, u = {self.Parameters['u']}).")
                 self.Parameters = self._betaparameters(self.data, self.N, self.K, 2, self.l, self.u)
                 self.model = 2
+                self.failsafe_engaged = True
 
         self.choose_values = [self._choose_functions(self.N, i) for i in range(self.N + 1)]
     
