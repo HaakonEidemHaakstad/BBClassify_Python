@@ -92,13 +92,17 @@ def read_and_parse_data(input_file: str) -> list:
     datafile: str = input_file[1][0].removeprefix('"').removesuffix('"')
     if not os.path.isabs(datafile):
         datafile = os.path.join(os.path.abspath(__file__), datafile)
+    datafile = datafile.replace("/testing.py", "")
     with open (datafile, 'r') as file:
         datalines = file.readlines()
+    datalines = [[float(k) if float(k) % 1 != 0 else int(k) for k in "".join(i if i.isdigit() or i == "." else " " for i in j).split(" ")[:2]] for j in datalines]
     if input_file[1][1].lower() == "r":
         data = ([i[0] for i in datalines])
     elif input_file[1][1].lower() == "f":
-        xcol = input_file[1][2] - 1
-        fcol = input_file[1][3] - 1
+        xcol = int(input_file[1][2] - 1)
+        print(xcol, type(xcol))
+        fcol = int(input_file[1][3] - 1)
+        print(fcol, type(fcol))
         data_full = [[i[xcol] for _ in range(i[fcol])] for i in datalines]
         data = ([i for j in data for i in j], data_full)    
     non_numeric = [i for i in data[0] if not isinstance(i, (float, int))]
