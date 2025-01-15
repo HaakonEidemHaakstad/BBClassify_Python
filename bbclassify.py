@@ -110,7 +110,7 @@ class bbclassify():
             raise ValueError(f"Input min_score cannot be greater than any value in input data (input min_score is {min_score}, and lowest value in data is {min(data)}).")
         
         if not isinstance(max_score, (float, int)):
-            raise TypeError(f"Input min_score must be a numeric value (input is {type(min_score)}).")
+            raise TypeError(f"Input max_score must be a numeric value (input is {type(max_score)}).")
         if max_score < max(data):
             raise ValueError(f"Input min_score cannot be greater than any value in input data (input max_score is {max_score}, and lowest value in data is {max(data)}).")
 
@@ -222,6 +222,7 @@ class bbclassify():
             if (self.failsafe == True and self.model == 4) and (self.Parameters["l"] < 0 or self.Parameters["u"] > 1):
                 warn(f"Failsafe triggered. True-score fitting procedure produced impermissible parameter values (l = {self.Parameters['l']}, u = {self.Parameters['u']}).")
                 self.Parameters = self._betaparameters(self.data, self.N, self.K, 2, self.l, self.u)
+                self.Parameters["lords k"] = self.K
                 self.model = 2
                 self.failsafe_engaged = True
 
