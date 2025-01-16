@@ -178,7 +178,7 @@ class bbclassify():
         if cut_truescores == None:
             self.cut_truescores = [(i - self.min_score) / (self.max_score + self.min_score) for i in self.cut_scores]
         else:
-            self.cut_truescores = cut_truescores
+            self.cut_truescores = [0] + cut_truescores + [1]
         self.method = method
         self.model = model
         self.l = l
@@ -355,7 +355,8 @@ class bbclassify():
                 else:
                     self.confusionmatrix[i, j] = sum(confmat[self.cut_scores[i]:, j])
         # Compute overall accuracy by summing the values in the diagonal of the confusion matrix.
-        self.Accuracy = float(sum([self.confusionmatrix[i, i] for i in range(len(self.cut_scores) - 1)]))
+        #self.Accuracy = float(sum([self.confusionmatrix[i, i] for i in range(len(self.cut_scores) - 1)]))
+        self.Accuracy = self.confusionmatrix.diagonal().sum()
         return self.Accuracy
 
     # Function for estimating classification consistency.
@@ -408,7 +409,8 @@ class bbclassify():
                     # Bottom-right corner
                     self.consistencymatrix[i, j] = sum(sum(consmat[self.cut_scores[i]:self.cut_scores[i + 1] + 1, self.cut_scores[j]:self.cut_scores[j + 1] + 1]))
         # Compute overall consistency by summing the values in the diagonal of the consistency matrix.
-        self.Consistency = float(sum([self.consistencymatrix[i, i] for i in range(len(self.cut_scores) - 1)]))
+        #self.Consistency = float(sum([self.consistencymatrix[i, i] for i in range(len(self.cut_scores) - 1)]))
+        self.Consistency = self.consistencymatrix.diagonal().sum()
         return self.Consistency
         
     def _calculate_etl(self, mean: float, var: float, reliability: float, min: float = 0, max: float = 1) -> float:

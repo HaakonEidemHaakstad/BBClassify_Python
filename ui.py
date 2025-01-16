@@ -30,7 +30,7 @@ def read_and_parse_input(filename: str) -> list:
         print(f"Reliability specification under the Livingston and Lewis procedure must be a numeric value between 0 and 1 (0 < reliability < 1). Current input is '{lines[0][1]}'.")
         raise TypeError(input_error)
     
-    if lines[0][0].lower() == "ll" and 0 > lines[0][1] >= 1:
+    if lines[0][0].lower() != "ll" and 0 > lines[0][1] >= 1:
         print(f"Reliability specification under the Hanson and Brennan procedure must be a numeric value between 0 and 1 (0 <= reliability < 1). Current input is '{lines[0][1]}'.")
         raise TypeError(input_error)
 
@@ -83,11 +83,14 @@ def read_and_parse_input(filename: str) -> list:
     if len(lines[2]) == lines[2][0]:
         lines[2] = [lines[2][0], lines[2][1:]]
     elif len(lines[2]) == lines[2][0]*2 - 1:
-        lines[2] = lines[2] = [lines[2][0], lines[2][1:lines[2][0]], lines[2][lines[2][0]:]]
+        lines[2] = [lines[2][0], 
+                    [lines[2][i] for i in range(1, int(lines[2][0]))],
+                    [lines[2][i] for i in range(int(lines[2][0]), len(lines[2]))]]
     else:
         print("Number of specified cut-points do not match the number of specified categories.")
         raise TypeError(input_error)
     return lines
+
 
 def read_and_parse_data(parsed_input: str) -> list:
     datafile: str = parsed_input[1][0].removeprefix('"').removesuffix('"')
@@ -177,7 +180,7 @@ def main():
     with open("BBClassify_output", "w") as file:
 
         file.write("******************************************************************************\n")
-        file.write("***   BBClassify:  Beta-Binomial Classification Accuracy and Consistency   ***\n")
+        file.write("***    BBClassify: Beta-Binomial Classification Accuracy and Consistency    ***\n")
         file.write("***                              Version 1.0.0                             ***\n")
         file.write("***                                                                        ***\n")
         file.write("***                           Haakon E. Haakstad                           ***\n")
@@ -214,8 +217,8 @@ def main():
         file.write(" Observed category proportions:\n")
         file.write(f"  Category 1:               {round(len([i for i in data[0] if i < input_file[2][1][0]]) / n_observations, 5)}\n")
         if input_file[2][0] > 2:
-            for i in range(1, input_file[2][0] - 1):
-                file.write(f" Category {i + 1}:  {len([j for j in data[0] if input_file[2][1][i - 1] <= j < input_file[2][1][i + 1]]) / n_observations} ({input_file[2][1][i - 1]})")
+            for i in range(1, int(input_file[2][0] - 1)):
+                file.write(f"  Category {i + 1}:               {round(len([j for j in data[0] if j >= cut_scores[i - 1] and j < cut_scores[i]]) / n_observations, 5)}\n")
         file.write(f"  Category {int(input_file[2][0])}:               {round(len([i for i in data[0] if i >= cut_scores[len(cut_scores) - 1]]) / n_observations, 5)}\n")#: {len([i for i in data[0] if i >= input_file[2][1][int(input_file[2][0] - 1)]]) / n_observations}")
         file.write("\n")
         file.write("\n")
@@ -257,8 +260,14 @@ def main():
         file.write(" Confusion matrix:\n")
         file.write(f"{output.confusionmatrix}\n")
         file.write("\n")
-        file.write(f" Expected proportion of correct classifications (Accuracy): \n")
+        file.write(f" Proportion of correct classifications on one test (Accuracy): \n")
         file.write(f"  Overall:                  {round(output.Accuracy, 5)}\n")
+        file.write("\n")
+        file.write(" Contingency matrix:\n")
+        file.write(f"{output.consistencymatrix.round(5)}\n")
+        file.write("\n")
+        file.write(" Proportion of consistent classifications across two tests (Consistency):\n")
+        file.write(f"  Overall:                  {round(output.Consistency, 5)}")
 
 if __name__ == "__main__":
     main()
