@@ -1,5 +1,6 @@
 import os
 import sys
+import numpy as np
 import pandas as pd
 import bbclassify
 import statistics as stats
@@ -120,9 +121,37 @@ def read_and_parse_data(parsed_input: str) -> list:
     #    raise TypeError("Input error. Execution terminated.")
     return data, datalines
 
-#trying = os.path.abspath(__file__)[::-1]
-##trying[trying.index("/") - 1:][::-1]
-#print(read_and_parse_input(trying[trying.index("/"):][::-1] + "ui_test/test_input"))
+
+def float_to_str(x: float) -> str:
+    x = str(round(x, 5))
+    if "." not in x and len(x) < 7:
+        x = x + "." + "0"*(7 - len(x) -1)
+    elif "." in x and len(x) < 7:
+        x = x + "0"*(7 - len(x))
+    elif "." in x and len(x) > 7 and x.index(".") < 7:
+        x = x[:7]
+    elif "." in x and x.index(".") >= 7:
+        x = x[:x.index(".")]
+    return x
+    
+
+def array_to_strlist(x: np.array):
+    x = np.hstack((x, x.sum(axis = 1).reshape(-1, 1)))
+    x = np.vstack((x, x.sum(axis = 0)))
+    strlist = [[round(float(i), 5) if i > 0.0001 else 0 for i in x[j, ]] for j in range(len(x))]
+    for i in range(len(x)):
+        for j in range(len(x)):
+            strlist[i][j] = float_to_str(strlist[i][j])
+    return strlist
+
+def add_labels(x, col, row):
+    col = [""] + [col + str(i) if i < len(x) - 1 else "marg" for i in range(len(x))]
+    col = [" "*(7 - len(i)) + i for i in col]
+    row = [row + str(i) if i < len(x) - 1 else "marg" for i in range(len(x))]
+    row = [" "*(7 - len(i)) + i for i in row]
+    x = [[row[i]] + x[i] for i in range(len(row))]
+    x.insert(0, col)
+    return x
 
 def main():
     input_file: str = input("Enter path to- or name of the input file: ")
@@ -172,15 +201,19 @@ def main():
     print(" Estimating model fit... \033[92m✓\033[0m")
     print(" Estimating classification accuracy...", end = "\r")
     output.accuracy()
-    print(" Estimating classification accuracy... \033[92m✓\033[0m")
+    print(" Estimating classification accuracy... \033[92m✓\033[0m")    
+    rounded_confusionmatrix = add_labels(array_to_strlist(output.confusionmatrix), "x", "t")
+
+
     print(" Estimating classification consistency... ", end = "\r")
     output.consistency()
     print(" Estimating classification consistency... \033[92m✓\033[0m")
-    
+    rounded_consistencymatrix = add_labels(array_to_strlist(output.consistencymatrix), "x", "x")
+
     with open("BBClassify_output", "w") as file:
 
         file.write("******************************************************************************\n")
-        file.write("***    BBClassify: Beta-Binomial Classification Accuracy and Consistency    ***\n")
+        file.write("***   BBClassify:  Beta-Binomial Classification Accuracy and Consistency   ***\n")
         file.write("***                              Version 1.0.0                             ***\n")
         file.write("***                                                                        ***\n")
         file.write("***                           Haakon E. Haakstad                           ***\n")
@@ -191,35 +224,35 @@ def main():
         file.write("\n")
         file.write(f"*** Listing of Input Specified in \"{input_file_name}\" ***\n")
         file.write("\n")
-        file.write(f" Type of Procedure:         {"Livingston and Lewis ('LL')." if method.lower() == "ll" else "Hanson and Brennan ('HB').\n"}")
-        file.write(f" Reliability of scores:     {reliability}\n")
-        file.write(f" True-score Beta model:     {int(model)}-parameter Beta distribution.\n")
-        file.write(f" Model-fit testing:          Minimum expected value of bins set to {minimum_expected_value}.\n")
-        file.write(f" Name of data file:          {input_file[1][0]}\n")
-        file.write(f" Format of input data:      {"Raw scores" if input_file[1][1].lower() == "r" else "Frequency distribution of raw scores"}.\n")
-        file.write(f" Maximum possible score:    {max_score}\n")
-        file.write(f" Minimum possible score:    {min_score}\n")
-        file.write(f" Number of categories:      {int(input_file[2][0])}\n")
-        file.write(f" Obs.-score cut-point(s):   {", ".join([str(i) for i in cut_scores])}\n")
-        file.write(f" True-score cut-point(s):   {", ".join([str((i - min_score) / (max_score - min_score)) for i in cut_scores] if cut_truescores is None else [str(i) for i in cut_truescores])}\n")
+        file.write(f" Type of Procedure:           {"Livingston and Lewis ('LL')." if method.lower() == "ll" else "Hanson and Brennan ('HB').\n"}")
+        file.write(f" Reliability of scores:       {reliability}\n")
+        file.write(f" True-score Beta model:       {int(model)}-parameter Beta distribution.\n")
+        file.write(f" Model-fit testing:           Minimum expected value of bins set to {minimum_expected_value}.\n")
+        file.write(f" Name of data file:           {input_file[1][0]}\n")
+        file.write(f" Format of input data:        {"Raw scores" if input_file[1][1].lower() == "r" else "Frequency distribution of raw scores"}.\n")
+        file.write(f" Maximum possible score:      {max_score}\n")
+        file.write(f" Minimum possible score:      {min_score}\n")
+        file.write(f" Number of categories:        {int(input_file[2][0])}\n")
+        file.write(f" Obs.-score cut-point(s):     {", ".join([str(i) for i in cut_scores])}\n")
+        file.write(f" True-score cut-point(s):     {", ".join([str((i - min_score) / (max_score - min_score)) for i in cut_scores] if cut_truescores is None else [str(i) for i in cut_truescores])}\n")
         file.write("\n")
         file.write("\n")
         file.write(f"*** Summary Statistics of Data in {input_file[1][0]} ***\n")
         file.write("\n")
-        file.write(f" Number of observations:    {n_observations}\n")
+        file.write(f" Number of observations:      {n_observations}\n")
         file.write("\n")
         file.write(" Observed-score distribution moments:\n")
-        file.write(f"  Mean:                     {round(mean, 5)}\n")
-        file.write(f"  Variance:                 {round(variance, 5)} (SD = {round(variance**.5, 5)})\n")
-        file.write(f"  Skewness:                 {round(skewness, 5)}\n")
-        file.write(f"  Kurtosis:                 {round(kurtosis, 5)}\n")
+        file.write(f"  Mean:                       {float_to_str(mean)}\n")
+        file.write(f"  Variance:                   {float_to_str(variance)} (SD = {float_to_str(variance**.5)})\n")
+        file.write(f"  Skewness:                   {float_to_str(skewness)}\n")
+        file.write(f"  Kurtosis:                   {float_to_str(kurtosis)}\n")
         file.write("\n")
         file.write(" Observed category proportions:\n")
-        file.write(f"  Category 1:               {round(len([i for i in data[0] if i < input_file[2][1][0]]) / n_observations, 5)}\n")
+        file.write(f"  Category 1:                 {float_to_str(len([i for i in data[0] if i < input_file[2][1][0]]) / n_observations)}\n")
         if input_file[2][0] > 2:
             for i in range(1, int(input_file[2][0] - 1)):
-                file.write(f"  Category {i + 1}:               {round(len([j for j in data[0] if j >= cut_scores[i - 1] and j < cut_scores[i]]) / n_observations, 5)}\n")
-        file.write(f"  Category {int(input_file[2][0])}:               {round(len([i for i in data[0] if i >= cut_scores[len(cut_scores) - 1]]) / n_observations, 5)}\n")#: {len([i for i in data[0] if i >= input_file[2][1][int(input_file[2][0] - 1)]]) / n_observations}")
+                file.write(f"  Category {i + 1}:                 {float_to_str(len([j for j in data[0] if j >= cut_scores[i - 1] and j < cut_scores[i]]) / n_observations)}\n")
+        file.write(f"  Category {int(input_file[2][0])}:                 {float_to_str(len([i for i in data[0] if i >= cut_scores[len(cut_scores) - 1]]) / n_observations)}\n")#: {len([i for i in data[0] if i >= input_file[2][1][int(input_file[2][0] - 1)]]) / n_observations}")
         file.write("\n")
         file.write("\n")
         file.write("*** Model Parameter Estimates ***\n")
@@ -230,44 +263,48 @@ def main():
             file.write("  location parameters l = 0 and u = 1.\n")
             file.write("\n")
         file.write(f" Proportional true-score distribution moments:\n")
-        file.write(f"  Mean:                     {round(ts_moments[0], 5)}\n")
-        file.write(f"  Variance:                 {round(ts_moments[1], 5)} (SD = {round(ts_moments[1]**.5, 5)})\n")
-        file.write(f"  Skewness:                 {round(ts_moments[2], 5)}\n")
-        file.write(f"  Kurtosis:                 {round(ts_moments[3], 5)}\n")
+        file.write(f"  Mean:                       {float_to_str(ts_moments[0])}\n")
+        file.write(f"  Variance:                   {float_to_str(ts_moments[1])} (SD = {float_to_str(ts_moments[1]**.5)})\n")
+        file.write(f"  Skewness:                   {float_to_str(ts_moments[2])}\n")
+        file.write(f"  Kurtosis:                   {float_to_str(ts_moments[3])}\n")
         file.write("\n")
-        file.write(f" Reliability:               {round((ts_moments[1]**.5 * max_score)**2 / variance, 5)}\n")
+        file.write(f" Reliability:                 {float_to_str((ts_moments[1]**.5 * max_score)**2 / variance)}\n")
         file.write("\n")
-        file.write(f" Number of moments fit:      {int(output.model)} ({"Mean and Variance" if output.model == 2 else "Mean, Variance, Skewness, and Kurtosis"})\n")
+        file.write(f" Number of moments fit:       {int(output.model)} ({"Mean and Variance" if output.model == 2 else "Mean, Variance, Skewness, and Kurtosis"})\n")
         file.write("\n")
         file.write(f" Beta true-score distribution:\n")
-        file.write(f"  Alpha:                    {round(output.Parameters["alpha"], 5)}\n")
-        file.write(f"  Beta:                     {round(output.Parameters["beta"], 5)}\n")
-        file.write(f"  l:                        {round(output.Parameters["l"], 5)}\n")
-        file.write(f"  u:                        {round(output.Parameters["u"], 5)}\n")
+        file.write(f"  Alpha:                      {float_to_str(output.Parameters["alpha"])}\n")
+        file.write(f"  Beta:                       {float_to_str(output.Parameters["beta"])}\n")
+        file.write(f"  l:                          {float_to_str(output.Parameters["l"])}\n")
+        file.write(f"  u:                          {float_to_str(output.Parameters["u"])}\n")
         file.write("\n")
         file.write(f" Binomial error distribution:\n")
-        file.write(f"  Lord's k:                 {output.Parameters["lords k"]} ({"Compound-Binomial error model" if output.Parameters["lords k"] != 0 else "Binomial error model"})\n")
-        file.write(f"  Number of 'trials':       {output.N} ({"Effective Test Length" if method.lower() == "ll" else "Actual Test Length"})\n")
+        file.write(f"  Lord's k:                   {output.Parameters["lords k"]} ({"Compound-Binomial error model" if output.Parameters["lords k"] != 0 else "Binomial error model"})\n")
+        file.write(f"  Number of 'trials':         {output.N} ({"Effective Test Length" if method.lower() == "ll" else "Actual Test Length"})\n")
         file.write("\n")
         file.write("\n")
         file.write("*** Model Fit ***\n")
-        file.write(f" Pearson's \u03C7\u00B2:              {round(output.Modelfit_chi_squared, 5)}\n")
-        file.write(f" DF:                        {int(output.Modelfit_degrees_of_freedom)}\n")
-        file.write(f" p-value:                   {round(output.Modelfit_p_value, 5)}\n")
+        file.write(f" Pearson's \u03C7\u00B2:                {float_to_str(output.Modelfit_chi_squared)}\n")
+        file.write(f" DF:                          {int(output.Modelfit_degrees_of_freedom)}\n")
+        file.write(f" p-value:                     {float_to_str(output.Modelfit_p_value)}\n")
+        file.write("\n")
         file.write("\n")
         file.write("*** Classification Accuracy Estimates ***\n")
         file.write("\n")
         file.write(" Confusion matrix:\n")
-        file.write(f"{output.confusionmatrix}\n")
+        for i in range(len(rounded_confusionmatrix)): file.write(f"{"   ".join(rounded_confusionmatrix[i])}\n")
         file.write("\n")
-        file.write(f" Proportion of correct classifications on one test (Accuracy): \n")
-        file.write(f"  Overall:                  {round(output.Accuracy, 5)}\n")
+        file.write(f" Proportion of correct classifications on a single test (Accuracy): \n")
+        file.write(f"  Overall:                    {round(output.Accuracy, 5)}\n")
         file.write("\n")
-        file.write(" Contingency matrix:\n")
-        file.write(f"{output.consistencymatrix.round(5)}\n")
+        file.write("\n")
+        file.write("*** Classification Consistency Estimates ***\n")
+        file.write("\n")
+        file.write(" Consistency matrix:\n")
+        for i in range(len(rounded_consistencymatrix)): file.write(f"{"   ".join(rounded_consistencymatrix[i])}\n")
         file.write("\n")
         file.write(" Proportion of consistent classifications across two tests (Consistency):\n")
-        file.write(f"  Overall:                  {round(output.Consistency, 5)}")
+        file.write(f"  Overall:                    {round(output.Consistency, 5)}")
 
 if __name__ == "__main__":
     main()
