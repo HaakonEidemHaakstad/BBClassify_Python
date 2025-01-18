@@ -160,6 +160,7 @@ def main():
 
     data = read_and_parse_data(input_file)
     n_observations = len(data[0])
+    n_categories = int(input_file[2][0])
     mean = stats.mean(data[0])
     variance = stats.variance(data[0])
     skewness = scipy.stats.skew(data[0])
@@ -203,12 +204,28 @@ def main():
     output.accuracy()
     print(" Estimating classification accuracy... \033[92m✓\033[0m")    
     rounded_confusionmatrix = add_labels(array_to_strlist(output.confusionmatrix), "x", "t")
-
-
+    tp, tn, fp, fn, sensitivity, specificity = [], [], [], [], [], []
+    for i in range(n_categories):
+        tp.append(output.confusionmatrix[i, i])
+        fp.append(output.confusionmatrix[:, i].sum() - tp[i])
+        fn.append(output.confusionmatrix[i, :].sum() - tp[i])
+        tn.append(1 - (tp[i] + fp[i] + fn[i]))
+        sensitivity.append(tp[i] / (tp[i] + fn[i]))
+        specificity.append(tn[i] / (tn[i] + fp[i]))
+    category_proportions = []
+    for i in range(n_categories):
+        if i == 0:
+            category_proportions.append(len([i for i in data[0] if i < input_file[2][1][0]]) / n_observations)
+        elif 0 < i < (n_categories - 1):
+            category_proportions.append(len([j for j in data[0] if j >= cut_scores[i - 1] and j < cut_scores[i]]) / n_observations)
+        else:
+            category_proportions.append(len([i for i in data[0] if i >= cut_scores[len(cut_scores) - 1]]) / n_observations)
     print(" Estimating classification consistency... ", end = "\r")
     output.consistency()
     print(" Estimating classification consistency... \033[92m✓\033[0m")
     rounded_consistencymatrix = add_labels(array_to_strlist(output.consistencymatrix), "x", "x")
+    chance_consistency = sum([sum(i)**2 for i in output.consistencymatrix])
+    coefficient_kappa = (output.Consistency - chance_consistency) / (1 - chance_consistency)
 
     with open("BBClassify_output", "w") as file:
 
@@ -248,11 +265,8 @@ def main():
         file.write(f"  Kurtosis:                   {float_to_str(kurtosis)}\n")
         file.write("\n")
         file.write(" Observed category proportions:\n")
-        file.write(f"  Category 1:                 {float_to_str(len([i for i in data[0] if i < input_file[2][1][0]]) / n_observations)}\n")
-        if input_file[2][0] > 2:
-            for i in range(1, int(input_file[2][0] - 1)):
-                file.write(f"  Category {i + 1}:                 {float_to_str(len([j for j in data[0] if j >= cut_scores[i - 1] and j < cut_scores[i]]) / n_observations)}\n")
-        file.write(f"  Category {int(input_file[2][0])}:                 {float_to_str(len([i for i in data[0] if i >= cut_scores[len(cut_scores) - 1]]) / n_observations)}\n")#: {len([i for i in data[0] if i >= input_file[2][1][int(input_file[2][0] - 1)]]) / n_observations}")
+        for i in range(n_categories):
+            file.write(f"  Category {i + 1}:                 {float_to_str(category_proportions[i])}\n")
         file.write("\n")
         file.write("\n")
         file.write("*** Model Parameter Estimates ***\n")
@@ -294,8 +308,12 @@ def main():
         file.write(" Confusion matrix:\n")
         for i in range(len(rounded_confusionmatrix)): file.write(f"{"   ".join(rounded_confusionmatrix[i])}\n")
         file.write("\n")
-        file.write(f" Proportion of correct classifications on a single test (Accuracy): \n")
-        file.write(f"  Overall:                    {round(output.Accuracy, 5)}\n")
+        file.write(f" Overall:\n")
+        file.write(f"  Accuracy:                   {float_to_str(output.Accuracy)}\n")
+        file.write(f"  Sensitivity:                {float_to_str(sum([sensitivity[i] * category_proportions[i] for i in range(n_categories)]))} (weighted average)\n")
+        file.write(f"  Specificity:                {float_to_str(sum([specificity[i] * category_proportions[i] for i in range(n_categories)]))} (weighted average)\n")
+        file.write("\n")
+        file.write(" Category specific:\n")
         file.write("\n")
         file.write("\n")
         file.write("*** Classification Consistency Estimates ***\n")
@@ -303,8 +321,12 @@ def main():
         file.write(" Consistency matrix:\n")
         for i in range(len(rounded_consistencymatrix)): file.write(f"{"   ".join(rounded_consistencymatrix[i])}\n")
         file.write("\n")
-        file.write(" Proportion of consistent classifications across two tests (Consistency):\n")
-        file.write(f"  Overall:                    {round(output.Consistency, 5)}")
+        file.write(f" Overall:\n") 
+        file.write(f"  Consistency:                {float_to_str(output.Consistency)}\n")
+        file.write(f"  Chance consistency:         {float_to_str(chance_consistency)}\n")
+        file.write(f"  Coefficient Kappa:          {float_to_str(coefficient_kappa)}\n")
+        file.write("\n")
+        file.write(" Category specific:\n")
 
 if __name__ == "__main__":
     main()
