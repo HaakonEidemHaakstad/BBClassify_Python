@@ -191,7 +191,8 @@ def main():
                                     cut_truescores = cut_truescores,
                                     method = method,
                                     model = model, 
-                                    failsafe = True)
+                                    failsafe = True,
+                                    l = 0.223172)
     ts_raw_moments = output._tsm(data[0], output.max_score if method.lower() != "ll" else output.effective_test_length, output.Parameters["lords k"])
     ts_moments = [ts_raw_moments[0], ts_raw_moments[1] - ts_raw_moments[0]**2]
     ts_moments.append((ts_raw_moments[2] - 3*(ts_raw_moments[0]*ts_raw_moments[1]) + 2*ts_raw_moments[0]**3) / (ts_moments[1]**.5)**3)
@@ -203,7 +204,7 @@ def main():
     print(" Estimating classification accuracy...", end = "\r")
     output.accuracy()
     print(" Estimating classification accuracy... \033[92m✓\033[0m")    
-    rounded_confusionmatrix = add_labels(array_to_strlist(output.confusionmatrix), "x", "t")
+    rounded_confusionmatrix = add_labels(array_to_strlist(output.confusionmatrix.transpose()), "x", "t")
     tp, tn, fp, fn, sensitivity, specificity = [], [], [], [], [], []
     for i in range(n_categories):
         tp.append(output.confusionmatrix[i, i])
@@ -315,6 +316,12 @@ def main():
         file.write("\n")
         file.write(" Category specific:\n")
         file.write("\n")
+        for i in range(n_categories):
+            file.write(f"  Category {i + 1}:\n")
+            file.write(f"   Accuracy:                  {float_to_str(tp[i])}\n")
+            file.write(f"   Sensitivity:               {float_to_str(sensitivity[i])}\n")
+            file.write(f"   Specificity:               {float_to_str(specificity[i])}\n")
+            file.write("\n")
         file.write("\n")
         file.write("*** Classification Consistency Estimates ***\n")
         file.write("\n")
@@ -327,6 +334,12 @@ def main():
         file.write(f"  Coefficient Kappa:          {float_to_str(coefficient_kappa)}\n")
         file.write("\n")
         file.write(" Category specific:\n")
+        for i in range(n_categories):
+            file.write(f"  Category {i + 1}:\n")
+            file.write(f"   Consistency:               {float_to_str(output.consistencymatrix[i, i])}\n")
+            file.write(f"   Chance consistency:        {float_to_str(sum(output.consistencymatrix[i, :])**2)}\n")
+            file.write(f"   Coefficient Kappa:         {float_to_str((output.consistencymatrix[i, i] - sum(output.consistencymatrix[i, :])**2) / (1 - sum(output.consistencymatrix[i, :])**2))}\n")
+            file.write("\n")
 
 if __name__ == "__main__":
     main()
