@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 
 class bbclassify():
-    def __init__(self, data: list, reliability: float, min_score: float, max_score: float, cut_scores: list[float], cut_truescores: list[float] = None, method: str = "ll", model: int = 4, l: float = 0, u: float = 1, failsafe: bool = False):
+    def __init__(self, data: list, reliability: float, min_score: float, max_score: float, cut_scores: list[float], cut_truescores: list[float] = None, method: str = "ll", model: int = 4, l: float = 0, u: float = 1, failsafe: list[bool] = [False, True]):
         """
         Estimate the parameters of the beta-binomial models.
 
@@ -166,9 +166,11 @@ class bbclassify():
             raise ValueError(f"Input l value ({l}) must be between 0 and 1.")
         if 0 > u > 1:
             raise ValueError(f"Input u value ({u}) must be between 0 and 1.")
-
-        if not isinstance(failsafe, bool):
-            raise TypeError(f"Input failsafe must be a boolen value (input type {type(failsafe)}).")
+        
+        if not isinstance(failsafe, (list, tuple)):
+            raise TypeError(f"Input failsafe must be a list or tuple with two boolean values (input type is {type(failsafe)}.)")
+        if not all(isinstance(i, bool) for i in failsafe):
+            raise TypeError(f"Input failsafe must be a list or tuple with two boolen values (input types are {[type(i) for i in failsafe]}).")
 
         self.data = data
         self.reliability = reliability
