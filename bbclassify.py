@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 
 class bbclassify():
-    def __init__(self, data: list, reliability: float, min_score: float, max_score: float, cut_scores: list[float], cut_truescores: list[float] = None, method: str = "ll", model: int = 4, l: float = 0, u: float = 1, failsafe: list[bool] = [False, True]):
+    def __init__(self, data: list, reliability: float, min_score: float, max_score: float, cut_scores: list[float], cut_truescores: list[float] = None, method: str = "ll", model: int = 4, l: float = 0, u: float = 1, failsafe: list[bool] = [False, 2]):
         """
         Estimate the parameters of the beta-binomial models.
 
@@ -161,16 +161,11 @@ class bbclassify():
             raise TypeError(f"Input u must be a numeric value between 0 and 1 (input type {type(u)}).")
         
         if l > u:
-            raise ValueError(f"Input l (value {l}) must be lesser than u (value {u}).")        
+            raise ValueError(f"Input l (value {l}) must be lesser than u (value {u}).")
         if 0 > l > 1:
             raise ValueError(f"Input l value ({l}) must be between 0 and 1.")
         if 0 > u > 1:
             raise ValueError(f"Input u value ({u}) must be between 0 and 1.")
-        
-        if not isinstance(failsafe, (list, tuple)):
-            raise TypeError(f"Input failsafe must be a list or tuple with two boolean values (input type is {type(failsafe)}.)")
-        if not all(isinstance(i, bool) for i in failsafe):
-            raise TypeError(f"Input failsafe must be a list or tuple with two boolen values (input types are {[type(i) for i in failsafe]}).")
 
         self.data = data
         self.reliability = reliability
@@ -220,13 +215,20 @@ class bbclassify():
                 self.Parameters = self._betaparameters(self.data, self.N, self.K, self.model, self.l, self.u)
                 self.Parameters["lords k"] = self.K
             # If a four-parameter fitting procedure produced invalid location parameter estimates, and the failsafe was specified to
-            # engage in such a circumstance, fit a two-parameter model instead with the location-parameters specified by the user.
+            # engage in such a circumstance, fit a three-parameter model instead with the upper-bound location-parameter specified by the user.
             if (self.failsafe == True and self.model == 4) and (self.Parameters["l"] < 0 or self.Parameters["u"] > 1):
-                warn(f"Failsafe triggered. True-score fitting procedure produced impermissible parameter values (l = {self.Parameters['l']}, u = {self.Parameters['u']}).")
-                self.Parameters = self._betaparameters(self.data, self.N, self.K, 2, self.l, self.u)
-                self.Parameters["lords k"] = self.K
-                self.model = 2
                 self.failsafe_engaged = True
+                self.model = 3
+                warn(f"Failsafe triggered. True-score fitting procedure produced impermissible parameter values (l = {self.Parameters['l']}, u = {self.Parameters['u']}). Fitting a three-parameter model with u = {self.u}.")
+                self.Parameters = self._betaparameters(self.data, self.N, self.K, 3, self.l, self.u)
+                self.Parameters["u"] = 1
+                self.Parameters["lords k"] = self.K
+            # If a three-parameter fitting procedure produced an invalid lower-bound location-parameter estimate, and the failsafe was specified
+            # to engage in such a circumstance, fit a two-parameter model instead with the location-parameters specified by the user.
+            if (self.failsafe == True and self.model == 3) and self.Parameters["l"] < 0:
+                warn(f"Three parameter fitting procedure produced invalid lower-bound location parameter (l = {self.Parameters["l"]}). Fitting a two-parameter model with l = {self.l} and u = {self.u}")
+                self.model = 2
+                self.Parameters = self._betaparameters(self.data, self.N, self.K, self.model, self.l, self.u)
 
         self.choose_values = [self._choose_functions(self.N, i) for i in range(self.N + 1)]
     
@@ -414,7 +416,7 @@ class bbclassify():
         #self.Consistency = float(sum([self.consistencymatrix[i, i] for i in range(len(self.cut_scores) - 1)]))
         self.Consistency = self.consistencymatrix.diagonal().sum()
         return self.Consistency
-        
+
     def _calculate_etl(self, mean: float, var: float, reliability: float, min: float = 0, max: float = 1) -> float:
         """
         Calculate the effective test length.
@@ -1344,8 +1346,8 @@ class bbclassify():
             raise TypeError("Parameter 'n' must be an integer.")
         if not isinstance(k, (float, int)):
             raise TypeError("Parameter 'k' must be numeric.")
-        if model not in [4, 4.0, 2, 2.0]:
-            raise ValueError("The value of 'model' must be either 4 or 2.")
+        #if model not in [4, 4.0, 2, 2.0]:
+        #    raise ValueError("The value of 'model' must be either 4 or 2.")
         if not isinstance(l, (float, int)) or not isinstance(u, (float, int)):
             raise TypeError("Parameters 'l' and 'u' must be numeric.")
         if (l < 0 or u < 0) or (l > 1 or u > 1):
@@ -1353,10 +1355,14 @@ class bbclassify():
         if l >= u:
             raise ValueError("The value of 'l' must be lower than that of 'u'.")
         
+        u_save = u
+        l_save = l
+        
         m = self._tsm(x, n, k)
         s2 = m[1] - m[0]**2
         g3 = (m[2] - 3 * m[0] * m[1] + 2 * m[0]**3) / (math.sqrt(s2)**3)
         g4 = (m[3] - 4 * m[0] * m[2] + 6 * m[0]**2 * m[1] - 3 * m[0]**4) / (math.sqrt(s2)**4)
+
         if model == 4:
             r = 6 * (g4 - g3**2 - 1) / (6 + 3 * g3**2 - 2 * g4)
             if g3 < 0:
@@ -1367,7 +1373,26 @@ class bbclassify():
                 a = r / 2 * (1 - (1 - ((24 * (r + 1)) / ((r + 2) * (r + 3) * g4 - 3 * (r - 6) * (r + 1))))**0.5)
             l = m[0] - ((a * (s2 * (a + b + 1))**0.5) / (a * b)**0.5)
             u = m[0] + ((b * (s2 * (a + b + 1))**0.5) / (a * b)**0.5)
+
+        if model == 3:
+
+                    ### Leaving out implementation of upper-bound parameter estimation ###
+
+            #u_numerator = l*((m[0]**2*m[1]) - 2*m[1]**2 + m[0]*m[2])  + m[0]*m[1]**2 - 2*m[0]**2*m[3] + m[1]*m[2]
+            #u_denominator = l*(2*m[0]**3 - 3*m[0]*m[1] + m[2]) + 2*m[1]**2 - m[0]**2*m[2] - m[0]*m[2]
+            #u = u_numerator / u_denominator
+
+            l_numerator = u*(m[0]**2*m[1] - 2*m[1]**2 + m[0]*m[2]) + m[0]*m[1]**2 - 2*m[0]**2*m[2] + m[1]*m[2]
+            l_denominator = u*(2*m[0]**3 - 3*m[0]*m[1] + m[2]) + 2*m[1]**2 - m[0]**2*m[1] - m[0]*m[2]
+            
+            l = l_numerator / l_denominator
+            u = 1
+            a = ((l - m[0]) * (l * (m[0] - u) - m[0]**2 + m[0] * u - s2)) / (s2 * (l - u))
+            b = ((m[0] - u) * (l * (u - m[0]) + m[0]**2 - m[0] * u + s2)) / (s2 * (u - l))
+            
         if model == 2:
+            l = l_save
+            u = u_save
             a = ((l - m[0]) * (l * (m[0] - u) - m[0]**2 + m[0] * u - s2)) / (s2 * (l - u))
             b = ((m[0] - u) * (l * (u - m[0]) + m[0]**2 - m[0] * u + s2)) / (s2 * (u - l))
         return {"alpha":  a, "beta": b, "l": l, "u": u}

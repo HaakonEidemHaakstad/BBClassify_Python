@@ -152,6 +152,18 @@ def add_labels(x: list[list], col:  int, row: int) -> list:
     x.insert(0, col)
     return x
 
+#def search_2p(x: list, l_step: float):
+#    mean = x[0]
+#    variance = x[1] - x[0]**2
+#    l = 0
+#    u = 1
+#    alpha = ((l - mean) * (l*mean - l*u - mean**2 + u*mean - variance)) / (variance*(l - u))
+#    beta = ((mean - u) * (l*u - l*mean + mean**2 - u*mean + variance)) / (variance*(u - l))
+#    l_to_u_ratio = mean / (1 - mean)
+#    while l < mean < u:
+
+    
+
 def main():
     input_file: str = input("Enter path to- or name of the input file: ")
     input_file_name: str = input_file[::-1].split("/")[0][::-1]
@@ -166,6 +178,7 @@ def main():
     n_observations: int = len(data[0])
     n_categories: int = int(input_file[2][0])
 
+    moments = ["Mean", "Variance", "Skewness", "Kurtosis"]
     mean: float = stats.mean(data[0])
     variance: float = stats.variance(data[0])
     skewness: float = scipy.stats.skew(data[0])
@@ -194,7 +207,7 @@ def main():
                                     cut_scores = cut_scores,
                                     cut_truescores = cut_truescores,
                                     method = method,
-                                    model = model, 
+                                    model = 4, 
                                     failsafe = True)    
     print(" Estimating model parameters... \033[92m✓\033[0m")
     
@@ -286,9 +299,9 @@ def main():
         file.write("*** Model Parameter Estimates ***\n")
         file.write("\n")
         if output.failsafe_engaged:
-            file.write(" WARNING: Four-parameter fitting procedure produced impermissible location\n")
-            file.write("  parameter estimates. Reverted to a two-parameter fitting procedure with\n")
-            file.write("  location parameters l = 0 and u = 1.\n")
+            file.write( " WARNING: Four-parameter fitting procedure produced impermissible location\n")
+            file.write(f"  parameter estimates. Reverted to a {"two" if output.model == 2 else "three"}-parameter fitting procedure with\n")
+            file.write(f"  location parameter{f"s \"l\" set to {output.Parameters["l"]} and " if output.model == 2 else ""} \"u\" set to {output.Parameters["u"]}.\n")
             file.write("\n")
         file.write(f" Proportional true-score distribution moments:\n")
         file.write(f"  Mean:                       {float_to_str(ts_moments[0])}\n")
@@ -298,7 +311,7 @@ def main():
         file.write("\n")
         file.write(f" Reliability:                 {float_to_str((ts_moments[1]**.5 * max_score)**2 / variance)}\n")
         file.write("\n")
-        file.write(f" Number of moments fit:       {int(output.model)} ({"Mean and Variance" if output.model == 2 else "Mean, Variance, Skewness, and Kurtosis"})\n")
+        file.write(f" Number of moments fit:       {int(output.model)} ({", ".join(moments[:int(output.model)])})\n")
         file.write("\n")
         file.write(f" Beta true-score distribution:\n")
         file.write(f"  Alpha:                      {float_to_str(output.Parameters["alpha"])}\n")
