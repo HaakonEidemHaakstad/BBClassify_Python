@@ -135,13 +135,11 @@ def float_to_str(x: float) -> str:
     return x    
 
 def array_to_strlist(x: np.array) -> list[str]:
-    x: np.array = np.hstack((x, x.sum(axis = 1).reshape(-1, 1)))
-    x: np.array = np.vstack((x, x.sum(axis = 0)))
-    strlist: list = [[round(float(i), 5) if i > 0.0001 else 0 for i in x[j, ]] for j in range(len(x))]
-    for i in range(len(x)):
-        for j in range(len(x)):
-            strlist[i][j] = float_to_str(strlist[i][j])
-    return strlist
+    x: list[list] = [[round(j, 6) for j in i] for i in x]
+    x = [i + [sum(i)] for i in x]
+    x.append([sum(j) for j in [list(i) for i in zip(*x)]])
+    x = [[float_to_str(j) for j in i] for i in x]
+    return x
 
 def add_labels(x: list[list], col:  int, row: int) -> list:
     col: list = [""] + [col + str(i) if i < len(x) - 1 else "marg" for i in range(len(x))]
@@ -268,7 +266,7 @@ def main():
         file.write("\n")
         file.write(f"*** Listing of Input Specified in \"{input_file_name}\" ***\n")
         file.write("\n")
-        file.write(f" Type of Procedure:           {"Livingston and Lewis ('LL')." if method.lower() == "ll" else "Hanson and Brennan ('HB')\n"}")
+        file.write(f" Type of Procedure:           {"Livingston and Lewis (\"LL\")." if method.lower() == "ll" else "Hanson and Brennan (\"HB\")\n"}")
         file.write(f" Reliability of scores:       {reliability}\n")
         file.write(f" True-score Beta model:       {int(model)}-parameter Beta distribution\n")
         file.write(f" Model-fit testing:           Minimum expected value of bins set to {minimum_expected_value}\n")
@@ -299,9 +297,9 @@ def main():
         file.write("*** Model Parameter Estimates ***\n")
         file.write("\n")
         if output.failsafe_engaged:
-            file.write( " WARNING: Four-parameter fitting procedure produced impermissible location\n")
-            file.write(f"  parameter estimates. Reverted to a {"two" if output.model == 2 else "three"}-parameter fitting procedure with\n")
-            file.write(f"  location parameter{f"s \"l\" set to {output.Parameters["l"]} and " if output.model == 2 else ""} \"u\" set to {output.Parameters["u"]}.\n")
+            file.write( " WARNING: Four-parameter true-score distribution fitting procedure produced\n")
+            file.write(f"  impermissible location parameter estimates. Reverted to a {"two" if output.model == 2 else "three"}-parameter\n")
+            file.write(f"  fitting procedure with location parameter{f"s \"l\" set to {output.Parameters["l"]} and " if output.model == 2 else ""} \"u\" set to {output.Parameters["u"]}.\n")
             file.write("\n")
         file.write(f" Proportional true-score distribution moments:\n")
         file.write(f"  Mean:                       {float_to_str(ts_moments[0])}\n")
@@ -334,6 +332,8 @@ def main():
         file.write("\n")
         file.write(" Confusion matrix:\n")
         for i in range(len(rounded_confusionmatrix)): file.write(f"{"   ".join(rounded_confusionmatrix[i])}\n")
+        if output.confusionmatrix.round(5).sum() != 1:
+            file.write( "\n NOTE: Matrix entries do not add up to 1 due to rounding errors.\n  Statistics will be computed from a normalized matrix where the\n  entries do add up to 1.\n")
         file.write("\n")
         file.write(f" Overall:                  Unweighted  Weighted\n")
         file.write(f"  Accuracy:                   {float_to_str(output.Accuracy)}\n")
@@ -354,6 +354,8 @@ def main():
         file.write("\n")
         file.write(" Consistency matrix:\n")
         for i in range(len(rounded_consistencymatrix)): file.write(f"{"   ".join(rounded_consistencymatrix[i])}\n")
+        if output.consistencymatrix.round(5).sum() != 1:
+            file.write( "\n NOTE: Matrix entries do not add up to 1 due to rounding errors.\n  Statistics will be computed from a normalized matrix where the\n  entries do add up to 1.\n")
         file.write("\n")
         file.write(f" Overall:                  Unweighted  Weighted\n") 
         file.write(f"  Consistency:                {float_to_str(output.Consistency)}\n")

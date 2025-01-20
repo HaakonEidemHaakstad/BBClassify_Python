@@ -1346,8 +1346,8 @@ class bbclassify():
             raise TypeError("Parameter 'n' must be an integer.")
         if not isinstance(k, (float, int)):
             raise TypeError("Parameter 'k' must be numeric.")
-        #if model not in [4, 4.0, 2, 2.0]:
-        #    raise ValueError("The value of 'model' must be either 4 or 2.")
+        if model not in [4, 4.0, 3, 3.0, 2, 2.0]:
+            raise ValueError("The value of 'model' must be either 4 or 2.")
         if not isinstance(l, (float, int)) or not isinstance(u, (float, int)):
             raise TypeError("Parameters 'l' and 'u' must be numeric.")
         if (l < 0 or u < 0) or (l > 1 or u > 1):
@@ -1355,6 +1355,7 @@ class bbclassify():
         if l >= u:
             raise ValueError("The value of 'l' must be lower than that of 'u'.")
         
+        # Keep a copy of original lower- and upper-bound parameter input.
         u_save = u
         l_save = l
         
@@ -1383,13 +1384,13 @@ class bbclassify():
             #u = u_numerator / u_denominator
 
             l_numerator = u*(m[0]**2*m[1] - 2*m[1]**2 + m[0]*m[2]) + m[0]*m[1]**2 - 2*m[0]**2*m[2] + m[1]*m[2]
-            l_denominator = u*(2*m[0]**3 - 3*m[0]*m[1] + m[2]) + 2*m[1]**2 - m[0]**2*m[1] - m[0]*m[2]
-            
+            l_denominator = u*(2*m[0]**3 - 3*m[0]*m[1] + m[2]) + 2*m[1]**2 - m[0]**2*m[1] - m[0]*m[2]            
             l = l_numerator / l_denominator
-            u = 1
+
+            #u = 1
             a = ((l - m[0]) * (l * (m[0] - u) - m[0]**2 + m[0] * u - s2)) / (s2 * (l - u))
             b = ((m[0] - u) * (l * (u - m[0]) + m[0]**2 - m[0] * u + s2)) / (s2 * (u - l))
-            
+
         if model == 2:
             l = l_save
             u = u_save
