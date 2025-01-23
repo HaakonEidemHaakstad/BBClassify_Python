@@ -5,7 +5,7 @@ import bbclassify
 import statistics as stats
 import scipy.stats
 
-def read_and_parse_input(filename: str) -> list:
+def read_and_parse_input(filename: str, raw = False) -> list:
     input_error: str = "Input error. Execution terminated."
     if not os.path.isabs(filename):
         filename = os.path.join(os.path.dirname(sys.executable), filename)
@@ -14,6 +14,8 @@ def read_and_parse_input(filename: str) -> list:
             lines: list = file.readlines()
     except:
         raise ImportError("Error reading input file. Check whether the file-path is correctly specified.")
+    if raw:
+        return lines
     lines: list = [i.lower().split() for i in lines]
     lines: list = [[float(i) if i.replace(".", "", 1).replace("-", "", 1).isdigit() else i for i in j] for j in lines]
 

@@ -5,16 +5,23 @@ import bbclassify
 import statistics as stats
 import scipy.stats
 
-def read_and_parse_input(filename: str) -> list:
+def read_and_parse_input(filename: str, raw = False) -> list:
     input_error: str = "Input error. Execution terminated."
     if not os.path.isabs(filename):
         filename = os.path.join(os.path.abspath(__file__), filename)
-    #try:
-    filename = filename.replace("\\\\", "\\")
-    with open(filename, "r") as file:
-           lines: list = file.readlines()
-    #except:
-    #    raise ImportError("Error reading input file. Check whether the file-path is correctly specified.")
+    
+    ### For running uncompiled script ###
+    if "/ui.py" in filename:
+        filename = filename.replace("/ui.py", "")
+    
+    
+    try:
+        with open(filename, "r") as file:
+            lines: list = file.readlines()
+    except:
+        raise ImportError("Error reading input file. Check whether the file-path is correctly specified.")
+    if raw: 
+        return lines
     lines: list = [i.lower().split() for i in lines]
     lines: list = [[float(i) if i.replace(".", "", 1).replace("-", "", 1).isdigit() else i for i in j] for j in lines]
 
@@ -93,7 +100,6 @@ def read_and_parse_input(filename: str) -> list:
         raise TypeError(input_error)
     return lines
 
-
 def read_and_parse_data(parsed_input: list) -> tuple:
     datafile: str = parsed_input[1][0].removeprefix('"').removesuffix('"')
     if not os.path.isabs(datafile):
@@ -159,13 +165,11 @@ def add_labels(x: list[list], col:  int, row: int) -> list:
 #    alpha = ((l - mean) * (l*mean - l*u - mean**2 + u*mean - variance)) / (variance*(l - u))
 #    beta = ((mean - u) * (l*u - l*mean + mean**2 - u*mean + variance)) / (variance*(u - l))
 #    l_to_u_ratio = mean / (1 - mean)
-#    while l < mean < u:
-
-    
+#    while l < mean < u:    
 
 def main():
     input_file: str = input("Enter path to- or name of the input file: ")
-    input_file_raw = input_file
+    input_file_raw = read_and_parse_input(input_file, True)
     input_file_name: str = input_file[::-1].split("/")[0][::-1]
     input_file: list = read_and_parse_input(input_file)
 
@@ -268,20 +272,22 @@ def main():
         file.write("\n")
         file.write(f"*** Listing of Input Specified in \"{input_file_name}\" ***\n")
         file.write("\n")
+        file.write(" Raw input:\n")
         for i in input_file_raw:
-            file.write(i)
-            file.write("\n")
-        file.write(f" Type of Procedure:           {"Livingston and Lewis (\"LL\")." if method.lower() == "ll" else "Hanson and Brennan (\"HB\")\n"}")
-        file.write(f" Reliability of scores:       {reliability}\n")
-        file.write(f" True-score Beta model:       {int(model)}-parameter Beta distribution\n")
-        file.write(f" Model-fit testing:           Minimum expected value of bins set to {minimum_expected_value}\n")
-        file.write(f" Name of data file:           {input_file[1][0]}\n")
-        file.write(f" Format of input data:        {"Raw scores" if input_file[1][1].lower() == "r" else "Frequency distribution of raw scores"}\n")
-        file.write(f" Maximum possible score:      {max_score}\n")
-        file.write(f" Minimum possible score:      {min_score}\n")
-        file.write(f" Number of categories:        {int(input_file[2][0])}\n")
-        file.write(f" Obs.-score cut-point(s):     {", ".join([str(i) for i in cut_scores])}\n")
-        file.write(f" True-score cut-point(s):     {", ".join([str((i - min_score) / (max_score - min_score)) for i in cut_scores] if cut_truescores is None else [str(i) for i in cut_truescores])}\n")
+            file.write("  " + i)
+        file.write("\n")
+        file.write(" Interpretation of input:\n")
+        file.write(f"  Type of Procedure:           {"Livingston and Lewis (\"LL\")." if method.lower() == "ll" else "Hanson and Brennan (\"HB\")\n"}")
+        file.write(f"  Reliability of scores:       {reliability}\n")
+        file.write(f"  True-score Beta model:       {int(model)}-parameter Beta distribution\n")
+        file.write(f"  Model-fit testing:           Minimum expected value of bins set to {minimum_expected_value}\n")
+        file.write(f"  Name of data file:           {input_file[1][0]}\n")
+        file.write(f"  Format of input data:        {"Raw scores" if input_file[1][1].lower() == "r" else "Frequency distribution of raw scores"}\n")
+        file.write(f"  Maximum possible score:      {max_score}\n")
+        file.write(f"  Minimum possible score:      {min_score}\n")
+        file.write(f"  Number of categories:        {int(input_file[2][0])}\n")
+        file.write(f"  Obs.-score cut-point(s):     {", ".join([str(i) for i in cut_scores])}\n")
+        file.write(f"  True-score cut-point(s):     {", ".join([str((i - min_score) / (max_score - min_score)) for i in cut_scores] if cut_truescores is None else [str(i) for i in cut_truescores])}\n")
         file.write("\n")
         file.write("\n")
         file.write(f"*** Summary Statistics of Data in {input_file[1][0]} ***\n")
