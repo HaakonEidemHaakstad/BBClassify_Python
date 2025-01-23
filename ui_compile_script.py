@@ -162,10 +162,9 @@ def add_labels(x: list[list], col:  int, row: int) -> list:
 #    l_to_u_ratio = mean / (1 - mean)
 #    while l < mean < u:
 
-    
-
 def main():
     input_file: str = input("Enter path to- or name of the input file: ")
+    input_file_raw = input_file
     input_file_name: str = input_file[::-1].split("/")[0][::-1]
     input_file: list = read_and_parse_input(input_file)
 
@@ -268,6 +267,8 @@ def main():
         file.write("\n")
         file.write(f"*** Listing of Input Specified in \"{input_file_name}\" ***\n")
         file.write("\n")
+        for i in input_file_raw:
+            file.write(i)
         file.write(f" Type of Procedure:           {"Livingston and Lewis (\"LL\")." if method.lower() == "ll" else "Hanson and Brennan (\"HB\")\n"}")
         file.write(f" Reliability of scores:       {reliability}\n")
         file.write(f" True-score Beta model:       {int(model)}-parameter Beta distribution\n")
