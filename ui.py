@@ -89,7 +89,7 @@ def main():
         else:
             category_proportions.append(len([i for i in data[0] if i >= cut_scores[len(cut_scores) - 1]]) / n_observations)
     
-    with open("BBClassify_output", "w") as file:
+    with open("BBClassify_output", "w", encoding = "utf-8") as file:
 
         file.write("******************************************************************************\n")
         file.write("***   BBClassify:  Beta-Binomial Classification Accuracy and Consistency   ***\n")
