@@ -2,7 +2,7 @@ import numpy as np
 import statistics as stats
 import scipy.stats
 from bbclassify import bbclassify
-from support_functions.support_functions import read_and_parse_input, read_and_parse_data, float_to_str, array_to_strlist, add_labels
+from support_functions import read_and_parse_input, read_and_parse_data, float_to_str, array_to_strlist, add_labels
 
 def main():
     input_file: str = input("Enter path to- or name of the input file: ")
