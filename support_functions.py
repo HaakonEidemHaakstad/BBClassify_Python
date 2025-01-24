@@ -103,10 +103,10 @@ def read_and_parse_data(parsed_input: list) -> tuple:
     system_name: str = platform.system()
     if not os.path.isabs(datafile):
         datafile = os.path.join(os.path.abspath(__file__), datafile)        
-    filename = filename.replace("support_functions.py/", "")
-    filename = filename.replace("support_functions.py\\", "")
-    filename = filename.replace("ui.py/", "")
-    filename = filename.replace("ui.py\\", "")
+    datafile = datafile.replace("support_functions.py/", "")
+    datafile = datafile.replace("support_functions.py\\", "")
+    datafile = datafile.replace("ui.py/", "")
+    datafile = datafile.replace("ui.py\\", "")
     with open (datafile, 'r') as file:
         datalines: list = file.readlines()
     if parsed_input[1][1].lower() == "r":
