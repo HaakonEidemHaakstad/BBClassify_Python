@@ -6,14 +6,13 @@ import numpy as np
 def read_and_parse_input(filename: str, raw = False) -> list:
     input_error: str = "Input error. Execution terminated."
     system_name: str = platform.system()
+    if not os.path.isabs(filename):
+        filename = os.path.join(os.path.abspath(__file__), filename)
     if ".py" in filename:
         if system_name == "Windows":
             re.sub(r"[^\\]*\.py\\", r"\\", filename)
         else:
             re.sub(r"/[^/]*\.py/", "/", filename)
-    print(filename)
-    if not os.path.isabs(filename):
-        filename = os.path.join(os.path.abspath(__file__), filename)
     try:
         with open(filename, "r") as file:
             lines: list[str] = file.readlines()
