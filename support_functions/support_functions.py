@@ -22,7 +22,7 @@ def read_and_parse_input(filename: str, raw = False) -> list:
         with open(filename, "r") as file:
             lines: list[str] = file.readlines()
     except:
-        raise ImportError("Error reading input file. Check whether the file-path is correctly specified.")
+        raise ImportError(f"Error reading input file. Check whether the file-path is correctly specified. Input file was specified as '{filename}'.")
     if raw: 
         return lines
     
