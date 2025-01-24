@@ -8,11 +8,10 @@ def read_and_parse_input(filename: str, raw = False) -> list:
     system_name: str = platform.system()
     if not os.path.isabs(filename):
         filename = os.path.join(os.path.abspath(__file__), filename)
-    if ".py" in filename:
-        if system_name == "Windows":
-            re.sub(r"[^\\]*\.py\\", r"\\", filename)
-        else:
-            re.sub(r"/[^/]*\.py/", "/", filename)
+    filename = filename.replace("support_functions.py/", "")
+    filename = filename.replace("support_functions.py\\", "")
+    filename = filename.replace("ui.py/", "")
+    filename = filename.replace("ui.py\\", "")
     try:
         with open(filename, "r") as file:
             lines: list[str] = file.readlines()
