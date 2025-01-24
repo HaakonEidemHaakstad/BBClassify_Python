@@ -10,7 +10,7 @@ def read_and_parse_input(filename: str, raw = False) -> list:
             filename = filename.replace("\\ui.py", "")
         else:
             filename = filename.replace("/ui.py", "")    
-
+    print(filename)
     if not os.path.isabs(filename):
         filename = os.path.join(os.path.abspath(__file__), filename)
     try:
