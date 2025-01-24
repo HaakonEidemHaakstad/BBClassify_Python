@@ -6,7 +6,7 @@ import numpy as np
 def read_and_parse_input(filename: str, raw = False) -> list:
     input_error: str = "Input error. Execution terminated."
     system_name: str = platform.system()
-    if "ui.py" in filename:
+    if ".py" in filename:
         if system_name == "Windows":
             re.sub(r"[^\\]*\.py\\", r"\\", filename)
         else:
@@ -102,6 +102,12 @@ def read_and_parse_input(filename: str, raw = False) -> list:
 
 def read_and_parse_data(parsed_input: list) -> tuple:
     datafile: str = parsed_input[1][0].removeprefix('"').removesuffix('"')
+    system_name: str = platform.system()
+    if ".py" in datafile:
+        if system_name == "Windows":
+            re.sub(r"[^\\]*\.py\\", r"\\", datafile)
+        else:
+            re.sub(r"/[^/]*\.py/", "/", datafile)
     if not os.path.isabs(datafile):
         datafile = os.path.join(os.path.abspath(__file__), datafile)
     with open (datafile, 'r') as file:
