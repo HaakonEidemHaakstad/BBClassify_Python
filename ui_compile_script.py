@@ -1,34 +1,26 @@
-import os
-import sys
 import numpy as np
-import bbclassify
 import statistics as stats
 import scipy.stats
-from support_functions import read_and_parse_input, read_and_parse_data, float_to_str, array_to_strlist, add_labels
+from bbclassify import bbclassify
+from support_functions.support_functions import read_and_parse_input, read_and_parse_data, float_to_str, array_to_strlist, add_labels
 
 def main():
     input_file: str = input("Enter path to- or name of the input file: ")
-    input_file_raw = input_file
+    input_file_raw: list[str] = input_file
     input_file_name: str = input_file[::-1].split("/")[0][::-1]
-    input_file: list = read_and_parse_input(input_file)
-
+    input_file: list[str|float|int] = read_and_parse_input(input_file)
     method: str = input_file[0][0]
     model: int = input_file[0][2]
     minimum_expected_value: float = input_file[0][3]
-
     data: list = read_and_parse_data(input_file)
-
     n_observations: int = len(data[0])
     n_categories: int = int(input_file[2][0])
-
     moments = ["Mean", "Variance", "Skewness", "Kurtosis"]
     mean: float = stats.mean(data[0])
     variance: float = stats.variance(data[0])
     skewness: float = scipy.stats.skew(data[0])
     kurtosis: float = scipy.stats.kurtosis(data[0], fisher = False)
-
     reliability: float = input_file[0][1]
-
     if input_file[1][1].lower() == "r":
         min_score: float = input_file[1][4] if input_file[0][0].lower() == "ll" else 0
         max_score: float = input_file[1][3]
@@ -39,11 +31,11 @@ def main():
     if len(input_file[2]) == 3:
         cut_truescores: list = input_file[2][2]
     else:
-        cut_truescores = None    
+        cut_truescores = None
     
     print("PROGRESS:")
     print(" Estimating model parameters...", end = "\r")
-    output = bbclassify.bbclassify(data = data[0],
+    output = bbclassify(data = data[0],
                                     reliability = reliability,
                                     min_score = min_score,
                                     max_score = max_score,
@@ -51,7 +43,7 @@ def main():
                                     cut_truescores = cut_truescores,
                                     method = method,
                                     model = 4, 
-                                    failsafe = True)    
+                                    failsafe = True)
     print(" Estimating model parameters... \033[92m✓\033[0m")
     
     ts_raw_moments: list = output._tsm(data[0], output.max_score if method.lower() != "ll" else output.effective_test_length, output.Parameters["lords k"])

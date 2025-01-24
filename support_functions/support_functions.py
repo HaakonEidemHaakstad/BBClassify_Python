@@ -1,29 +1,33 @@
+import os
+import platform
+import numpy as np
+
 def read_and_parse_input(filename: str, raw = False) -> list:
     input_error: str = "Input error. Execution terminated."
+    system_name: str = platform.system()
     if "ui.py" in filename:
-        filename = filename.replace("/ui.py", "")
-        filename = filename.replace("\\ui.py", "")
+        if system_name == "Windows":
+            filename = filename.replace("\\ui.py", "")
+        else:
+            filename = filename.replace("/ui.py", "")    
+
     if not os.path.isabs(filename):
         filename = os.path.join(os.path.abspath(__file__), filename)
     try:
         with open(filename, "r") as file:
-           lines: list = file.readlines()
+           lines: list[str] = file.readlines()
     except:
         raise ImportError("Error reading input file. Check whether the file-path is correctly specified.")
-    
-    ### For running uncompiled script ###
-    if "/ui.py" in filename:
-        filename = filename.replace("/ui.py", "")
-    
     try:
         with open(filename, "r") as file:
-            lines: list = file.readlines()
+            lines: list[str] = file.readlines()
     except:
         raise ImportError("Error reading input file. Check whether the file-path is correctly specified.")
     if raw: 
         return lines
-    lines: list = [i.lower().split() for i in lines]
-    lines: list = [[float(i) if i.replace(".", "", 1).replace("-", "", 1).isdigit() else i for i in j] for j in lines]
+    
+    lines = [i.lower().split() for i in lines]
+    lines = [[float(i) if i.replace(".", "", 1).replace("-", "", 1).isdigit() else i for i in j] for j in lines]
 
     # Input validation.
         # Line 1.
@@ -102,7 +106,6 @@ def read_and_parse_input(filename: str, raw = False) -> list:
 
 def read_and_parse_data(parsed_input: list) -> tuple:
     datafile: str = parsed_input[1][0].removeprefix('"').removesuffix('"')
-    datafile = datafile.replace("\\ui.py", "")
     if not os.path.isabs(datafile):
         datafile = os.path.join(os.path.abspath(__file__), datafile)
     with open (datafile, 'r') as file:
