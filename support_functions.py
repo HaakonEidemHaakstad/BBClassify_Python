@@ -1,5 +1,6 @@
 import os
 import platform
+import re
 import numpy as np
 
 def read_and_parse_input(filename: str, raw = False) -> list:
@@ -7,9 +8,9 @@ def read_and_parse_input(filename: str, raw = False) -> list:
     system_name: str = platform.system()
     if "ui.py" in filename:
         if system_name == "Windows":
-            filename = filename.replace("\\ui.py", "")
+            re.sub(r"[^\\]*\.py\\", r"\\", filename)
         else:
-            filename = filename.replace("/ui.py", "")    
+            re.sub(r"/[^/]*\.py/", "/", filename)
     print(filename)
     if not os.path.isabs(filename):
         filename = os.path.join(os.path.abspath(__file__), filename)
@@ -125,7 +126,6 @@ def read_and_parse_data(parsed_input: list) -> tuple:
             print(f"The first six non-numeric entries encountered in the data-file were: {non_numeric[:6]}.")
         raise TypeError("Input error. Execution terminated.")
     return data, datalines
-
 
 def float_to_str(x: float) -> str:
     x: str = str(round(x, 5))
