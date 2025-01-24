@@ -15,11 +15,6 @@ def read_and_parse_input(filename: str, raw = False) -> list:
         filename = os.path.join(os.path.abspath(__file__), filename)
     try:
         with open(filename, "r") as file:
-           lines: list[str] = file.readlines()
-    except:
-        raise ImportError("Error reading input file. Check whether the file-path is correctly specified.")
-    try:
-        with open(filename, "r") as file:
             lines: list[str] = file.readlines()
     except:
         raise ImportError(f"Error reading input file. Check whether the file-path is correctly specified. Input file was specified as '{filename}'.")
