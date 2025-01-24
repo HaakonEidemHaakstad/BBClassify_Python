@@ -7,14 +7,15 @@ import scipy.stats
 
 def read_and_parse_input(filename: str) -> list:
     input_error: str = "Input error. Execution terminated."
+    if "ui.py" in filename:
+        filename = filename.replace("/ui.py", "")
     if not os.path.isabs(filename):
         filename = os.path.join(os.path.abspath(__file__), filename)
-    #try:
-    filename = filename.replace("\\\\", "\\")
-    with open(filename, "r") as file:
+    try:
+        with open(filename, "r") as file:
            lines: list = file.readlines()
-    #except:
-    #    raise ImportError("Error reading input file. Check whether the file-path is correctly specified.")
+    except:
+        raise ImportError("Error reading input file. Check whether the file-path is correctly specified.")
     lines: list = [i.lower().split() for i in lines]
     lines: list = [[float(i) if i.replace(".", "", 1).replace("-", "", 1).isdigit() else i for i in j] for j in lines]
 
@@ -96,9 +97,9 @@ def read_and_parse_input(filename: str) -> list:
 
 def read_and_parse_data(parsed_input: list) -> tuple:
     datafile: str = parsed_input[1][0].removeprefix('"').removesuffix('"')
+    datafile = datafile.replace("\\ui.py", "")
     if not os.path.isabs(datafile):
         datafile = os.path.join(os.path.abspath(__file__), datafile)
-    datafile = datafile.replace("/ui.py", "")
     with open (datafile, 'r') as file:
         datalines: list = file.readlines()
     if parsed_input[1][1].lower() == "r":
