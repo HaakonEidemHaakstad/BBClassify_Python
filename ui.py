@@ -114,8 +114,11 @@ def main():
         file.write(f"  Model-fit testing:           Minimum expected value of bins set to {minimum_expected_value}\n")
         file.write(f"  Name of data file:           {input_file[1][0]}\n")
         file.write(f"  Format of input data:        {"Raw scores" if input_file[1][1].lower() == "r" else "Frequency distribution of raw scores"}\n")
-        file.write(f"  Maximum possible score:      {max_score}\n")
-        file.write(f"  Minimum possible score:      {min_score}\n")
+        if input_file[1][1].lower() == "f":
+            file.write(f"   - Raw-score column:         {int(input_file[1][2])}\n")
+            file.write(f"   - Score-frequency column:   {int(input_file[1][3])}\n")
+        file.write(f"  Minimum possible score:      {min_score} {"(Inferred from data)" if input_file[1][1].lower() == "f" else ""}\n")
+        file.write(f"  Maximum possible score:      {max_score} {"(Inferred from data)" if input_file[1][1].lower() == "f" else "" }\n")
         file.write(f"  Number of categories:        {int(input_file[2][0])}\n")
         file.write(f"  Obs.-score cut-point(s):     {", ".join([str(i) for i in cut_scores])}\n")
         file.write(f"  True-score cut-point(s):     {", ".join([str((i - min_score) / (max_score - min_score)) for i in cut_scores] if cut_truescores is None else [str(i) for i in cut_truescores])}\n")
