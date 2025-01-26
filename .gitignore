@@ -2,3 +2,4 @@ BBClassify_output
 ui_compile_script.spec
 __pycache__/
 bbclass/
+build/
