@@ -1,0 +1,8 @@
+scipy
+random
+statistics
+math
+numpy
+pandas
+os
+sys

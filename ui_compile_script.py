@@ -1,14 +1,14 @@
-print("Welcome to BBClassify: Beta-Binomial Classification Accuracy and Consistency\n".upper())
-print("Loading libraries... ", end = "\r")
 import numpy as np
 import statistics as stats
 import scipy.stats
 from bbclassify import bbclassify
 from support_functions import read_and_parse_input, read_and_parse_data, float_to_str, array_to_strlist, add_labels
 
+print("Welcome to BBClassify: Beta-Binomial Classification Accuracy and Consistency\n".upper())
+print("Initializing program...", end = "\r")
+
 def main():
-    
-    print("Loading libraries... \033[92m✓\033[0m\n")
+    print("Initializing program... \033[92m✓\033[0m\n")
     input_file: str = input("Enter path to- or name of the input file: ")
     input_file_raw: list[str] = read_and_parse_input(input_file, True, True)
     input_file_name: str = input_file[::-1].split("/")[0][::-1]
@@ -38,15 +38,17 @@ def main():
         cut_truescores = None
     
     print("\n")
-    print("Contents of input file:".upper())
+    print("CONTENTS OF INPUT FILE:")
     for i in input_file_raw:
         print("  " + i, end = "")
     print("\n")
-    print(" Interpretation of input:".upper())
+    print("INTERPRETATION OF INPUT:")
+    print(" Line 1:")
     print(f"  Type of Procedure:           {"Livingston and Lewis (\"LL\")." if method.lower() == "ll" else "Hanson and Brennan (\"HB\")"}")
     print(f"  Reliability of scores:       {reliability}")
     print(f"  True-score Beta model:       {int(model)}-parameter Beta distribution")
     print(f"  Model-fit testing:           Minimum expected value of bins set to {minimum_expected_value}")
+    print(" Line 2:")
     print(f"  Name of data file:           {input_file[1][0]}")
     print(f"  Format of input data:        {"Raw scores" if input_file[1][1].lower() == "r" else "Frequency distribution of raw scores"}")
     if input_file[1][1].lower() == "f":
@@ -54,10 +56,10 @@ def main():
         print(f"   - Score-frequency column:   {int(input_file[1][3])}")
     print(f"  Minimum possible score:      {min_score} {"(Inferred from data)" if input_file[1][1].lower() == "f" else ""}")
     print(f"  Maximum possible score:      {max_score} {"(Inferred from data)" if input_file[1][1].lower() == "f" else "" }")
+    print(" Line 3:")
     print(f"  Number of categories:        {int(input_file[2][0])}")
     print(f"  Obs.-score cut-point(s):     {", ".join([str(i) for i in cut_scores])}")
     print(f"  True-score cut-point(s):     {", ".join([str((i - min_score) / (max_score - min_score)) for i in cut_scores] if cut_truescores is None else [str(i) for i in cut_truescores])}")
-
     print("\n")
     print("PROGRESS:")
     print(" Estimating model parameters...", end = "\r")
@@ -69,7 +71,7 @@ def main():
                                    cut_truescores = cut_truescores,
                                    method = method,
                                    model = 4,
-                                   failsafe = True)    
+                                   failsafe = True)
     print(" Estimating model parameters... \033[92m✓\033[0m")
     
     ts_raw_moments: list = output._tsm(data[0], output.max_score if method.lower() != "ll" else output.effective_test_length, output.Parameters["lords k"])
@@ -242,8 +244,8 @@ def main():
             file.write(f"   Coefficient Kappa:         {float_to_str(coefficient_kappas[i])}\n")
             file.write("\n")
     print("\n")
-    print(f"BBClassify has successfully completed the analysis. Results have been saved to the file \"{input_file_name + "_output.txt"}\".")
+    print(f"Analysis completed successfully. Results have been saved to the file \"{input_file_name + "_output.txt"}\".")
     print("\n")
-    input("Press any key to close the program...")
+    input("Press ENTER to close the program...")
 if __name__ == "__main__":
     main()
