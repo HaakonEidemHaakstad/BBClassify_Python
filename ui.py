@@ -59,12 +59,12 @@ def main():
     output.accuracy()
     print(" Estimating classification accuracy... \033[92m✓\033[0m")
 
-    rounded_confusionmatrix: list[list] = add_labels(array_to_strlist(output.confusionmatrix.transpose()), "x", "t")
+    rounded_confusionmatrix: list[list] = add_labels(array_to_strlist(output.confusionmatrix), "x", "t")
     tp, tn, fp, fn, sensitivity, specificity = [], [], [], [], [], []
     for i in range(n_categories):
         tp.append(output.confusionmatrix[i, i])
-        fp.append(output.confusionmatrix[:, i].sum() - tp[i])
-        fn.append(output.confusionmatrix[i, :].sum() - tp[i])
+        fp.append(output.confusionmatrix[i, :].sum() - tp[i])
+        fn.append(output.confusionmatrix[:, i].sum() - tp[i])
         tn.append(1 - (tp[i] + fp[i] + fn[i]))
         sensitivity.append(tp[i] / (tp[i] + fn[i]))
         specificity.append(tn[i] / (tn[i] + fp[i]))
@@ -189,6 +189,7 @@ def main():
         file.write("\n")
         for i in range(n_categories):
             file.write(f"  Category {i + 1}:\n")
+            file.write(f"   Accuracy:                  {float_to_str(tp[i] + tn[i])}\n")
             file.write(f"   True Positives:            {float_to_str(tp[i])}\n")
             file.write(f"   True Negatives:            {float_to_str(tn[i])}\n")
             file.write(f"   Sensitivity:               {float_to_str(sensitivity[i])}\n")

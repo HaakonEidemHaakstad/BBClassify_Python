@@ -1,13 +1,19 @@
 import os
-import platform
-import re
+import sys
 import numpy as np
 
-def read_and_parse_input(filename: str, raw = False) -> list:
+def read_and_parse_input(filename: str, raw: bool = False, compile: bool = False) -> list:
     input_error: str = "Input error. Execution terminated."
-    system_name: str = platform.system()
+    
     if not os.path.isabs(filename):
-        filename = os.path.join(os.path.abspath(__file__), filename)
+        if compile:
+            # If the script is compiled, use the executable's directory
+            base_path = os.path.dirname(sys.executable)
+        else:
+            # If the script is not compiled, use the script's directory
+            base_path = os.path.dirname(os.path.abspath(__file__))
+        filename = os.path.join(base_path, filename)
+
     filename = filename.replace("support_functions.py/", "")
     filename = filename.replace("support_functions.py\\", "")
     filename = filename.replace("ui.py/", "")
@@ -98,15 +104,22 @@ def read_and_parse_input(filename: str, raw = False) -> list:
         raise TypeError(input_error)
     return lines
 
-def read_and_parse_data(parsed_input: list) -> tuple:
+def read_and_parse_data(parsed_input: list, compile: bool = False) -> tuple:
     datafile: str = parsed_input[1][0].removeprefix('"').removesuffix('"')
-    system_name: str = platform.system()
     if not os.path.isabs(datafile):
-        datafile = os.path.join(os.path.abspath(__file__), datafile)        
+        if compile:
+            # If the script is compiled, use the executable's directory
+            base_path = os.path.dirname(sys.executable)
+        else:
+            # If the script is not compiled, use the script's directory
+            base_path = os.path.dirname(os.path.abspath(__file__))
+        datafile = os.path.join(base_path, datafile)
+
     datafile = datafile.replace("support_functions.py/", "")
     datafile = datafile.replace("support_functions.py\\", "")
     datafile = datafile.replace("ui.py/", "")
     datafile = datafile.replace("ui.py\\", "")
+
     with open (datafile, 'r') as file:
         datalines: list = file.readlines()
     if parsed_input[1][1].lower() == "r":
@@ -117,7 +130,7 @@ def read_and_parse_data(parsed_input: list) -> tuple:
         xcol: int = int(parsed_input[1][2] - 1)
         fcol: int = int(parsed_input[1][3] - 1)
         data_full: list[list] = [[i[xcol] for _ in range(i[fcol])] for i in datalines]
-        data = [i for j in data_full for i in j]   
+        data = [i for j in data_full for i in j]
     non_numeric = [i for i in data if not isinstance(i, (float, int))]
     len_non_numeric = len(non_numeric)
     if len_non_numeric != 0:
@@ -157,13 +170,3 @@ def add_labels(x: list[list], col:  int, row: int) -> list:
     x: list[list] = [[row[i]] + x[i] for i in range(len(row))]
     x.insert(0, col)
     return x
-
-#def search_2p(x: list, l_step: float):
-#    mean = x[0]
-#    variance = x[1] - x[0]**2
-#    l = 0
-#    u = 1
-#    alpha = ((l - mean) * (l*mean - l*u - mean**2 + u*mean - variance)) / (variance*(l - u))
-#    beta = ((mean - u) * (l*u - l*mean + mean**2 - u*mean + variance)) / (variance*(u - l))
-#    l_to_u_ratio = mean / (1 - mean)
-#    while l < mean < u:    

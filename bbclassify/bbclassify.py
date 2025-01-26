@@ -219,14 +219,14 @@ class bbclassify():
             if (self.failsafe == True and self.model == 4) and (self.Parameters["l"] < 0 or self.Parameters["u"] > 1):
                 self.failsafe_engaged = True
                 self.model = 3
-                warn(f"Failsafe triggered. True-score fitting procedure produced impermissible parameter values (l = {self.Parameters['l']}, u = {self.Parameters['u']}). Fitting a three-parameter model with u = {self.u}.")
+                #warn(f"Failsafe triggered. True-score fitting procedure produced impermissible parameter values (l = {self.Parameters['l']}, u = {self.Parameters['u']}). Fitting a three-parameter model with u = {self.u}.")
                 self.Parameters = self._betaparameters(self.data, self.N, self.K, 3, self.l, self.u)
                 self.Parameters["u"] = 1
                 self.Parameters["lords k"] = self.K
             # If a three-parameter fitting procedure produced an invalid lower-bound location-parameter estimate, and the failsafe was specified
             # to engage in such a circumstance, fit a two-parameter model instead with the location-parameters specified by the user.
             if (self.failsafe == True and self.model == 3) and self.Parameters["l"] < 0:
-                warn(f"Three parameter fitting procedure produced invalid lower-bound location parameter (l = {self.Parameters["l"]}). Fitting a two-parameter model with l = {self.l} and u = {self.u}")
+                #warn(f"Three parameter fitting procedure produced invalid lower-bound location parameter (l = {self.Parameters["l"]}). Fitting a two-parameter model with l = {self.l} and u = {self.u}")
                 self.model = 2
                 self.Parameters = self._betaparameters(self.data, self.N, self.K, self.model, self.l, self.u)
 
@@ -1063,11 +1063,11 @@ class bbclassify():
         if method != "ll":
             def f(x, a, b, l, u, c, N, n, k):
                 return self._dbeta4p(x, a, b, l, u) * self._dcbinom2(c, x, N, n, k, method)
-            return quad(f, lower, upper, args = (a, b, l, u, c, N, n, k))
+            return quad(f, lower, upper, args = (a, b, l, u, c, N, n, k), limit = 100)
         else:
             def f(x, a, b, l, u, c, N, n):
                 return self._dbeta4p(x, a, b, l, u) * self._dcbinom2(c, x, N, n, k, method)
-            return quad(f, lower, upper, args = (a, b, l, u, c, N, n))
+            return quad(f, lower, upper, args = (a, b, l, u, c, N, n), limit = 100)
 
     def _bbintegrate2(self, a: float, b: float, l: float, u: float, c1: tuple, c2: tuple, N: int, n1: int, n2: int, k: float, lower: float, upper: float, method: str = "ll") -> float:
         """
@@ -1172,11 +1172,11 @@ class bbclassify():
         if method != "ll":
             def f(x, a, b, l, u, c1, c2, N, n1, n2, k):
                 return self._dbeta4p(x, a, b, l, u) * self._dcbinom2(c1, x, N, n1, k, method) * self._dcbinom2(c2, x, N, n2, k, method)
-            return quad(f, lower, upper, args = (a, b, l, u, c1, c2, N, n1, n2, k))
+            return quad(f, lower, upper, args = (a, b, l, u, c1, c2, N, n1, n2, k), limit = 100)
         else:
             def f(x, a, b, l, u, c1, c2, N, n1, n2):
                 return self._dbeta4p(x, a, b, l, u) * self._dcbinom2(c1, x, N, n1, k, method) * self._dcbinom2(c2, x, N, n2, k, method)
-            return quad(f, lower, upper, args = (a, b, l, u, c1, c2, N, n1, n2))
+            return quad(f, lower, upper, args = (a, b, l, u, c1, c2, N, n1, n2), limit = 100)
 
     def _dfac(self, x: list, r = int) -> list:
         """
