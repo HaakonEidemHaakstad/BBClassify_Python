@@ -29,36 +29,6 @@ To promote ease of adoption, BBClassify:
 
 By preserving familiarity while improving accuracy, BBClassify aims to be a more reliable tool for researchers and practitioners in high-stakes testing.
 
-## Methodologies
-
-BBClassify implements the following key methodologies:
-
-*   **Beta-Binomial Model:** The software uses a variation of the Beta-Binomial model for observed score frequency distributions. This involves modeling the true-score distribution using a four-parameter Beta-distribution (or, optionally, a two parameter distribution, specified by the user):
-
-   ```
-   g (τ) = (1 / B(α,β)) * ( (τ - l)^(α-1) * (u - τ)^(β-1) ) / (u-l)^(α+β-1)
-   ```
-   Where:
-        *   *τ* refers to proportional true-scores,
-        *   *l* and *u* are the lower and upper bounds of the score range,
-        *   *α* and *β* are the shape parameters of the distribution
-   *   The *h(x;τ)* term (the true score conditional error distribution) is modeled using the binomial distribution:
-   ```
-   h(x; T) = (K choose k) * T^k * (1 − T)^(K−k),
-   ```
-        *   Where K is the "effective test length", k is the score on the test, and T is the proportional true score.
-
-*   **Hanson and Brennan (1990) procedures** This method is also implemented within BBClassify, and uses either a two or four parameter beta distribution for the true scores, and uses either the binomial or Lord's (1965) two term approximation to the compound binomial distribution for the conditional error distribution.
-
-*   **Livingston and Lewis (1995) approach:** The program now correctly implements the L&L approach which involves estimating a test’s effective length based on the reliability coefficient of the test as input, the variance and the mean of test scores, and the minimum and maximum possible scores. This method uses the binomial distribution for the conditional error distribution.
-
-## Related Research
-
-The issue of misestimation of the effective test length in BB-Class has been highlighted in recent research. For example, a study by Haakstad in 2023, which investigated software implementations of the Livingston and Lewis approach found:
-*   That, in general, accuracy and consistency estimates provided by software programs based on the method were negatively biased (underestimated). This bias decreased as sample size and test length increased
-*  That there were indeed substantial issues with the effective test length estimation in the program BB-Class, resulting in inaccurate accuracy and consistency estimates.
-This study also highlights some of the potential issues in using the beta binomial model for estimating classification accuracy and consistency.
-
 ## Usage
 
 BBClassify provides a user interface that is designed to be familiar to existing users of BB-Class. It accepts similar inputs, such as:
