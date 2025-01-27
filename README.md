@@ -1,4 +1,3 @@
-```markdown
 # BBClassify
 
 **A successor to BB-Class, designed for accurate classification consistency and accuracy estimation.**
