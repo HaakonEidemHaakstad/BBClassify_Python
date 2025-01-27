@@ -1,14 +1,25 @@
-import numpy as np
-import statistics as stats
-import scipy.stats
-from bbclassify import bbclassify
-from support_functions import read_and_parse_input, read_and_parse_data, float_to_str, array_to_strlist, add_labels
 
 print("Welcome to BBClassify: Beta-Binomial Classification Accuracy and Consistency\n".upper())
-print("Initializing program...", end = "\r")
+import threading
+import time
+def loading_animation(text: str = "Initializing program"):
+    while not stop_loading:
+        for i in range(1, 4):
+            if stop_loading:
+                break
+            print(f"{text + '.' * i}", end="\r")
+            time.sleep(.25)
+        if not stop_loading:
+            print(f"{text}   ", end="\r")
+stop_loading = False
+loading_thread = threading.Thread(target = loading_animation)
+loading_thread.start()
+from support_functions import read_and_parse_input, read_and_parse_data, float_to_str, array_to_strlist, add_labels
+stop_loading = True
+loading_thread.join()
+print("Initializing program... \033[92m✓\033[0m\n")
 
 def main():
-    print("Initializing program... \033[92m✓\033[0m\n")
     input_file: str = input("Enter path to- or name of the input file: ")
     input_file_raw: list[str] = read_and_parse_input(input_file, True, True)
     input_file_name: str = input_file[::-1].split("/")[0][::-1]
@@ -20,6 +31,8 @@ def main():
     n_observations: int = len(data[0])
     n_categories: int = int(input_file[2][0])
     moments: list = ["Mean", "Variance", "Skewness", "Kurtosis"]
+    import statistics as stats
+    import scipy.stats
     mean: float = stats.mean(data[0])
     variance: float = stats.variance(data[0])
     skewness: float = scipy.stats.skew(data[0])
@@ -62,7 +75,21 @@ def main():
     print(f"  True-score cut-point(s):     {", ".join([str((i - min_score) / (max_score - min_score)) for i in cut_scores] if cut_truescores is None else [str(i) for i in cut_truescores])}")
     print("\n")
     print("PROGRESS:")
-    print(" Estimating model parameters...", end = "\r")
+    
+    def loading_animation(text: str = "Loading libraries"):
+        while not stop_loading:
+            for i in range(1, 4):
+                if stop_loading:
+                    break
+                print(f"{text + '.' * i}", end="\r")
+                time.sleep(.25)
+            if not stop_loading:
+                print(f"{text}   ", end="\r")
+    
+    stop_loading = False
+    loading_thread = threading.Thread(target = loading_animation, args = (" Estimating model parameters",))
+    loading_thread.start()    
+    from bbclassify import bbclassify
     output = bbclassify.bbclassify(data = data[0],
                                    reliability = reliability,
                                    min_score = min_score,
@@ -72,6 +99,9 @@ def main():
                                    method = method,
                                    model = 4,
                                    failsafe = True)
+    
+    stop_loading = True
+    loading_thread.join()
     print(" Estimating model parameters... \033[92m✓\033[0m")
     
     ts_raw_moments: list = output._tsm(data[0], output.max_score if method.lower() != "ll" else output.effective_test_length, output.Parameters["lords k"])
@@ -79,14 +109,23 @@ def main():
     ts_moments.append((ts_raw_moments[2] - 3*(ts_raw_moments[0]*ts_raw_moments[1]) + 2*ts_raw_moments[0]**3) / (ts_moments[1]**.5)**3)
     ts_moments.append((ts_raw_moments[3] - 4*(ts_raw_moments[0] * ts_raw_moments[2]) + 6*(ts_raw_moments[0]**2 * ts_raw_moments[1]) - 3*ts_raw_moments[0]**4) / (ts_moments[1]**.5)**4)
 
-    print(" Estimating model fit...", end = "\r")
+    stop_loading = False
+    loading_thread = threading.Thread(target = loading_animation, args = (" Estimating model fit",))
+    loading_thread.start()
     output.modelfit(minimum_expected_value = minimum_expected_value)
+    stop_loading = True
+    loading_thread.join()
     print(" Estimating model fit... \033[92m✓\033[0m")
 
-    print(" Estimating classification accuracy...", end = "\r")
+    stop_loading = False
+    loading_thread = threading.Thread(target = loading_animation, args = (" Estimating classification accuracy",))
+    loading_thread.start()
     output.accuracy()
+    stop_loading = True
+    loading_thread.join()
     print(" Estimating classification accuracy... \033[92m✓\033[0m")
-
+    
+    import numpy as np
     rounded_confusionmatrix: list[list] = add_labels(array_to_strlist(output.confusionmatrix), "x", "t")
     tp, tn, fp, fn, sensitivity, specificity = [], [], [], [], [], []
     for i in range(n_categories):
@@ -97,8 +136,12 @@ def main():
         sensitivity.append(tp[i] / (tp[i] + fn[i]))
         specificity.append(tn[i] / (tn[i] + fp[i]))
 
-    print(" Estimating classification consistency... ", end = "\r")
+    stop_loading = False
+    loading_thread = threading.Thread(target = loading_animation, args = (" Estimating classification consistency",))
+    loading_thread.start()
     output.consistency()
+    stop_loading = True
+    loading_thread.join()
     print(" Estimating classification consistency... \033[92m✓\033[0m")
 
     rounded_consistencymatrix: list[list] = add_labels(array_to_strlist(output.consistencymatrix), "x", "x")    
