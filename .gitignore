@@ -3,3 +3,4 @@ ui_compile_script.spec
 __pycache__/
 bbclass/
 build/
+ai_testing/
