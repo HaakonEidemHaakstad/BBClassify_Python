@@ -11,23 +11,69 @@ def loading_animation(text: str = "Initializing program"):
             time.sleep(.25)
         if not stop_loading:
             print(f"{text}   ", end="\r")
+    print(f"{text}... \033[92m✓\033[0m\n")
 stop_loading = False
 loading_thread = threading.Thread(target = loading_animation)
 loading_thread.start()
 from support_functions import read_and_parse_input, read_and_parse_data, float_to_str, array_to_strlist, add_labels
 stop_loading = True
 loading_thread.join()
-print("Initializing program... \033[92m✓\033[0m\n")
 
 def main():
     input_file: str = input("Enter path to- or name of the input file: ")
-    input_file_raw: list[str] = read_and_parse_input(input_file, True, True)
+
+    try:
+        input_file_raw: list[str] = read_and_parse_input(input_file, True, True)
+    except:
+        print("Error reading input file.")
+        input("Execution terminated. Press ENTER to close the program...")
+        return    
+   
+    print("")
+    print("CONTENTS OF INPUT FILE:")
+    for i in input_file_raw:
+        print("  " + i, end = "")
+    print("")
+    def loading_animation(text: str = "Loading libraries"):
+        while not stop_loading:
+            for i in range(1, 4):
+                if stop_loading:
+                    break
+                print(f"{text + '.' * i}", end="\r")
+                time.sleep(.25)
+            if not stop_loading:
+                print(f"{text}   ", end="\r")
+        if success:
+            print(f"{text}... \033[92m✓\033[0m")
+        else:
+            print(f"{text}... \033[91m✗\033[0m")
+    
+    stop_loading = False
+    loading_thread = threading.Thread(target = loading_animation, args = ("Parsing input",))
+    loading_thread.start()
+    
     input_file_name: str = input_file[::-1].split("/")[0][::-1]
-    input_file: list = read_and_parse_input(input_file, False, True)
+   
+    try:
+        input_file: list = read_and_parse_input(input_file, False, True)
+    except:
+        print(f"Error parsing input file \"{input_file}\". Check whether the file is correctly formatted.")
+        print("")
+        input("Execution terminated. Press ENTER to close the program...")
+        return
+    
     method: str = input_file[0][0]
     model: int = input_file[0][2]
     minimum_expected_value: float = input_file[0][3]
-    data: list = read_and_parse_data(input_file, True)
+    try:
+        data: list = read_and_parse_data(input_file, True)
+    except:
+        success = False
+        stop_loading = True
+        loading_thread.join()
+        print("Error reading data file.\n")
+        input("Execution terminated. Press ENTER to close the program...")
+        return
     n_observations: int = len(data[0])
     n_categories: int = int(input_file[2][0])
     moments: list = ["Mean", "Variance", "Skewness", "Kurtosis"]
@@ -48,14 +94,11 @@ def main():
     if len(input_file[2]) == 3:
         cut_truescores: list = input_file[2][2]
     else:
-        cut_truescores = None
+        cut_truescores = None    
     
-    print("\n")
-    print("CONTENTS OF INPUT FILE:")
-    for i in input_file_raw:
-        print("  " + i, end = "")
-    print("\n")
-    print("INTERPRETATION OF INPUT:")
+    stop_loading = True
+    loading_thread.join()
+
     print(" Line 1:")
     print(f"  Type of Procedure:           {"Livingston and Lewis (\"LL\")." if method.lower() == "ll" else "Hanson and Brennan (\"HB\")"}")
     print(f"  Reliability of scores:       {reliability}")
@@ -73,18 +116,9 @@ def main():
     print(f"  Number of categories:        {int(input_file[2][0])}")
     print(f"  Obs.-score cut-point(s):     {", ".join([str(i) for i in cut_scores])}")
     print(f"  True-score cut-point(s):     {", ".join([str((i - min_score) / (max_score - min_score)) for i in cut_scores] if cut_truescores is None else [str(i) for i in cut_truescores])}")
+    
     print("\n")
     print("PROGRESS:")
-    
-    def loading_animation(text: str = "Loading libraries"):
-        while not stop_loading:
-            for i in range(1, 4):
-                if stop_loading:
-                    break
-                print(f"{text + '.' * i}", end="\r")
-                time.sleep(.25)
-            if not stop_loading:
-                print(f"{text}   ", end="\r")
     
     stop_loading = False
     loading_thread = threading.Thread(target = loading_animation, args = (" Estimating model parameters",))
@@ -102,7 +136,6 @@ def main():
     
     stop_loading = True
     loading_thread.join()
-    print(" Estimating model parameters... \033[92m✓\033[0m")
     
     ts_raw_moments: list = output._tsm(data[0], output.max_score if method.lower() != "ll" else output.effective_test_length, output.Parameters["lords k"])
     ts_moments: list = [ts_raw_moments[0], ts_raw_moments[1] - ts_raw_moments[0]**2]
@@ -115,7 +148,6 @@ def main():
     output.modelfit(minimum_expected_value = minimum_expected_value)
     stop_loading = True
     loading_thread.join()
-    print(" Estimating model fit... \033[92m✓\033[0m")
 
     stop_loading = False
     loading_thread = threading.Thread(target = loading_animation, args = (" Estimating classification accuracy",))
@@ -123,7 +155,6 @@ def main():
     output.accuracy()
     stop_loading = True
     loading_thread.join()
-    print(" Estimating classification accuracy... \033[92m✓\033[0m")
     
     import numpy as np
     rounded_confusionmatrix: list[list] = add_labels(array_to_strlist(output.confusionmatrix), "x", "t")
@@ -142,7 +173,6 @@ def main():
     output.consistency()
     stop_loading = True
     loading_thread.join()
-    print(" Estimating classification consistency... \033[92m✓\033[0m")
 
     rounded_consistencymatrix: list[list] = add_labels(array_to_strlist(output.consistencymatrix), "x", "x")    
     chance_consistency: list = [sum(i)**2 for i in output.consistencymatrix]

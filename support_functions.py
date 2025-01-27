@@ -22,7 +22,11 @@ def read_and_parse_input(filename: str, raw: bool = False, compile: bool = False
         with open(filename, "r") as file:
             lines: list[str] = file.readlines()
     except:
-        raise ImportError(f"Error reading input file. Check whether the file-path is correctly specified. Input file was specified as '{filename}'.")
+        e = filename[::-1]
+        e1 = e[:e.index("/" if "/" in e else "\\")][::-1]
+        e = e[::-1].replace(e1, "")
+        print(f"Input file \"{e1}\" not found at \"{e}\".\n")
+        raise FileNotFoundError(input_error)
     if raw: 
         return lines
     
@@ -119,9 +123,14 @@ def read_and_parse_data(parsed_input: list, compile: bool = False) -> tuple:
     datafile = datafile.replace("support_functions.py\\", "")
     datafile = datafile.replace("ui.py/", "")
     datafile = datafile.replace("ui.py\\", "")
-
-    with open (datafile, 'r') as file:
-        datalines: list = file.readlines()
+    try:
+        with open (datafile, 'r') as file:
+            datalines: list = file.readlines()
+    except:
+        e = datafile[::-1]
+        e1 = e[:e.index("/" if "/" in e else "\\")][::-1]
+        e = e[::-1].replace(e1, "")
+        print(f"Data file \"{e1}\" not found at \"{e}\".\n")
     if parsed_input[1][1].lower() == "r":
         data: list = [float(i[0]) if float(i[0] % 1 != 0) else int(i[0]) for i in datalines]
         datalines = None
