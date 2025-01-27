@@ -1,6 +1,6 @@
 # BBClassify
 
-BBClassify is the successor to BB-Class, offering corrected and enhanced methodologies for estimating classification consistency and accuracy in high-stakes testing.
+BBClassify is intended to be the successor to BB-Class, offering corrected and enhanced methodologies for estimating classification consistency and accuracy in high-stakes testing.
 
 ---
 
