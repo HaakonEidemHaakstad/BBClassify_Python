@@ -1,6 +1,6 @@
 # BBClassify
 
-BBClassify is intended as the successor to BB-Class, designed to provide accurate and reliable calculations for classification consistency and accuracy in testing scenarios.
+BBClassify is intended to succeed BB-Class, designed to psychometrically estimate the accuracy and consistency of classifications under beta-binomial models.
 
 ## Overview
 
