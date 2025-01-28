@@ -11,10 +11,13 @@ The **BB-Class** software calculates classification consistency and accuracy usi
 ### Critical Issue in BB-Class
 The Livingston & Lewis (L&L) procedure in BB-Class incorrectly estimates **effective test length**:
 The equation for calculating the effective test length is:
+<div style = "background-color: white">
 
-<div style="background-color: lightblue; padding: 10px;">
-![equation](https://quicklatex.com/cache3/fe/ql_9e9ed976512b02ef684fa8aa746866fe_l3.png)
+Testing
+
 </div>
+
+![equation](https://quicklatex.com/cache3/fe/ql_9e9ed976512b02ef684fa8aa746866fe_l3.png)
 
 - Using the *empirically observed* minimum and maximum test scores instead of the *theoretically possible* minimum and maximum test scores.  
 
