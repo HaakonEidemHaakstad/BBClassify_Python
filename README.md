@@ -6,7 +6,7 @@ BBClassify is program for the psychometric analysis of classification accuracy a
 
 The **BB-Class** software calculates classification consistency and accuracy using methodologies from the Beta-Binomial model and extensions, including:
 - **Hanson and Brennan ([1990](https://onlinelibrary.wiley.com/doi/abs/10.1111/j.1745-3984.1990.tb00753.x))**: For equally weighted, dichotomously scored items.
-- **Livingston and Lewis (1995)**: For complex scenarios (e.g., weighted or polytomously scored items).
+- **Livingston and Lewis ([1995](https://onlinelibrary.wiley.com/doi/abs/10.1111/j.1745-3984.1995.tb00462.x))**: For complex scenarios (e.g., weighted or polytomously scored items).
 
 ### Critical Issue in BB-Class
 The Livingston & Lewis (L&L) procedure in BB-Class incorrectly estimates the **effective test length** parameter.<br><br>
