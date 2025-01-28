@@ -10,7 +10,7 @@ The **BB-Class** software calculates classification consistency and accuracy usi
 
 ### Critical Issue in BB-Class
 The Livingston & Lewis (L&L) procedure in BB-Class incorrectly estimates **effective test length** by:
-- Using *empirically observed* minimum and maximum test scores instead of *theoretically possible* minimum and maximum test scores.  
+- Using the *empirically observed* minimum and maximum test scores instead of the *theoretically possible* minimum and maximum test scores.  
 
 **This error leads to:**
 - Inaccurate model parameter estimates.
