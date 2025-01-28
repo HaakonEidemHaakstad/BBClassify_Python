@@ -46,8 +46,12 @@ BBClassify resolves the core issue in BB-Class, maintains its user interface, an
 - **Familiar Interface**: Mirrors the BB-Class user interface for effortless adoption.  
 - **Backward Compatibility**: Maintains input requirements (with minor optional simplifications).  
 
-## Impact
-BBClassify ensures researchers and practitioners can trust its outputs for critical applications, mitigating risks from past inaccuracies and fostering reliable test analysis.
+## Design principles
+The design of BBClassify prioritizes performance without sacrificing clarity through documentation. Recognizing Python’s reputation as a relatively "slow" programming language, every effort has been made to optimize performance, ensuring that BBClassify can handle the intensive demands of simulation studies where execution time can quickly scale from seconds to hours. To achieve this, code readability is deprioritized in favor of extensive commenting and thorough documentation, enabling developers and users to understand the implementation while maintaining high efficiency.
+
+At the same time, user experience is at the forefront of BBClassify’s design. The interface has been developed with user-friendliness and responsiveness as primary goals. Intuitive workflows and clear, helpful error messages guide users through resolving potential issues, ensuring a smooth experience. The interface is designed to remain responsive at all times, so users never feel uncertain about the program’s status or suspect it has crashed.
+
+Finally, BBClassify embraces the principles of open source development, fostering collaboration, transparency, and trust. By making the code publicly available, the program invites contributions for bug-fixing and future enhancements while allowing users to inspect the implementation of statistical methods to ensure they are scientifically sound and aligned with best practices. This open approach ensures that BBClassify can evolve with the community’s needs while maintaining its reliability and credibility.
 
 ---
 
