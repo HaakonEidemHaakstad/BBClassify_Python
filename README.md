@@ -10,7 +10,7 @@ The **BB-Class** software calculates classification consistency and accuracy usi
 
 ### Critical Issue in BB-Class
 The Livingston & Lewis (L&L) procedure in BB-Class incorrectly estimates **effective test length** by:
-- Using *observed* test scores (min/max) instead of *possible* test scores (min/max).  
+- Using *empirically observed* minimum and maximum test scores instead of *theoretically possible* minimum and maximum test scores.  
 
 **This error leads to:**
 - Inaccurate model parameter estimates.
@@ -21,14 +21,14 @@ The Livingston & Lewis (L&L) procedure in BB-Class incorrectly estimates **effec
 
 BBClassify resolves the core issue in BB-Class, maintains its user interface, and enhances user friendliness.
 
-### Key Enhancements
-1. **Accurate Effective Test Length Calculation**:  
-   - **Mandatory input**: Maximum possible test score.  
-   - **Optional input**: Minimum possible test score (defaults to 0).  
-2. **User-Friendly Error Handling**:  
-   - Provides **clear, actionable error messages** for invalid inputs or data inconsistencies, guiding users to resolve issues quickly.  
-3. **Preserved Methodological Integrity**: Corrects the L&L procedure without altering its theoretical foundation.  
-4. **Simplified Inputs**: Removes unnecessary optional parameters from BB-Class for streamlined usage.
+### Key Enhancements  
+1. **Preserved Methodological Integrity**: Corrects the implementation of the L&L procedure.  
+2. **Accurate Effective Test Length Calculation**:  
+   - **New Mandatory input**: Maximum possible test score.  
+   - **New Optional input**: Minimum possible test score (defaults to 0).
+3. **Simplified Inputs**: Removes unnecessary optional parameters from BB-Class for streamlined usage.  
+4. **User-Friendly Error Handling**:  
+   - Provides **clear, actionable error messages** for invalid inputs or data inconsistencies, guiding users to resolve issues quickly.
 
 ### Seamless Transition
 - **Familiar Interface**: Mirrors the BB-Class user interface for effortless adoption.  
