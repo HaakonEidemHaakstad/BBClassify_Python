@@ -19,7 +19,7 @@ The equation for calculating the effective test length is:
    <img src="https://quicklatex.com/cache3/fe/ql_9e9ed976512b02ef684fa8aa746866fe_l3.png" alt="Default Image">
 </picture>
 </div>
-
+<br>
 Where μ is the mean of the observed-score distribution, σ² is the variance of the observed-score distribution, and ρ is the test-score reliability coefficient. Xₘᵢₙ and Xₘₐₓ refer to the *theoretically possible* minimum and maximum test-scores.<br><br>
  
 The error in BB-Class is to use the *empirically observed* minimum and maximum test scores for Xₘᵢₙ and Xₘₐₓ. That is as long as it is possible to achieve a test-score of 0 by either not answering or answering all questions incorrectly, Xₘᵢₙ is 0 even if the lowest score actually observed in the sample is, for example, 10. Likewise, if it is theoretically possible to achieve a test score of 100 (that is, if answering all questions correctly would yield a test score of 100) then Xₘₐₓ is 100, even if the highest score actually observed in the sample is 90. 
