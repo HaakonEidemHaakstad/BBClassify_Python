@@ -9,7 +9,7 @@ The **BB-Class** software calculates classification consistency and accuracy usi
 - **Livingston and Lewis (1995)**: For complex scenarios (e.g., weighted or polytomously scored items).
 
 ### Critical Issue in BB-Class
-The Livingston & Lewis (L&L) procedure in BB-Class incorrectly estimates **effective test length**:<br>
+The Livingston & Lewis (L&L) procedure in BB-Class incorrectly estimates **effective test length**.<br>
 The equation for calculating the effective test length is:
 
 <div align="center">
