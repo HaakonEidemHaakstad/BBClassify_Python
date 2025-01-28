@@ -1,6 +1,6 @@
 # BBClassify
 
-BBClassify is intended to succeed BB-Class, designed to psychometrically estimate the accuracy and consistency of classifications under beta-binomial models.
+BBClassify is program for the psychometric analysis of classification accuracy and consistency based on test scores using the beta-binomial model. It is intended to succeed BB-Class ([Brennan, 2004](https://brennancrickgenova.org/classification-decision-consistency-programs/) which contains a serious error that appears to have gone by unnoticed for over 20 years.
 
 ## Overview
 
