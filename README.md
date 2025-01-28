@@ -44,7 +44,7 @@ BBClassify resolves the core issue in BB-Class, maintains its user interface, an
 
 ### Seamless Transition
 - **Familiar Interface**: Mirrors the BB-Class user interface for effortless adoption.  
-- **Backward Compatibility**: Maintains input requirements (with minor optional simplifications).  
+- **Backward Compatibility**: Maintains input requirements (with one necessary exception required to fix the L&L error).  
 
 ### Design principles
 The design of BBClassify prioritizes performance without sacrificing clarity through documentation. Recognizing Python’s reputation as a relatively "slow" programming language, every effort has been made to optimize performance, ensuring that BBClassify can handle the intensive demands of simulation studies where execution time can quickly scale from seconds to hours. To achieve this, code readability is deprioritized in favor of extensive commenting and thorough documentation, enabling developers and users to understand the implementation while maintaining high efficiency.
