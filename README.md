@@ -14,9 +14,9 @@ The equation for calculating the effective test length is:
 
 <div align="center">
 <picture>
-   <source srcset="https://quicklatex.com/cache3/fe/ql_9e9ed976512b02ef684fa8aa746866fe_l3.png" media="(prefers-color-scheme: light)">
-   <source srcset="https://quicklatex.com/cache3/5f/ql_b021354c178e47b8da9e1d6f8ba7fa5f_l3.png" media="(prefers-color-scheme: dark)">
-   <img src="https://quicklatex.com/cache3/fe/ql_9e9ed976512b02ef684fa8aa746866fe_l3.png" alt="Default Image">
+   <source srcset="https://quicklatex.com/cache3/ab/ql_f6ece2871c700a2a20c15f863bd48dab_l3.png" media="(prefers-color-scheme: light)">
+   <source srcset="https://quicklatex.com/cache3/bc/ql_1f22e5b3830a792b9090b035feb729bc_l3.png" media="(prefers-color-scheme: dark)">
+   <img src="https://quicklatex.com/cache3/ab/ql_f6ece2871c700a2a20c15f863bd48dab_l3.png" alt="Default Image">
 </picture>
 </div>
 <br>
