@@ -19,7 +19,7 @@ The Livingston & Lewis (L&L) procedure in BB-Class incorrectly estimates **effec
 
 ## Introducing BBClassify
 
-BBClassify resolves the core issue in BB-Class while retaining its proven methodologies.
+BBClassify resolves the core issue in BB-Class, maintains its user interface, and enhances user friendliness.
 
 ### Key Enhancements
 1. **Accurate Effective Test Length Calculation**:  
