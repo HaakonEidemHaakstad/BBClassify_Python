@@ -1,0 +1,66 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+\begin{document}
+	
+	\noindent \textbf{Technical Documentation: Computing Descending Factorial Moments from Raw Moments}
+	
+	\medskip
+	\noindent The procedure for computing descending factorial moments (also called factorial moments) from raw moments involves a transformation that expresses factorial moments as a linear combination of raw moments using Stirling numbers of the second kind. Given the first four raw moments $m_1, m_2, m_3, m_4$, the corresponding factorial moments $f_1, f_2, f_3, f_4$ are obtained using the recurrence relation:
+	
+	\begin{equation*}
+		f_r = \sum_{k=1}^{r} S(r, k)m_k
+	\end{equation*}
+	
+	\noindent where $S(r, k)$ are Stirling numbers of the second kind, which count the number of ways to partition a set of $r$ elements into $k$ non-empty subsets. Explicitly, the first four factorial moments are computed as:
+	
+	\begin{align*}
+		f_1 &= m_1 \\
+		f_2 &= m_2 - m_1 \\
+		f_3 &= m_3 - 3m_2 + 2m_1 \\
+		f_4 &= m_4 - 6m_3 + 11m_2 - 6m_1
+	\end{align*}
+	
+	\noindent This transformation ensures that factorial moments are always less than or equal to their corresponding raw moments, reflecting the nature of the descending factorial operation, which progressively reduces contributions from larger values in the dataset. This approach is particularly useful in combinatorial probability, discrete distributions, and moment-based statistical inference.
+
+\section*{Technical Documentation: Computing Raw Moments from Variance, Skewness, and Kurtosis}
+
+Given a dataset with mean \( m_1 \), variance (second central moment) \( \sigma_2 \), skewness \( \gamma_3 \), and kurtosis \( \gamma_4 \), the second, third, and fourth raw moments \( m_2, m_3, m_4 \) can be derived as follows.
+
+1. Second Raw Moment
+The second raw moment \( m_2 \) is computed directly from the variance:
+
+\[
+m_2 = \sigma_2 + m_1^2
+\]
+
+2. Third Raw Moment
+The third raw moment \( m_3 \) is computed using the relationship between the third central moment \( \sigma_3 \) and the standardized skewness:
+
+\[
+\sigma_3 = \gamma_3 \cdot \sigma_2^{3/2}
+\]
+
+Using the transformation between raw and central moments:
+
+\[
+m_3 = \sigma_3 + 3 m_1 \sigma_2 + m_1^3
+\]
+
+3. Fourth Raw Moment
+The fourth raw moment \( m_4 \) is computed using the relationship between the fourth central moment \( \sigma_4 \) and the standardized kurtosis:
+
+\[
+\sigma_4 = \gamma_4 \cdot \sigma_2^2
+\]
+
+Using the transformation between raw and central moments:
+
+\[
+m_4 = \sigma_4 + 4 m_1 \sigma_3 + 6 m_1^2 \sigma_2 + m_1^4
+\]
+
+These transformations allow for the computation of raw moments from commonly used statistical measures such as variance, skewness, and kurtosis, ensuring consistency in moment-based statistical analysis.
+
+\end{document}
