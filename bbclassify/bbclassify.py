@@ -1280,7 +1280,7 @@ class bbclassify():
         m = [stats.mean(x) / n, 0, 0, 0]
         for i in range(1, 4):
             M = i + 1
-            a = (self._dfac([n], 2)[0] + k * self._dfac([M], 2)[0])
+            a = self._dfac([n], 2)[0] + k * self._dfac([M], 2)[0]
             b = stats.mean(self._dfac(x, M)) / self._dfac([n - 2], M - 2)[0]
             c = k * self._dfac([M], 2)[0] * m[i]
             m[i] = (b / a) + c
