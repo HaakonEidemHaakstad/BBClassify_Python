@@ -239,19 +239,17 @@ def factorial_from_ordinary_moments(mean: float, variance: float, skewness: floa
     sigma_4 = kurtosis * variance**2
     sigma_3 = skewness * variance**(3/2)
 
+    m1 = mean
     m2 = variance + mean**2
     m3 = sigma_3 + 3*mean*variance + mean**3
     m4 = sigma_4 + 4*mean*sigma_3 + 6*mean**2*variance + mean**4
 
-    stirling_numbers = [[1], [1, 1], [1, 3, 1], [1, 7, 6, 1]]
-
-    f2 = stirling_numbers[1][0]*mean + stirling_numbers[1][1]*m2
-    f3 = stirling_numbers[2][0]*mean + stirling_numbers[2][1]*m2 + stirling_numbers[2][2]*m3
-    f4 = stirling_numbers[3][0]*mean + stirling_numbers[3][1]*m2 + stirling_numbers[3][2]*m3 + stirling_numbers[3][3]*m4
+    f2 = m2 - m1
+    f3 = m3 - 3*m2 + 2*m1
+    f4 = m4 - 6*m3 + 11*m2 - 6*m1
 
     sigma_2_f = f2 - mean**2
     gamma_3_f = f3 - 3*mean*f2 + 2*mean**3
     gamma_4_f = f4 - 4*mean*f3 + 6*mean**2*f2 - 3*mean**4
 
     return mean, sigma_2_f, gamma_3_f, gamma_4_f
-
