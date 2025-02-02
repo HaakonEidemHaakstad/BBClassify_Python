@@ -253,3 +253,60 @@ def factorial_from_ordinary_moments(mean: float, variance: float, skewness: floa
     gamma_4_f = f4 - 4*mean*f3 + 6*mean**2*f2 - 3*mean**4
 
     return mean, sigma_2_f, gamma_3_f, gamma_4_f
+
+def descending_factorial(x: list, r = int) -> list:
+    """
+    Calculate the descending factorial of a list of numbers.
+    
+    Parameters
+    ----------
+    x : list
+        List of numeric values.
+    r : int
+        The order of the descending factorial.
+    """
+    x1 = x.copy()
+    for i in range(len(x)):
+        if r <= 1:
+            x1[i] = x1[i]**r
+        else:
+            for j in range(1, r + 1):
+                if j > 1:
+                    x1[i] = x1[i] * (x[i] - j + 1)
+    return x1
+
+def true_score_moments_from_factorial_moments(x: list, n: int, k: float) -> list:
+    """
+    Calculate the first four moments of the true-score distribution.
+
+    Parameters
+    ----------
+    x : list
+        List of the first four raw factorial moments.
+    n : int
+        - Effective test length for the Livingston and Lewis approach.
+        - Actual test length for the Hanson and Brennan approach.
+    k : float
+        Lord's k parameter, used for moment estimation under the Hanson and Brennan approach.
+    """
+    m = [x[0] / n, 0, 0, 0]
+    for i in range(1, 4):
+        M = i + 1
+        a = n * (n - 1) + (k * M * (M - 1))
+        b = x[i] / descending_factorial([n - 2], M - 2)[0]
+        c = k * descending_factorial([M], 2)[0] * m[i - 1]
+        m[i] = (b / a) + c
+    return m
+
+def calculate_lords_k_from_reliability(mean, var, r, length):
+    vare = var * (1 - r)
+    num = length * ((length - 1) * (var - vare) - length * var + mean * (length - mean))
+    den = 2 * (mean * (length - mean) - (var - vare)) 
+    k = num/den
+    return k
+
+def calculate_reliability_from_lords_k(mean, var, k, length):
+    num = -2*k*mean**2 + 2*k*mean*length + mean**2*length - mean*length**2 + length**2*var
+    den = var*(2*k + length**2 - length)
+    r = num/den
+    return r

@@ -1,17 +1,20 @@
 
 print("Welcome to BBClassify: Beta-Binomial Classification Accuracy and Consistency\n".upper())
+
 import threading
 import time
+success = True
 def loading_animation(text: str = "Initializing program"):
     while not stop_loading:
         for i in range(1, 4):
             if stop_loading:
                 break
-            print(f"{text + '.' * i}", end="\r")
+            print(f"{text + '\033[38;5;214m.' * i}\033[0m", end="\r")
             time.sleep(.25)
         if not stop_loading:
             print(f"{text}   ", end="\r")
-    print(f"{text}... \033[92m✓\033[0m\n")
+    print(f"{text}... \033[92m✓\033[0m        \n")
+
 stop_loading = False
 loading_thread = threading.Thread(target = loading_animation)
 loading_thread.start()
@@ -20,6 +23,7 @@ stop_loading = True
 loading_thread.join()
 
 def main():
+    success = True
     input_file: str = input("Enter path to- or name of the input file: ")
 
     try:
@@ -39,7 +43,7 @@ def main():
             for i in range(1, 4):
                 if stop_loading:
                     break
-                print(f"{text + '.' * i}", end="\r")
+                print(f"{text + '\033[38;5;214m.' * i}\033[0m", end="\r")
                 time.sleep(.25)
             if not stop_loading:
                 print(f"{text}   ", end="\r")
@@ -65,6 +69,7 @@ def main():
     method: str = input_file[0][0]
     model: int = input_file[0][2]
     minimum_expected_value: float = input_file[0][3]
+
     try:
         data: list = read_and_parse_data(input_file, True)
     except:
@@ -74,6 +79,7 @@ def main():
         print("Error reading data file.\n")
         input("Execution terminated. Press ENTER to close the program...")
         return
+    
     n_observations: int = len(data[0])
     n_categories: int = int(input_file[2][0])
     moments: list = ["Mean", "Variance", "Skewness", "Kurtosis"]
@@ -118,7 +124,7 @@ def main():
     print(f"  True-score cut-point(s):     {", ".join([str((i - min_score) / (max_score - min_score)) for i in cut_scores] if cut_truescores is None else [str(i) for i in cut_truescores])}")
     
     print("\n")
-    print("PROGRESS:")
+    print("PERFORMING ANALYSIS:")
     
     stop_loading = False
     loading_thread = threading.Thread(target = loading_animation, args = (" Estimating model parameters",))
@@ -141,13 +147,13 @@ def main():
     ts_moments: list = [ts_raw_moments[0], ts_raw_moments[1] - ts_raw_moments[0]**2]
     ts_moments.append((ts_raw_moments[2] - 3*(ts_raw_moments[0]*ts_raw_moments[1]) + 2*ts_raw_moments[0]**3) / (ts_moments[1]**.5)**3)
     ts_moments.append((ts_raw_moments[3] - 4*(ts_raw_moments[0] * ts_raw_moments[2]) + 6*(ts_raw_moments[0]**2 * ts_raw_moments[1]) - 3*ts_raw_moments[0]**4) / (ts_moments[1]**.5)**4)
-
-    stop_loading = False
-    loading_thread = threading.Thread(target = loading_animation, args = (" Estimating model fit",))
-    loading_thread.start()
-    output.modelfit(minimum_expected_value = minimum_expected_value)
-    stop_loading = True
-    loading_thread.join()
+    if input_file[1][1].lower() != "m":
+        stop_loading = False
+        loading_thread = threading.Thread(target = loading_animation, args = (" Estimating model fit",))
+        loading_thread.start()
+        output.modelfit(minimum_expected_value = minimum_expected_value)
+        stop_loading = True
+        loading_thread.join()
 
     stop_loading = False
     loading_thread = threading.Thread(target = loading_animation, args = (" Estimating classification accuracy",))
@@ -268,12 +274,13 @@ def main():
         file.write(f"  Number of 'trials':         {output.N} ({"Effective Test Length" if method.lower() == "ll" else "Actual Test Length"})\n")
         file.write("\n")
         file.write("\n")
-        file.write("*** Model Fit ***\n")
-        file.write(f" Pearson's \u03C7\u00B2:                {float_to_str(output.Modelfit_chi_squared)}\n")
-        file.write(f" DF:                          {int(output.Modelfit_degrees_of_freedom)}\n")
-        file.write(f" p-value:                     {float_to_str(output.Modelfit_p_value)}\n")
-        file.write("\n")
-        file.write("\n")
+        if input_file[1][1].lower() != "m":
+            file.write("*** Model Fit ***\n")
+            file.write(f" Pearson's \u03C7\u00B2:                {float_to_str(output.Modelfit_chi_squared)}\n")
+            file.write(f" DF:                          {int(output.Modelfit_degrees_of_freedom)}\n")
+            file.write(f" p-value:                     {float_to_str(output.Modelfit_p_value)}\n")
+            file.write("\n")
+            file.write("\n")
         file.write("*** Classification Accuracy Estimates ***\n")
         file.write("\n")
         file.write(" Confusion matrix:\n")

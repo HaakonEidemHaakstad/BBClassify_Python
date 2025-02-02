@@ -12,7 +12,7 @@
 
  Raw input:
   HB 0. 4  0
-  "act288m" f 1 2
+  "C:\Users\hehaa\OneDrive\git\BBClassify_Python\dist\act288m" f 1 2
   4  22 24 26
 
  Interpretation of input:
@@ -20,7 +20,7 @@
   Reliability of scores:       0.0
   True-score Beta model:       4-parameter Beta distribution
   Model-fit testing:           Minimum expected value of bins set to 0.0
-  Name of data file:           "act288m"
+  Name of data file:           "c:\users\hehaa\onedrive\git\bbclassify_python\dist\act288m"
   Format of input data:        Frequency distribution of raw scores
    - Raw-score column:         1
    - Score-frequency column:   2
@@ -31,7 +31,7 @@
   True-score cut-point(s):     0.55, 0.6, 0.65
 
 
-*** Summary Statistics of Data in "act288m" ***
+*** Summary Statistics of Data in "c:\users\hehaa\onedrive\git\bbclassify_python\dist\act288m" ***
 
  Number of observations:      151050
 

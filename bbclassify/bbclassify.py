@@ -1282,7 +1282,7 @@ class bbclassify():
             M = i + 1
             a = self._dfac([n], 2)[0] + k * self._dfac([M], 2)[0]
             b = stats.mean(self._dfac(x, M)) / self._dfac([n - 2], M - 2)[0]
-            c = k * self._dfac([M], 2)[0] * m[i]
+            c = k * self._dfac([M], 2)[0] * m[i - 1]
             m[i] = (b / a) + c
         return m
 

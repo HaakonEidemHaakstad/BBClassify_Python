@@ -1,0 +1,23 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+\begin{document}
+
+Deriving reliability from Lord's k, Hanson (1991) p. 2-3:
+\begin{equation}
+	k = \frac{n\big[(n - 1)(\sigma^2 - \sigma_e^2) - n\sigma^2 + \mu(n - \mu)\big]}{2\big[\mu(n - \mu) - (\sigma^2 - \sigma_e^2)\big]}
+\end{equation}
+
+$\sigma_e^2 = \sigma^2(1 - r)$. Replacing and simplifying yields:
+
+\begin{equation}
+	k = \frac{n\big[-r\sigma^2(n - 1) - n\sigma^2 + \mu(n - \mu)\big]}{2\big[\mu(n - \mu) - r\sigma^2\big]}
+\end{equation}
+
+Solving for $r$:
+\begin{equation}
+	r = \frac{-2k\mu_1^2 + 2kn\mu_1 + n\mu_1^2 - \mu_1n^2 + \sigma_2n^2}{\sigma_2(2k + n^2 - n)}
+\end{equation}
+
+\end{document}
