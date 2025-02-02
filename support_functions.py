@@ -310,3 +310,5 @@ def calculate_reliability_from_lords_k(mean, var, k, length):
     den = var*(2*k + length**2 - length)
     r = num/den
     return r
+
+#test
