@@ -2,7 +2,30 @@ import os
 import sys
 import numpy as np
 
+def merge_quoted_entries(lst: list[str]):
+    merged_list = []
+    temp = []
+    
+    for entry in lst:
+        if entry.startswith('"') and not entry.endswith('"'):
+            temp.append(entry)
+        elif temp:
+            temp.append(entry)
+            if entry.endswith('"'):
+                merged_list.append(" ".join(temp))
+                temp = []
+        else:
+            merged_list.append(entry)
+    
+    # Handle case where an opening quote is never closed
+    if temp:
+        merged_list.append(" ".join(temp))
+    
+    return merged_list
+
 def read_and_parse_input(filename: str, raw: bool = False, compile: bool = False) -> list:
+    warn = "\033[38;5;214m WARNING:\033[0m"
+    note = "\033[38;5;214m NOTE:\033[0m"
     input_error: str = "Input error. Execution terminated."
     
     if not os.path.isabs(filename):
@@ -13,7 +36,7 @@ def read_and_parse_input(filename: str, raw: bool = False, compile: bool = False
             # If the script is not compiled, use the script's directory
             base_path = os.path.dirname(os.path.abspath(__file__))
         filename = os.path.join(base_path, filename)
-
+        
     filename = filename.replace("support_functions.py/", "")
     filename = filename.replace("support_functions.py\\", "")
     filename = filename.replace("ui.py/", "")
@@ -31,12 +54,13 @@ def read_and_parse_input(filename: str, raw: bool = False, compile: bool = False
         return lines
     
     lines = [i.lower().split() for i in lines]
+    lines = [merge_quoted_entries(i) for i in lines]
     lines = [[float(i) if i.replace(".", "", 1).replace("-", "", 1).isdigit() else i for i in j] for j in lines]
 
     # Input validation.
         # Line 1.
     if lines[0][0].lower() not in ["ll", "hb"]:
-        print(f"Procedure specification must be either LL for the Livingston and Lewis procedure, or HB for the Hanson and Brennan procedure. Current input is '{lines[0][0]}'.")
+        print(f"Procedure specification must be either LL for the Livingston and Lewis procedure, or HB for the Hanson and Brennan procedure. Current input is '{lines[0][0]}'.\n")
         raise TypeError(input_error)
     
     if not isinstance(lines[0][1], (float, int)):
@@ -56,10 +80,10 @@ def read_and_parse_input(filename: str, raw: bool = False, compile: bool = False
         raise TypeError(input_error)
     
     if len(lines[0]) > 3 and not isinstance(lines[0][3], (float, int)):
-        print(f"The fourth entry in the first line of the input file must be an integer. Current input is '{lines[0][3]}'.")
+        print(f"{warn} The fourth entry in the first line of the input file must be an integer. Current input is '{lines[0][3]}'.\n")
         lines[0] = lines[0][:3]
     if len(lines[0]) == 3:
-        print("Setting default minimum expected value for model-fit testing to 0.")
+        print(f"{note} Setting default minimum expected value for model-fit testing to 0.\n")
         lines[0].append(0)
 
         # Line 2.
@@ -298,15 +322,103 @@ def true_score_moments_from_factorial_moments(x: list, n: int, k: float) -> list
         m[i] = (b / a) + c
     return m
 
-def calculate_lords_k_from_reliability(mean, var, r, length):
+def calculate_lords_k_from_reliability(mean: float, var: float, r: float, length: int) -> float:
+    """
+    Calculate Lord's k parameter from reliability.
+
+    This function calculates Lord's k parameter based on the mean, variance, reliability,
+    and test length.
+
+    Parameters:
+    mean (float): The mean of the distribution.
+    var (float): The variance of the distribution.
+    r (float): The reliability of the test scores.
+    length (int): The length of the test.
+
+    Returns:
+    float: The calculated Lord's k parameter.
+    """
     vare = var * (1 - r)
     num = length * ((length - 1) * (var - vare) - length * var + mean * (length - mean))
     den = 2 * (mean * (length - mean) - (var - vare)) 
-    k = num/den
+    k = num / den
     return k
 
-def calculate_reliability_from_lords_k(mean, var, k, length):
-    num = -2*k*mean**2 + 2*k*mean*length + mean**2*length - mean*length**2 + length**2*var
-    den = var*(2*k + length**2 - length)
-    r = num/den
+def calculate_reliability_from_lords_k(mean: float, var: float, k: float, length: int) -> float:
+    """
+    Calculate reliability from Lord's k parameter.
+
+    This function calculates the reliability of test scores based on the mean, variance,
+    Lord's k parameter, and test length.
+
+    Parameters:
+    mean (float): The mean of the distribution.
+    var (float): The variance of the distribution.
+    k (float): Lord's k parameter.
+    length (int): The length of the test.
+
+    Returns:
+    float: The calculated reliability of the test scores.
+    """
+    num = -2 * k * mean**2 + 2 * k * mean * length + mean**2 * length - mean * length**2 + length**2 * var
+    den = var * (2 * k + length**2 - length)
+    r = num / den
     return r
+
+def parameters_from_raw_score_moments(x: list, model: int = 4, l: float = 0, u: float = 1) -> dict:
+    # Keep a copy of original lower- and upper-bound parameter input.
+    u_save = u
+    l_save = l
+    
+    m = x
+    s2 = m[1]
+    g3 = m[2]
+    g4 = m[3]
+
+    if model == 4:
+        r = 6 * (g4 - g3**2 - 1) / (6 + 3 * g3**2 - 2 * g4)
+        if g3 < 0:
+            a = r / 2 * (1 + (1 - ((24 * (r + 1)) / ((r + 2) * (r + 3) * g4 - 3 * (r - 6) * (r + 1))))**0.5)
+            b = r / 2 * (1 - (1 - ((24 * (r + 1)) / ((r + 2) * (r + 3) * g4 - 3 * (r - 6) * (r + 1))))**0.5)
+        else:
+            b = r / 2 * (1 + (1 - ((24 * (r + 1)) / ((r + 2) * (r + 3) * g4 - 3 * (r - 6) * (r + 1))))**0.5)
+            a = r / 2 * (1 - (1 - ((24 * (r + 1)) / ((r + 2) * (r + 3) * g4 - 3 * (r - 6) * (r + 1))))**0.5)
+        l = m[0] - ((a * (s2 * (a + b + 1))**0.5) / (a * b)**0.5)
+        u = m[0] + ((b * (s2 * (a + b + 1))**0.5) / (a * b)**0.5)
+    if l < 0 or u > 1:
+        model = 3
+
+    if model == 3:
+
+                ### Leaving out implementation of upper-bound parameter estimation ###
+
+        #u_numerator = l*((m[0]**2*m[1]) - 2*m[1]**2 + m[0]*m[2])  + m[0]*m[1]**2 - 2*m[0]**2*m[3] + m[1]*m[2]
+        #u_denominator = l*(2*m[0]**3 - 3*m[0]*m[1] + m[2]) + 2*m[1]**2 - m[0]**2*m[2] - m[0]*m[2]
+        #u = u_numerator / u_denominator
+
+        l_numerator = u*(m[0]**2*m[1] - 2*m[1]**2 + m[0]*m[2]) + m[0]*m[1]**2 - 2*m[0]**2*m[2] + m[1]*m[2]
+        l_denominator = u*(2*m[0]**3 - 3*m[0]*m[1] + m[2]) + 2*m[1]**2 - m[0]**2*m[1] - m[0]*m[2]            
+        l = l_numerator / l_denominator
+
+        #u = 1
+        a = ((l - m[0]) * (l * (m[0] - u) - m[0]**2 + m[0] * u - s2)) / (s2 * (l - u))
+        b = ((m[0] - u) * (l * (u - m[0]) + m[0]**2 - m[0] * u + s2)) / (s2 * (u - l))
+    if l < 0:
+        model = 2
+
+    if model == 2:
+        l = l_save
+        u = u_save
+        a = ((l - m[0]) * (l * (m[0] - u) - m[0]**2 + m[0] * u - s2)) / (s2 * (l - u))
+        b = ((m[0] - u) * (l * (u - m[0]) + m[0]**2 - m[0] * u + s2)) / (s2 * (u - l))
+    return {"alpha":  a, "beta": b, "l": l, "u": u}
+
+def prep_moment_input(x):
+    with open(x, "r") as file:
+        lines = file.readlines()
+    lines = [lines[i].split(" ") for i in range(len(lines))]
+    lines = [[j for j in i if len(j) > 0] for i in lines]
+    lines = [[j.replace("\n", "") for j in i] for i in lines]
+    lines = [[int(j) if float(j) % 1 == 0 else float(j) for j in i] for i in lines]
+    lines = [i for j in lines for i in j]
+    return lines
