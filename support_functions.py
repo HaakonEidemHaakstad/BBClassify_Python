@@ -2,30 +2,11 @@ import os
 import sys
 import numpy as np
 
-def merge_quoted_entries(lst: list[str]):
-    merged_list = []
-    temp = []
-    
-    for entry in lst:
-        if entry.startswith('"') and not entry.endswith('"'):
-            temp.append(entry)
-        elif temp:
-            temp.append(entry)
-            if entry.endswith('"'):
-                merged_list.append(" ".join(temp))
-                temp = []
-        else:
-            merged_list.append(entry)
-    
-    # Handle case where an opening quote is never closed
-    if temp:
-        merged_list.append(" ".join(temp))
-    
-    return merged_list
+
 
 def read_and_parse_input(filename: str, raw: bool = False, compile: bool = False) -> list:
-    warn = "\033[38;5;214m WARNING:\033[0m"
-    note = "\033[38;5;214m NOTE:\033[0m"
+    warn: str = "\033[38;5;214m WARNING:\033[0m"
+    note: str = "\033[38;5;214m NOTE:\033[0m"
     input_error: str = "Input error. Execution terminated."
     
     if not os.path.isabs(filename):
@@ -45,15 +26,15 @@ def read_and_parse_input(filename: str, raw: bool = False, compile: bool = False
         with open(filename, "r") as file:
             lines: list[str] = file.readlines()
     except:
-        e = filename[::-1]
-        e1 = e[:e.index("/" if "/" in e else "\\")][::-1]
+        e: str = filename[::-1]
+        e1: str = e[:e.index("/" if "/" in e else "\\")][::-1]
         e = e[::-1].replace(e1, "")
         print(f"Input file \"{e1}\" not found at \"{e}\".\n")
         raise FileNotFoundError(input_error)
     if raw: 
         return lines
     
-    lines = [i.lower().split() for i in lines]
+    lines: list[list[str]]  = [i.lower().split() for i in lines]
     lines = [merge_quoted_entries(i) for i in lines]
     lines = [[float(i) if i.replace(".", "", 1).replace("-", "", 1).isdigit() else i for i in j] for j in lines]
 
@@ -97,9 +78,9 @@ def read_and_parse_input(filename: str, raw: bool = False, compile: bool = False
     
     if lines[1][1].lower() == "r" and lines[0][0].lower() == "ll":
         if len(lines[1]) == 4:
-            print("Warning: The LL procedure requires the specification of a minimum possible test-score.")
+            print(f"{warn} The LL procedure requires the specification of a minimum possible test-score.")
             print(" No minimum possible test-score was specified as part of the input.")
-            print(" Minimum possible test-score will be assumed to be 0.")
+            print(f"{note} Minimum possible test-score will be assumed to be 0.")
             print(" If the actual minimum possible test-score is not 0, specify the minimum possible value as the fifth value of the second line of the input file.")
             lines[1].append(0)
 
@@ -155,6 +136,7 @@ def read_and_parse_data(parsed_input: list, compile: bool = False) -> tuple:
         e1 = e[:e.index("/" if "/" in e else "\\")][::-1]
         e = e[::-1].replace(e1, "")
         print(f"Data file \"{e1}\" not found at \"{e}\".\n")
+        
     if parsed_input[1][1].lower() == "r":
         data: list = [float(i[0]) if float(i[0] % 1 != 0) else int(i[0]) for i in datalines]
         datalines = None
@@ -413,7 +395,19 @@ def parameters_from_raw_score_moments(x: list, model: int = 4, l: float = 0, u: 
         b = ((m[0] - u) * (l * (u - m[0]) + m[0]**2 - m[0] * u + s2)) / (s2 * (u - l))
     return {"alpha":  a, "beta": b, "l": l, "u": u}
 
-def prep_moment_input(x):
+def prep_moment_input(x: str) -> list:
+    """
+    Prepare moment input from a file.
+
+    This function reads a file containing numeric values, processes the lines,
+    and returns a list of integers and floats.
+
+    Parameters:
+    x (str): The file path to the input file.
+
+    Returns:
+    list: A list of numeric values (integers and floats) extracted from the file.
+    """
     with open(x, "r") as file:
         lines = file.readlines()
     lines = [lines[i].split(" ") for i in range(len(lines))]

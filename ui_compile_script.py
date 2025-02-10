@@ -9,11 +9,11 @@ def loading_animation(text: str = "Initializing program"):
         for i in range(1, 4):
             if stop_loading:
                 break
-            print(f"{text + '\033[38;5;214m.' * i}\033[0m", end="\r")
+            print(f"{text + "." * i}", end="\r")
             time.sleep(.25)
         if not stop_loading:
             print(f"{text}   ", end="\r")
-    print(f"{text}... \033[92m✓\033[0m        \n")
+    print(f"{text}... \033[92m✓\033[0m\n")
 
 stop_loading = False
 loading_thread = threading.Thread(target = loading_animation)
@@ -38,12 +38,12 @@ def main():
     for i in input_file_raw:
         print("  " + i, end = "")
     print("")
-    def loading_animation(text: str = "Loading libraries"):
+    def loading_animation(text: str):
         while not stop_loading:
             for i in range(1, 4):
                 if stop_loading:
                     break
-                print(f"{text + '\033[38;5;214m.' * i}\033[0m", end="\r")
+                print(f"{text + "." * i}\033[0m", end="\r")
                 time.sleep(.25)
             if not stop_loading:
                 print(f"{text}   ", end="\r")
@@ -100,7 +100,7 @@ def main():
     if len(input_file[2]) == 3:
         cut_truescores: list = input_file[2][2]
     else:
-        cut_truescores = None    
+        cut_truescores = None
     
     stop_loading = True
     loading_thread.join()

@@ -11,8 +11,8 @@
 *** Listing of Input Specified in "ccHB" ***
 
  Raw input:
-  HB 0. 4  
-  "act 288m" f 1 2
+  HB 0. 4  check
+  "act288m" f 1 2
   2   24.      
 
  Interpretation of input:
@@ -20,7 +20,7 @@
   Reliability of scores:       0.0
   True-score Beta model:       4-parameter Beta distribution
   Model-fit testing:           Minimum expected value of bins set to 0
-  Name of data file:           "act 288m"
+  Name of data file:           "act288m"
   Format of input data:        Frequency distribution of raw scores
    - Raw-score column:         1
    - Score-frequency column:   2
@@ -31,7 +31,7 @@
   True-score cut-point(s):     0.6
 
 
-*** Summary Statistics of Data in "act 288m" ***
+*** Summary Statistics of Data in "act288m" ***
 
  Number of observations:      151050
 
