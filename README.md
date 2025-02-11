@@ -1,4 +1,4 @@
-# BBClassify
+# BBClassify 
 
 BBClassify is program for the psychometric analysis of classification accuracy and consistency based on test scores using the beta-binomial model. It is intended to succeed BB-Class ([Brennan, 2004](https://brennancrickgenova.org/classification-decision-consistency-programs/)) which contains a significant error that appears to have gone by unnoticed for over 20 years. This is of significant concern seen as how BB-Class has seen widespread use not only in research but also for the purposes of quality assurance in licensure and certification testing. 
 
