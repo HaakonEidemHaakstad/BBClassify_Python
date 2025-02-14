@@ -49,7 +49,7 @@ def main():
     def warning(x):
         return f"\033[38;5;214m{x}\033[0m"
     def note(x):
-        return f"\033[38;5;214m{x}\033[0m"
+        return f"\033[92m{x}\033[0m"
 
     print("")
     input_path: str = input("Enter path to- or name of input file: ")
@@ -181,7 +181,7 @@ def main():
                     errors.append("All values on the third line must be numeric.")
             if len(parsed_input[2]) == parsed_input[2][0]*2 - 1:
                 if not all(isinstance(i, float) for i in parsed_input[2][parsed_input[2][0]:]) or not all(0 < i < 1 for i in parsed_input[2][parsed_input[2][0]:]):
-                    errors.append("All true-score cut-scores must be floating-point values between 0 and 1.")
+                    errors.append("All true-score cut-scores specified on line three must be floating-point values between 0 and 1.")
 
     if len(errors) > 0:
         success = False
@@ -194,17 +194,17 @@ def main():
     print("")
     if len(errors) > 0:
         print(f"  {error("ERRORS:")}")
-        for i in errors: print("   " + i)
+        for i in errors: print("   - " + i)
         print("")
     
     if len(warnings) > 0:
         print(f"  {warning("WARNINGS:")}")
-        for i in warnings: print("   " + i)
+        for i in warnings: print("   - " + i)
         print("")
     
     if len(notes) > 0:
-        print(f"   {note("NOTES:")}")
-        for i in notes: print("   " + i)
+        print(f"  {note("NOTES:")}")
+        for i in notes: print("   - " + i)
         print("")
 
     if len(errors) > 0:
@@ -212,6 +212,41 @@ def main():
         print("")
         input("Press ENTER to close BBClassify...")
         return
+
+    errors, warnings, notes = [], [], []
+
+    thread = threading.Thread(target = loading_animation, args = ("Validating Data",))
+    thread.start()
+
+    datafile = parsed_input[1][0]
+    if not os.path.isabs(datafile):
+        base_path = os.path.dirname(sys.executable)
+        datafile = os.path.join(base_path, datafile)
+
+    with open(datafile, "r") as file:
+        data: list = file.readlines()
+
+    data = [data[i].split(" ") for i in range(len(data))]
+    data = [[j for j in i if len(j) > 0] for i in data]
+    data = [[j.replace("\n", "") for j in i] for i in data]
+    data = [[float(j) if "." in j and j.count(".") == 1 and j.replace(".", "").isnumeric() else j for j in i] for i in data]
+    data = [[int(j) if isinstance(j, str) and j.isnumeric() else j for j in i] for i in data]
+
+    if not all(isinstance(i, (float, int)) for i in [j for k in data for j in k]):
+        errors.append("Not all entries in the data could be interpreted as numeric. Make sure that the data file only contains numeric entries.")
+
+    if parsed_input[1][1].lower() in ["r", "m"]:
+        data = [i for j in data for i in j]
+
+    if parsed_input[1][1].lower() == "f":
+        xcol: int = int(parsed_input[1][2] - 1)
+        fcol: int = int(parsed_input[1][3] - 1)
+    
+    if len(errors) > 0:
+        success = False
+    stop_loading = True
+    thread.join()
+    stop_loading = False
 
     input("Press ENTER to close BBClassify...")
 

@@ -98,7 +98,7 @@ def read_and_parse_input(filename: str, raw: bool = False, compile: bool = False
         # Line 3.
     if not isinstance(lines[2][0], (float, int)):
         print(f"All entries in the third line of the input file must be numeric. Current input is {[lines[2]]}.")
-        raise TypeError(input_error)
+        raise TypeError(input_error) 
     if len(lines[2]) == 3 and (not all(isinstance(i, float) for i in lines[2][2]) or not all(0 > i > 1 for i in lines[2][2])):
         print(f"All true-score cut-points must be floating point values between 0 and 1 (0 < cut-point < 1). Current input is {lines[2][2]}.")
         raise TypeError(input_error)
