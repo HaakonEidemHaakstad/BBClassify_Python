@@ -1,4 +1,4 @@
-# BBClassify 
+# BBClassify
 
 BBClassify is program for the psychometric analysis of classification accuracy and consistency based on test scores using the beta-binomial model. It is intended to succeed BB-Class ([Brennan, 2004](https://brennancrickgenova.org/classification-decision-consistency-programs/)) which contains a significant error that appears to have gone by unnoticed for over 20 years. This is of significant concern seen as how BB-Class has seen widespread use not only in research but also for the purposes of quality assurance in licensure and certification testing. 
 
@@ -47,7 +47,7 @@ BBClassify resolves the core issue in BB-Class, maintains its user interface, an
 - **Backward Compatibility**: Maintains input requirements (with one necessary exception required to fix the L&L error).  
 
 ### Design principles
-The design of BBClassify prioritizes performance without sacrificing clarity through documentation. Recognizing Python’s reputation as a relatively "slow" programming language, every effort has been made to optimize performance, ensuring that BBClassify can handle the intensive demands of simulation studies where execution time can quickly scale from seconds to hours. To achieve this, code readability is deprioritized in favor of extensive commenting and thorough documentation, enabling developers and users to understand the implementation while maintaining high efficiency.
+The design of BBClassify prioritizes performance without sacrificing clarity through documentation. Recognizing Python’s reputation as a relatively "slow" programming language, every effort is made to optimize performance. To achieve this, code readability is deprioritized in favor of extensive commenting and thorough documentation.
 
 At the same time, user experience is at the forefront of BBClassify’s design. The interface has been developed with user-friendliness and responsiveness as primary goals. Intuitive workflows and clear, helpful error messages guide users through resolving potential issues, ensuring a smooth experience. The interface is designed to remain responsive at all times, so users never feel uncertain about the program’s status.
 
