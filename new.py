@@ -1,8 +1,7 @@
 print("WELCOME TO BBClassify: BETA-BINOMIAL CLASSIFICATION ACCURACY AND CONSISTENCY")
 
 def main():    
-    import time
-    import threading
+    import time, threading
     
     def loading_animation(text: str):
         while not stop_loading:
@@ -103,7 +102,7 @@ def main():
             errors.append(f"The first value of the first line must be either \"hb\" or \"ll\". Current value is {error(parsed_input[0][0])}")
 
     if len(parsed_input[0]) > 1:
-        if not isinstance(parsed_input[0][1], (float, int)) or 0 > parsed_input[0][1] > 1:
+        if not isinstance(parsed_input[0][1], (float, int)) or (parsed_input[0][1] != -1 and 0 > parsed_input[0][1] > 1):
             errors.append(f"The second value of the first line must be a value between 0 and 1. Current value is {error(parsed_input[0][1])}")
 
     if len(parsed_input[0]) > 2:
@@ -149,13 +148,13 @@ def main():
                     errors.append("The fourth value of the second line must be an integer representing test length when specified procedure is \"HB\" and data-type is \"r\".")
             else:
                 if not isinstance(parsed_input[1][3], (float, int)):
-                    errors.append("The fourth value of the second line must be a number representing the maximum possible test score when specified procedure is \"LL\" and data-type is \"r\".")
-                    
+                    errors.append("The fourth value of the second line must be a number representing the maximum possible test score when specified procedure is \"LL\" and data-type is \"r\".")                    
                 if len(parsed_input[1]) == 4:
                     parsed_input[1].append(0)
-                    notes.append(f"Fifth value of the second line representing the minimum possible test score not specified. Defaulting to {note("0")}.")
+                    notes.append(f"The fifth value of the second line representing the minimum possible test score not specified. Defaulting to {note("0")}.")
                 if not isinstance(parsed_input[1][4], (float, int)):
-                    errors.append(f"The Fifth value of the second line must be a number representing the minimum possible test score when specified procedure is \"LL\" and data-type is \"r\". Current input is {error(parsed_input[1][4])}")
+                    warnings.append(f"The fifth value of the second line must be a numeric value. Current value is {warning(parsed_input[1][4])}. Defaulting to {warnings("0")}.")
+                    parsed_input[1][4] = 0
         
         if parsed_input[1][1].lower() == "f":
             if len(parsed_input[1]) < 4:
@@ -169,6 +168,25 @@ def main():
                 if parsed_input[1][2] == parsed_input[1][3]:
                     errors.append(f"The third and fourth value of the second line must point to different columns of the data file when the specified data-type is \"f\". Current input is {error(parsed_input[1][2])} and {error(parsed_input[1][3])}.")
 
+        if parsed_input[1][1].lower() == "c":
+            if len(parsed_input[1]) > 2:
+                if parsed_input[0][0].lower() == "hb":
+                    if not isinstance(parsed_input[1][2], int):
+                        errors.append("The third value of the second line must be an integer representing test length when specified procedure is \"HB\" and data-type is \"c\".")
+                else:
+                    if not isinstance(parsed_input[1][2], (float, int)):
+                        errors.append("The third value of the second line must be a number representing the maximum possible test score when specified procedure is \"LL\" and data-type is \"c\".")
+                    if len(parsed_input) < 4:
+                        notes.append(f"The fourth value of the second line representing the minimum possible test score not specified. Defaulting to {note("0")}.")
+                        parsed_input[1].append(0)
+                    if len(parsed_input) > 3:
+                        if not isinstance(parsed_input[1][3], (float, int)):
+                            warnings.append(f"The fourth value of the second line must be a numeric value. Current value is {warning(parsed_input[1][3])}. Defaulting to {warnings("0")}.")
+                            parsed_input[1][3] = 0
+                    if parsed_input[1][2] <= parsed_input[1][3]:
+                        errors.append(f"The maximum possible test score (value: {error(parsed_input[1][2])}) must be greater than the minimum possible test score (value: {error(parsed_input[1][3])})")
+
+    
     ## Line 3:
     if len(parsed_input[2]) < 2:
         errors.append("Invalid input format. Third line must contain at least 2 values.")
@@ -218,29 +236,54 @@ def main():
     thread = threading.Thread(target = loading_animation, args = ("Validating Data",))
     thread.start()
 
-    datafile = parsed_input[1][0]
+    datafile: str = parsed_input[1][0]
     if not os.path.isabs(datafile):
         base_path = os.path.dirname(sys.executable)
         datafile = os.path.join(base_path, datafile)
 
     with open(datafile, "r") as file:
-        data: list = file.readlines()
+        data: list[str] = file.readlines()
 
-    data = [data[i].split(" ") for i in range(len(data))]
+    data: list[list[str]] = [data[i].split(" ") for i in range(len(data))]
     data = [[j for j in i if len(j) > 0] for i in data]
     data = [[j.replace("\n", "") for j in i] for i in data]
-    data = [[float(j) if "." in j and j.count(".") == 1 and j.replace(".", "").isnumeric() else j for j in i] for i in data]
-    data = [[int(j) if isinstance(j, str) and j.isnumeric() else j for j in i] for i in data]
+    data: list[list[str | float]] = [[float(j) if "." in j and j.count(".") == 1 and j.replace(".", "").isnumeric() else j for j in i] for i in data]
+    data: list[list[str | float | int]] = [[int(j) if isinstance(j, str) and j.isnumeric() else j for j in i] for i in data]
 
     if not all(isinstance(i, (float, int)) for i in [j for k in data for j in k]):
-        errors.append("Not all entries in the data could be interpreted as numeric. Make sure that the data file only contains numeric entries.")
-
+        success = False
+        stop_loading = True
+        thread.join()
+        stop_loading = False
+        print("")
+        print(f" Input validation completed with {len(errors)} {"errors" if len(errors) != 1 else "error"}, {len(warnings)} {"warnings" if len(warnings) != 1 else "warning"}, and {len(notes)} {"notes" if len(notes) != 1 else "note"}.")
+        print("")
+        errors.append("Not all entries in the data could be interpreted as numeric. Make sure that the data file only contains numeric entries (e.g., no row or column names, decimals marked by \".\").")
+        print(f"  {error("ERRORS:")}")
+        for i in errors: print("   - " + i)
+        print("")
+        print(error("Execution terminated due to invalid input."))
+        print("")
+        input("Press ENTER to close BBClassify...")
+        return
+    
+    import numpy as np, pandas as pd
+    
     if parsed_input[1][1].lower() in ["r", "m"]:
-        data = [i for j in data for i in j]
+        data: list[float | int] = [i for j in data for i in j]
 
     if parsed_input[1][1].lower() == "f":
         xcol: int = int(parsed_input[1][2] - 1)
         fcol: int = int(parsed_input[1][3] - 1)
+        data: list[list[float | int]] = [[i[xcol] for _ in range(i[fcol])] for i in data]
+        data: list[float | int] = [i for j in data for i in j]
+
+    if parsed_input[1][1].lower() == "c":
+        if parsed_input[0][1] == -1:
+            covariance_matrix = pd.DataFrame(data).cov()
+            n = covariance_matrix.shape[0]
+            reliability = (n / (n - 1)) * (1 - (sum(np.diag(covariance_matrix)) / sum(sum(covariance_matrix))))
+        data = [sum(i) for i in data]
     
     if len(errors) > 0:
         success = False

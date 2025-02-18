@@ -105,7 +105,7 @@ def read_and_parse_input(filename: str, raw: bool = False, compile: bool = False
     if len(lines[2]) == lines[2][0]:
         lines[2] = [lines[2][0], lines[2][1:]]
     elif len(lines[2]) == lines[2][0]*2 - 1:
-        lines[2] = [lines[2][0], 
+        lines[2] = [lines[2][0],
                     [lines[2][i] for i in range(1, int(lines[2][0]))],
                     [lines[2][i] for i in range(int(lines[2][0]), len(lines[2]))]]
     else:
