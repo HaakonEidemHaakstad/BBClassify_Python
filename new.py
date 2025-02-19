@@ -155,6 +155,8 @@ def main():
                 if not isinstance(parsed_input[1][4], (float, int)):
                     warnings.append(f"The fifth value of the second line must be a numeric value. Current value is {warning(parsed_input[1][4])}. Defaulting to {warnings("0")}.")
                     parsed_input[1][4] = 0
+            max_score = parsed_input[1][3]
+            min_score = parsed_input[1][4]
         
         if parsed_input[1][1].lower() == "f":
             if len(parsed_input[1]) < 4:
@@ -256,7 +258,7 @@ def main():
         thread.join()
         stop_loading = False
         print("")
-        print(f" Input validation completed with {len(errors)} {"errors" if len(errors) != 1 else "error"}, {len(warnings)} {"warnings" if len(warnings) != 1 else "warning"}, and {len(notes)} {"notes" if len(notes) != 1 else "note"}.")
+        print(f" Data validation completed with {len(errors)} {"errors" if len(errors) != 1 else "error"}, {len(warnings)} {"warnings" if len(warnings) != 1 else "warning"}, and {len(notes)} {"notes" if len(notes) != 1 else "note"}.")
         print("")
         errors.append("Not all entries in the data could be interpreted as numeric. Make sure that the data file only contains numeric entries (e.g., no row or column names, decimals marked by \".\").")
         print(f"  {error("ERRORS:")}")
@@ -266,15 +268,61 @@ def main():
         print("")
         input("Press ENTER to close BBClassify...")
         return
-    
+
+
     import numpy as np, pandas as pd
     
-    if parsed_input[1][1].lower() in ["r", "m"]:
+    if parsed_input[1][1].lower() == "r":
         data: list[float | int] = [i for j in data for i in j]
+        None
+    
+    if parsed_input[1][1].lower() == "m":
+        data: list[float | int] = [i for j in data for i in j]
+        if len(data) < 7:
+            errors.append("When moments are specified as data input, the data file must contain at least 7 values.")
+        if len(data) > 0:
+            if not isinstance(data[0], int):
+                errors.append("When moments are specified as data input, the first value in the data file must be an integer representing sample size.")
+        if len(data) > 6:
+            if parsed_input[0][0].lower() == "hb":
+                if not isinstance(data[6], int):
+                    errors.append("When moments are specified as data input and procedure is \"HB\", the seventh value in the data file must be an integer representing test length.")
+            else:
+                if data[6] < data[5]:
+                    errors.append("When moments are specified as data input and procedure is \"LL\", the seventh value in the data file representing the maximum possible test score must be greater than the sixth value representing the minimum possible test score.")
+                success = False
+        stop_loading = True
+        thread.join()
+        stop_loading = False
+        print("")
+        print(f" Data validation completed with {len(errors)} {"errors" if len(errors) != 1 else "error"}, {len(warnings)} {"warnings" if len(warnings) != 1 else "warning"}, and {len(notes)} {"notes" if len(notes) != 1 else "note"}.")
+        print("")        
+        if len(errors) > 0:
+            print(f"  {error("ERRORS:")}")
+        for i in errors: print("   - " + i)
+        print("")
+    
+        if len(warnings) > 0:
+            print(f"  {warning("WARNINGS:")}")
+            for i in warnings: print("   - " + i)
+            print("")
+        
+        if len(notes) > 0:
+            print(f"  {note("NOTES:")}")
+            for i in notes: print("   - " + i)
+            print("")
+
+        if len(errors) > 0:
+            print(error("Execution terminated due to invalid input."))
+            print("")
+            input("Press ENTER to close BBClassify...")
+            return
 
     if parsed_input[1][1].lower() == "f":
         xcol: int = int(parsed_input[1][2] - 1)
         fcol: int = int(parsed_input[1][3] - 1)
+        max_score = max([i[xcol] for i in data])
+        min_score = min([i[xcol] for i in data])
         data: list[list[float | int]] = [[i[xcol] for _ in range(i[fcol])] for i in data]
         data: list[float | int] = [i for j in data for i in j]
 
