@@ -76,7 +76,7 @@ def main():
     print("")
     thread = threading.Thread(target = loading_animation, args = ("Validating Input",))
     thread.start()
-    parsed_input = [i.replace("\n", "").split(" ") for i in parsed_input]
+    parsed_input = [i.replace("\r", "").replace("\n", "").replace("\t", "").replace("\f", "").replace("\v", "").split(" ") for i in parsed_input]
     parsed_input = [merge_quoted_entries(i) for i in parsed_input]
     parsed_input = [[j for j in i if len(j) > 0] for i in parsed_input]
     parsed_input = [[float(j) if "." in j and j.count(".") == 1 and j.replace(".", "").isnumeric() else j for j in i] for i in parsed_input]
@@ -100,18 +100,23 @@ def main():
     if len(parsed_input[0]) > 0:
         if parsed_input[0][0] not in ["hb", "HB", "hB", "Hb", "ll", "LL", "lL", "Ll"]:
             errors.append(f"The first value of the first line must be either \"hb\" or \"ll\". Current value is {error(parsed_input[0][0])}")
+        model: str = parsed_input[0][0]
 
     if len(parsed_input[0]) > 1:
         if not isinstance(parsed_input[0][1], (float, int)) or (parsed_input[0][1] != -1 and 0 > parsed_input[0][1] > 1):
             errors.append(f"The second value of the first line must be a value between 0 and 1. Current value is {error(parsed_input[0][1])}")
+        reliability: float | int = parsed_input[0][1]
 
     if len(parsed_input[0]) > 2:
         if parsed_input[0][2] not in [2, 4]:
             errors.append(f"The third value of the first line must be either 2 or 4. Current value is {error(parsed_input[0][2])}.")
+        model: int = parsed_input[0][2]
     
-    if len(parsed_input[0]) > 3 and not isinstance(parsed_input[0][3], int):
-        warnings.append(f"The fourth value of the first line must be an integer >= 0. Current value is {warning(parsed_input[0][3])}. Defaulting to 0.")
-        parsed_input[0][3] = 0
+    if len(parsed_input[0]) > 3:
+        if not isinstance(parsed_input[0][3], int):
+            warnings.append(f"The fourth value of the first line must be an integer >= 0. Current value is {warning(parsed_input[0][3])}. Defaulting to 0.")
+            parsed_input[0][3] = 0
+        min_expected_value: int = parsed_input[0][3]
 
     ## Line 2:
     if len(parsed_input[1]) < 2:
@@ -130,11 +135,14 @@ def main():
 
         if not os.path.exists(data_path):
             errors.append(f"Data file \"{file_name}\" not found at \"{base_path}\".")
+        
+        filename: str = base_path + file_name
 
     if len(parsed_input[1]) > 1:
 
         if parsed_input[1][1].lower() not in ["r", "f", "m", "c"]:
             errors.append(f"The second value of the second line  are \"r\" for raw data, \"f\" for frequency data, \"m\" for moment data, and \"c\" for complete data.")
+        datatype: str = parsed_input[1][1]
         
         if parsed_input[1][1].lower() == "r":
             if len(parsed_input[1]) < 4:
@@ -248,19 +256,19 @@ def main():
 
     data: list[list[str]] = [data[i].split(" ") for i in range(len(data))]
     data = [[j for j in i if len(j) > 0] for i in data]
-    data = [[j.replace("\n", "") for j in i] for i in data]
+    data = [[j.replace("\r", "").replace("\n", "").replace("\t", "").replace("\f", "").replace("\v", "") for j in i] for i in data]
     data: list[list[str | float]] = [[float(j) if "." in j and j.count(".") == 1 and j.replace(".", "").isnumeric() else j for j in i] for i in data]
     data: list[list[str | float | int]] = [[int(j) if isinstance(j, str) and j.isnumeric() else j for j in i] for i in data]
 
-    if not all(isinstance(i, (float, int)) for i in [j for k in data for j in k]):
+    if not all(isinstance(i, (float, int)) for i in [float(j) for k in data for j in k]):
         success = False
         stop_loading = True
         thread.join()
         stop_loading = False
+        errors.append("Not all entries in the data could be interpreted as numeric. Make sure that the data file only contains numeric entries (e.g., no row or column names, decimals marked by \".\").")
         print("")
         print(f" Data validation completed with {len(errors)} {"errors" if len(errors) != 1 else "error"}, {len(warnings)} {"warnings" if len(warnings) != 1 else "warning"}, and {len(notes)} {"notes" if len(notes) != 1 else "note"}.")
         print("")
-        errors.append("Not all entries in the data could be interpreted as numeric. Make sure that the data file only contains numeric entries (e.g., no row or column names, decimals marked by \".\").")
         print(f"  {error("ERRORS:")}")
         for i in errors: print("   - " + i)
         print("")
@@ -268,7 +276,6 @@ def main():
         print("")
         input("Press ENTER to close BBClassify...")
         return
-
 
     import numpy as np, pandas as pd
     
@@ -299,8 +306,8 @@ def main():
         print("")        
         if len(errors) > 0:
             print(f"  {error("ERRORS:")}")
-        for i in errors: print("   - " + i)
-        print("")
+            for i in errors: print("   - " + i)
+            print("")
     
         if len(warnings) > 0:
             print(f"  {warning("WARNINGS:")}")
@@ -330,8 +337,18 @@ def main():
         if parsed_input[0][1] == -1:
             covariance_matrix = pd.DataFrame(data).cov()
             n = covariance_matrix.shape[0]
-            reliability = (n / (n - 1)) * (1 - (sum(np.diag(covariance_matrix)) / sum(sum(covariance_matrix))))
+            reliability: float = (n / (n - 1)) * (1 - (sum(np.diag(covariance_matrix)) / sum(sum(covariance_matrix))))
         data = [sum(i) for i in data]
+    
+    if parsed_input[1][1].lower() in ["r", "f", "c"]:
+        if parsed_input[0][0].lower() == "hb":
+            if max_score < max(data):
+                errors.append("The maximum possible test score specified in the input file is less than the maximum test score observed in the data file.")
+        if parsed_input[0][0].lower() == "ll":
+            if min_score > min(data):
+                errors.append("The minimum possible test score specified in the input file is greater than the minimum test score observed in the data file.")
+            if max_score < max(data):
+                errors.append("The maximum possible test score specified in the input file is less than the maximum test score observed in the data file.")
     
     if len(errors) > 0:
         success = False
