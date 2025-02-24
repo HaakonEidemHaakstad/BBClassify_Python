@@ -125,13 +125,13 @@ def main():
     if len(parsed_input[1]) > 0:
 
         if not os.path.isabs(parsed_input[1][0]):
-            file_name = parsed_input[1][0]
-            base_path = os.path.dirname(sys.executable)
-            data_path = os.path.join(base_path, file_name)
+            file_name: str = parsed_input[1][0]
+            base_path: str = os.path.dirname(sys.executable)
+            data_path: str = os.path.join(base_path, file_name)
         else:
-            data_path = parsed_input[1][0]
-            base_path = os.path.dirname(data_path)
-            file_name = os.path.basename(data_path)
+            data_path: str = parsed_input[1][0]
+            base_path: str = os.path.dirname(data_path)
+            file_name: str = os.path.basename(data_path)
 
         if not os.path.exists(data_path):
             errors.append(f"Data file \"{file_name}\" not found at \"{base_path}\".")
@@ -195,7 +195,6 @@ def main():
                             parsed_input[1][3] = 0
                     if parsed_input[1][2] <= parsed_input[1][3]:
                         errors.append(f"The maximum possible test score (value: {error(parsed_input[1][2])}) must be greater than the minimum possible test score (value: {error(parsed_input[1][3])})")
-
     
     ## Line 3:
     if len(parsed_input[2]) < 2:
@@ -335,10 +334,10 @@ def main():
 
     if parsed_input[1][1].lower() == "c":
         if parsed_input[0][1] == -1:
-            covariance_matrix = pd.DataFrame(data).cov()
-            n = covariance_matrix.shape[0]
+            covariance_matrix: pd.DataFrame = pd.DataFrame(data).cov()
+            n: int = covariance_matrix.shape[0]
             reliability: float = (n / (n - 1)) * (1 - (sum(np.diag(covariance_matrix)) / sum(sum(covariance_matrix))))
-        data = [sum(i) for i in data]
+        data: list[float | int] = [sum(i) for i in data]
     
     if parsed_input[1][1].lower() in ["r", "f", "c"]:
         if parsed_input[0][0].lower() == "hb":
