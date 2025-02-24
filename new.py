@@ -199,16 +199,21 @@ def main():
     ## Line 3:
     if len(parsed_input[2]) < 2:
         errors.append("Invalid input format. Third line must contain at least 2 values.")
+    
     if len(parsed_input) > 1:
         if isinstance(parsed_input[2][0], int):
+            n_categories = parsed_input[2][0]
             if len(parsed_input[2]) != parsed_input[2][0] and len(parsed_input[2]) != parsed_input[2][0]*2 - 1:
                 errors.append("Number of cut-points on the third line do not match the number of specified categories.")
             if len(parsed_input[2]) == parsed_input[2][0]:
+                cut_points = parsed_input[2][1:]
                 if not all(isinstance(i, (float, int)) for i in parsed_input[2][1:]):
                     errors.append("All values on the third line must be numeric.")
             if len(parsed_input[2]) == parsed_input[2][0]*2 - 1:
                 if not all(isinstance(i, float) for i in parsed_input[2][parsed_input[2][0]:]) or not all(0 < i < 1 for i in parsed_input[2][parsed_input[2][0]:]):
-                    errors.append("All true-score cut-scores specified on line three must be floating-point values between 0 and 1.")
+                    errors.append("All true-score cut-scores specified on line three must be floating-point values between 0 and 1.")                
+                cut_points = parsed_input[2][1:parsed_input[2][0]]
+                true_cut_points = parsed_input[2][parsed_input[2][0]:]
 
     if len(errors) > 0:
         success = False
@@ -253,12 +258,12 @@ def main():
     with open(datafile, "r") as file:
         data: list[str] = file.readlines()
 
-    data: list[list[str]] = [data[i].split(" ") for i in range(len(data))]
+    data = [i.replace("\r", " ").replace("\n", " ").replace("\t", " ").replace("\f", " ").replace("\v", " ") for i in data]
+    data: list[list[str]] = [j for j in [data[i].split(" ") for i in range(len(data))]]
     data = [[j for j in i if len(j) > 0] for i in data]
-    data = [[j.replace("\r", "").replace("\n", "").replace("\t", "").replace("\f", "").replace("\v", "") for j in i] for i in data]
     data: list[list[str | float]] = [[float(j) if "." in j and j.count(".") == 1 and j.replace(".", "").isnumeric() else j for j in i] for i in data]
     data: list[list[str | float | int]] = [[int(j) if isinstance(j, str) and j.isnumeric() else j for j in i] for i in data]
-
+    
     if not all(isinstance(i, (float, int)) for i in [float(j) for k in data for j in k]):
         success = False
         stop_loading = True
