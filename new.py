@@ -302,32 +302,7 @@ def main():
                 if data[6] < data[5]:
                     errors.append("When moments are specified as data input and procedure is \"LL\", the seventh value in the data file representing the maximum possible test score must be greater than the sixth value representing the minimum possible test score.")
                 success = False
-        stop_loading = True
-        thread.join()
-        stop_loading = False
-        print("")
-        print(f" Data validation completed with {len(errors)} {"errors" if len(errors) != 1 else "error"}, {len(warnings)} {"warnings" if len(warnings) != 1 else "warning"}, and {len(notes)} {"notes" if len(notes) != 1 else "note"}.")
-        print("")        
-        if len(errors) > 0:
-            print(f"  {error("ERRORS:")}")
-            for i in errors: print("   - " + i)
-            print("")
-    
-        if len(warnings) > 0:
-            print(f"  {warning("WARNINGS:")}")
-            for i in warnings: print("   - " + i)
-            print("")
         
-        if len(notes) > 0:
-            print(f"  {note("NOTES:")}")
-            for i in notes: print("   - " + i)
-            print("")
-
-        if len(errors) > 0:
-            print(error("Execution terminated due to invalid input."))
-            print("")
-            input("Press ENTER to close BBClassify...")
-            return
 
     if parsed_input[1][1].lower() == "f":
         xcol: int = int(parsed_input[1][2] - 1)
@@ -356,7 +331,33 @@ def main():
     
     if len(errors) > 0:
         success = False
+    
     stop_loading = True
+    thread.join()
+    stop_loading = False
+    print("")
+    print(f" Data validation completed with {len(errors)} {"errors" if len(errors) != 1 else "error"}, {len(warnings)} {"warnings" if len(warnings) != 1 else "warning"}, and {len(notes)} {"notes" if len(notes) != 1 else "note"}.")
+    print("")        
+    if len(errors) > 0:
+        print(f"  {error("ERRORS:")}")
+        for i in errors: print("   - " + i)
+        print("")
+
+    if len(warnings) > 0:
+        print(f"  {warning("WARNINGS:")}")
+        for i in warnings: print("   - " + i)
+        print("")
+    
+    if len(notes) > 0:
+        print(f"  {note("NOTES:")}")
+        for i in notes: print("   - " + i)
+        print("")
+
+    if len(errors) > 0:
+        print(error("Execution terminated due to invalid input."))
+        print("")
+        input("Press ENTER to close BBClassify...")
+        return
     thread.join()
     stop_loading = False
 
