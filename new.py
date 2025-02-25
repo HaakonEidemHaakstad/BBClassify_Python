@@ -113,8 +113,8 @@ def main():
         model: int = parsed_input[0][2]
     
     if len(parsed_input[0]) > 3:
-        if not isinstance(parsed_input[0][3], int):
-            warnings.append(f"The fourth value of the first line must be an integer >= 0. Current value is {warning(parsed_input[0][3])}. Defaulting to 0.")
+        if not isinstance(parsed_input[0][3], int) and not parsed_input[0][3] < 0:
+            warnings.append(f"The fourth value of the first line representing the minimum expected value for model fit testing must be an integer >= 0. Current value is {warning(parsed_input[0][3])}. Defaulting to 0.")
             parsed_input[0][3] = 0
         min_expected_value: int = parsed_input[0][3]
 
@@ -156,7 +156,7 @@ def main():
                     errors.append("The fourth value of the second line must be an integer representing test length when specified procedure is \"HB\" and data-type is \"r\".")
             else:
                 if not isinstance(parsed_input[1][3], (float, int)):
-                    errors.append("The fourth value of the second line must be a number representing the maximum possible test score when specified procedure is \"LL\" and data-type is \"r\".")                    
+                    errors.append("The fourth value of the second line must be a number representing the maximum possible test score when specified procedure is \"LL\" and data-type is \"r\".")
                 if len(parsed_input[1]) == 4:
                     parsed_input[1].append(0)
                     notes.append(f"The fifth value of the second line representing the minimum possible test score not specified. Defaulting to {note("0")}.")
@@ -337,7 +337,7 @@ def main():
     stop_loading = False
     print("")
     print(f" Data validation completed with {len(errors)} {"errors" if len(errors) != 1 else "error"}, {len(warnings)} {"warnings" if len(warnings) != 1 else "warning"}, and {len(notes)} {"notes" if len(notes) != 1 else "note"}.")
-    print("")        
+    print("")
     if len(errors) > 0:
         print(f"  {error("ERRORS:")}")
         for i in errors: print("   - " + i)
