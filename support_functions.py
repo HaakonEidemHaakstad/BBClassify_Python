@@ -2,7 +2,7 @@ import os
 import sys
 import numpy as np
 
-
+"""
 
 def read_and_parse_input(filename: str, raw: bool = False, compile: bool = False) -> list:
     warn: str = "\033[38;5;214m WARNING:\033[0m"
@@ -157,6 +157,8 @@ def read_and_parse_data(parsed_input: list, compile: bool = False) -> tuple:
             print(f"The first six non-numeric entries encountered in the data-file were: {non_numeric[:6]}.")
         raise TypeError("Input error. Execution terminated.")
     return data, datalines
+    
+"""
 
 def float_to_str(x: float) -> str:
     """

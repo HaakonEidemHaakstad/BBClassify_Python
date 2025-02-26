@@ -100,7 +100,7 @@ def main():
     if len(parsed_input[0]) > 0:
         if parsed_input[0][0] not in ["hb", "HB", "hB", "Hb", "ll", "LL", "lL", "Ll"]:
             errors.append(f"The first value of the first line must be either \"hb\" or \"ll\". Current value is {error(parsed_input[0][0])}")
-        model: str = parsed_input[0][0]
+        method: str = parsed_input[0][0]
 
     if len(parsed_input[0]) > 1:
         if not isinstance(parsed_input[0][1], (float, int)) or (parsed_input[0][1] != -1 and 0 > parsed_input[0][1] > 1):
@@ -301,8 +301,29 @@ def main():
             else:
                 if data[6] < data[5]:
                     errors.append("When moments are specified as data input and procedure is \"LL\", the seventh value in the data file representing the maximum possible test score must be greater than the sixth value representing the minimum possible test score.")
-                success = False
-        
+        if len(errors) != 0: 
+            success = False
+        if success:
+            import support_functions as sf
+            data_mean = data[1]
+            data_variance = data[2]**2
+            data_skewness = data[3]
+            data_kurtosis = data[4]
+            min_score = data[5]
+            max_score = data[6]
+            k: float = 0
+            if method.lower() == "ll":
+                etl: float = ((data_mean - min_score) * (max_score - data_mean) - (reliability * data_variance)) / (data_variance * (1 - reliability))
+                data_mean = ((data_mean - min_score) / (max_score - min_score)) * etl
+                data_variance = (data_variance**.5 * (data_mean / data[1]))**2
+                etl_rounded: int = int(round(etl))
+            else:
+                if reliability > 0:
+                    k:float = sf.calculate_lords_k_from_reliability(data_mean, data_variance, reliability, max_score)
+            factorial_moments: list[float] = sf.factorial_from_ordinary_moments(data_mean, data_variance, data_skewness, data_kurtosis)
+            true_score_moments: list[float] = sf.true_score_moments_from_factorial_moments(factorial_moments, etl if method.lower() == "ll" else max_score, k)
+            data = sf.parameters_from_raw_score_moments(true_score_moments, model)
+
 
     if parsed_input[1][1].lower() == "f":
         xcol: int = int(parsed_input[1][2] - 1)
@@ -360,6 +381,9 @@ def main():
         return
     thread.join()
     stop_loading = False
+
+    from bbclassify import bbclassify
+
 
     input("Press ENTER to close BBClassify...")
 
