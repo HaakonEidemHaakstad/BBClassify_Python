@@ -142,15 +142,14 @@ def main():
 
         if parsed_input[1][1].lower() not in ["r", "f", "m", "c"]:
             errors.append(f"The second value of the second line  are \"r\" for raw data, \"f\" for frequency data, \"m\" for moment data, and \"c\" for complete data.")
+        
         datatype: str = parsed_input[1][1]
         
-        if parsed_input[1][1].lower() == "r":
+        if parsed_input[1][1] in ["r", "R"]:
             if len(parsed_input[1]) < 4:
-                errors.append("The second line must contain at least 4 values when the specified data-type is \"r\".")
-        
+                errors.append("The second line must contain at least 4 values when the specified data-type is \"r\".")        
             if not isinstance(parsed_input[1][2], int):
-                errors.append("The third value of the second line must be an integer when the specified data-type is \"r\".")
-            
+                errors.append("The third value of the second line must be an integer when the specified data-type is \"r\".")            
             if parsed_input[0][0].lower() == "hb":
                 if not isinstance(parsed_input[1][3], int):
                     errors.append("The fourth value of the second line must be an integer representing test length when specified procedure is \"HB\" and data-type is \"r\".")
@@ -166,7 +165,7 @@ def main():
             max_score = parsed_input[1][3]
             min_score = parsed_input[1][4]
         
-        if parsed_input[1][1].lower() == "f":
+        if parsed_input[1][1] in ["f", "F"]:
             if len(parsed_input[1]) < 4:
                 errors.append("The second line must contain at least 4 values when the specified data-type is \"f\".")
             if len(parsed_input[1]) > 2:
@@ -178,7 +177,7 @@ def main():
                 if parsed_input[1][2] == parsed_input[1][3]:
                     errors.append(f"The third and fourth value of the second line must point to different columns of the data file when the specified data-type is \"f\". Current input is {error(parsed_input[1][2])} and {error(parsed_input[1][3])}.")
 
-        if parsed_input[1][1].lower() == "c":
+        if parsed_input[1][1] in ["c", "C"]:
             if len(parsed_input[1]) > 2:
                 if parsed_input[0][0].lower() == "hb":
                     if not isinstance(parsed_input[1][2], int):
@@ -283,11 +282,28 @@ def main():
 
     import numpy as np, pandas as pd
     
-    if parsed_input[1][1].lower() == "r":
+    if parsed_input[1][1] in ["r", "R"]:
         data: list[float | int] = [i for j in data for i in j]
-        None
+        if method.lower() == "ll":
+            if not all(isinstance(i, (float, int)) for i in data):
+                errors.append("All entries in the data must be numeric.")
+            if all(isinstance(i, (float, int)) for i in data):
+                if min(data) < min_score:
+                    errors.append("Minimum test score observed in the data is less than the minimum possible test score specified in the input file.")
+                if max(data) > max_score:
+                    errors.append("Maximum test score observed in the data is greater than the maximum possible test score specified in the input file.")
+        else:
+            if not all(isinstance(i, (float, int)) for i in data):
+                errors.append("All entries in the data must be numeric.")
+            if all(isinstance(i, (float, int)) for i in data):
+                if min(data) < 0:
+                    errors.append("Minimum test score observed in the data is less than 0.")
+                if max(data) > max_score:
+                    errors.append("Maximum test score observed in the data is greater than the maximum possible test score specified in the input file.")
+                if any(i % 1 != 0 for i in data):
+                    errors.append("All entries in the data must be integers.")
     
-    if parsed_input[1][1].lower() == "m":
+    if parsed_input[1][1] in ["m", "M"]:
         data: list[float | int] = [i for j in data for i in j]
         if len(data) < 7:
             errors.append("When moments are specified as data input, the data file must contain at least 7 values.")
@@ -319,13 +335,12 @@ def main():
                 etl_rounded: int = int(round(etl))
             else:
                 if reliability > 0:
-                    k:float = sf.calculate_lords_k_from_reliability(data_mean, data_variance, reliability, max_score)
+                    k: float = sf.calculate_lords_k_from_reliability(data_mean, data_variance, reliability, max_score)
             factorial_moments: list[float] = sf.factorial_from_ordinary_moments(data_mean, data_variance, data_skewness, data_kurtosis)
             true_score_moments: list[float] = sf.true_score_moments_from_factorial_moments(factorial_moments, etl if method.lower() == "ll" else max_score, k)
-            data = sf.parameters_from_raw_score_moments(true_score_moments, model)
+            data: dict = sf.parameters_from_raw_score_moments(true_score_moments, model)
 
-
-    if parsed_input[1][1].lower() == "f":
+    if parsed_input[1][1] in ["f", "F"]:
         xcol: int = int(parsed_input[1][2] - 1)
         fcol: int = int(parsed_input[1][3] - 1)
         max_score = max([i[xcol] for i in data])
@@ -333,14 +348,14 @@ def main():
         data: list[list[float | int]] = [[i[xcol] for _ in range(i[fcol])] for i in data]
         data: list[float | int] = [i for j in data for i in j]
 
-    if parsed_input[1][1].lower() == "c":
+    if parsed_input[1][1] in ["c", "C"]:
         if parsed_input[0][1] == -1:
             covariance_matrix: pd.DataFrame = pd.DataFrame(data).cov()
             n: int = covariance_matrix.shape[0]
             reliability: float = (n / (n - 1)) * (1 - (sum(np.diag(covariance_matrix)) / sum(sum(covariance_matrix))))
         data: list[float | int] = [sum(i) for i in data]
     
-    if parsed_input[1][1].lower() in ["r", "f", "c"]:
+    if parsed_input[1][1] in ["r", "R","f", "F", "c", "C"]:
         if parsed_input[0][0].lower() == "hb":
             if max_score < max(data):
                 errors.append("The maximum possible test score specified in the input file is less than the maximum test score observed in the data file.")
