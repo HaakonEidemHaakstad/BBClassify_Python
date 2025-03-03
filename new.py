@@ -321,6 +321,7 @@ def main():
             success = False
         if success:
             import support_functions as sf
+            n_observations = data[0]
             data_mean = data[1]
             data_variance = data[2]**2
             data_skewness = data[3]
@@ -451,6 +452,9 @@ def main():
     weighted_consistencymatrix: list[list] = [i / sum(i) for i in output.consistencymatrix]
     coefficient_kappas: list = [(output.consistencymatrix[i][i] - chance_consistency[i]) / (1 - chance_consistency[i]) for i in range(n_categories)]
 
+    if parsed_input[1][1].lower() in ["r", "f", "c"]:
+        n_observations: int = len(data)
+        
     category_proportions: list = []
     for i in range(n_categories):
         if i == 0:
@@ -493,7 +497,7 @@ def main():
         file.write("\n")
         file.write(f"*** Summary Statistics of Data in {parsed_input[1][0]} ***\n")
         file.write("\n")
-        file.write(f" Number of observations:      {n_observations}\n")
+        file.write(f" Number of observations:      {len(data) if parsed_input[1][1].lower() in ["r", "f", "c"] else data[0]}\n")
         file.write("\n")
         file.write(" Observed-score distribution moments:\n")
         file.write(f"  Mean:                       {sf.float_to_str(mean)}\n")
@@ -521,7 +525,7 @@ def main():
         file.write("\n")
         file.write(f" Reliability:                 {sf.float_to_str((ts_moments[1]**.5 * max_score)**2 / variance)}\n")
         file.write("\n")
-        file.write(f" Number of moments fit:       {int(output.model)} ({", ".join(moments[:int(output.model)])})\n")
+        file.write(f" Number of moments fit:       {int(output.model)} ({", ".join(["Mean", "Variance", "Skewness", "Kurtosis"][:int(output.model)])})\n")
         file.write("\n")
         file.write(f" Beta true-score distribution:\n")
         file.write(f"  Alpha:                      {sf.float_to_str(output.Parameters["alpha"])}\n")
