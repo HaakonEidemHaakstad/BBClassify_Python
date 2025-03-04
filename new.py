@@ -454,7 +454,7 @@ def main():
 
     if parsed_input[1][1].lower() in ["r", "f", "c"]:
         n_observations: int = len(data)
-        
+
     category_proportions: list = []
     for i in range(n_categories):
         if i == 0:
@@ -463,6 +463,14 @@ def main():
             category_proportions.append(len([j for j in data[0] if j >= cut_points[i - 1] and j < cut_points[i]]) / n_observations)
         else:
             category_proportions.append(len([i for i in data[0] if i >= cut_points[len(cut_points) - 1]]) / n_observations)
+    
+    import statistics as stats
+    import scipy.stats
+    if parsed_input[1][1].lower() in ["r", "f", "c"]:
+        data_mean: float = stats.mean(data)
+        data_variance: float = stats.variance(data)
+        data_skewness: float = scipy.stats.skew(data)
+        data_kurtosis: float = scipy.stats.kurtosis(data, fisher = False)
     
     with open(input_path + "_output.txt", "w", encoding = "utf-8") as file:
 
@@ -500,10 +508,10 @@ def main():
         file.write(f" Number of observations:      {len(data) if parsed_input[1][1].lower() in ["r", "f", "c"] else data[0]}\n")
         file.write("\n")
         file.write(" Observed-score distribution moments:\n")
-        file.write(f"  Mean:                       {sf.float_to_str(mean)}\n")
-        file.write(f"  Variance:                   {sf.float_to_str(variance)} (SD = {sf.float_to_str(variance**.5)})\n")
-        file.write(f"  Skewness:                   {sf.float_to_str(skewness)}\n")
-        file.write(f"  Kurtosis:                   {sf.float_to_str(kurtosis)}\n")
+        file.write(f"  Mean:                       {sf.float_to_str(data_mean)}\n")
+        file.write(f"  Variance:                   {sf.float_to_str(data_variance)} (SD = {sf.float_to_str(variance**.5)})\n")
+        file.write(f"  Skewness:                   {sf.float_to_str(data_skewness)}\n")
+        file.write(f"  Kurtosis:                   {sf.float_to_str(data_kurtosis)}\n")
         file.write("\n")
         file.write(" Observed category proportions:\n")
         for i in range(n_categories):
