@@ -676,6 +676,8 @@ class bbclassify():
         """
         # Input validation.
         if not isinstance(x, (list, tuple)):
+            print("dcbinom2")
+            input("Input")
             raise TypeError("Parameter 'x' must be a list or tuple of integer values.")
         if not all(isinstance(i, (float, int)) for i in x):
             raise TypeError("All values in 'x' must be numeric.")
@@ -1226,7 +1228,10 @@ class bbclassify():
             else:
                 for j in range(1, r + 1):
                     if j > 1:
-                        x1[i] = x1[i] * (x[i] - j + 1)
+                        x1[i] = x1[i] * (x1[i] - j + 1)
+        print(x)
+        print(type(x))
+        input("_dfac")
         return x1
 
     def _tsm(self, x: list, n: int, k: float) -> list:
@@ -1267,6 +1272,9 @@ class bbclassify():
         """
         # Input validation
         if not isinstance(x, (list, tuple)):
+            print(x)
+            print(type(x))
+            input("Input")
             raise TypeError("Parameter 'x' must be a list or tuple.")
         if not all(isinstance(i, (float, int)) for i in x):
             raise TypeError("All values contained in 'x' must be numeric.")

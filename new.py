@@ -400,10 +400,13 @@ def main():
     
     true_cut_points = [i / max_score for i in cut_points]
 
-    loading_thread = threading.Thread(target = loading_animation, args = (" Estimating model parameters",))
+    loading_thread = threading.Thread(target = loading_animation, args = ("Estimating model parameters",))
     loading_thread.start()
 
     from bbclassify import bbclassify
+    print(data)
+    print(type(data))
+    input("Testing")
     output = bbclassify.bbclassify(data, reliability, min_score, max_score, cut_points, true_cut_points, method, model)
     stop_loading = True
     loading_thread.join()

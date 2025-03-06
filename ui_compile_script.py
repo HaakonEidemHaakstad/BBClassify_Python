@@ -130,6 +130,8 @@ def main():
     loading_thread = threading.Thread(target = loading_animation, args = (" Estimating model parameters",))
     loading_thread.start()    
     from bbclassify import bbclassify
+    print(data)
+    input("testing")
     output = bbclassify.bbclassify(data = data[0],
                                    reliability = reliability,
                                    min_score = min_score,
