@@ -11,10 +11,9 @@
 *** Listing of Input Specified in "ccHB" ***
 
  Raw input:
-  HB 0. 4  check
+  HB 0. 4 
   "act288m" f 1 2
-  2   24.      
-
+  2   24.
  Interpretation of input:
   Type of Procedure:           Hanson and Brennan ("HB")
   Reliability of scores:       0.0

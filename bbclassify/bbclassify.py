@@ -676,8 +676,6 @@ class bbclassify():
         """
         # Input validation.
         if not isinstance(x, (list, tuple)):
-            print("dcbinom2")
-            input("Input")
             raise TypeError("Parameter 'x' must be a list or tuple of integer values.")
         if not all(isinstance(i, (float, int)) for i in x):
             raise TypeError("All values in 'x' must be numeric.")
@@ -1229,9 +1227,6 @@ class bbclassify():
                 for j in range(1, r + 1):
                     if j > 1:
                         x1[i] = x1[i] * (x1[i] - j + 1)
-        print(x)
-        print(type(x))
-        input("_dfac")
         return x1
 
     def _tsm(self, x: list, n: int, k: float) -> list:
@@ -1272,9 +1267,6 @@ class bbclassify():
         """
         # Input validation
         if not isinstance(x, (list, tuple)):
-            print(x)
-            print(type(x))
-            input("Input")
             raise TypeError("Parameter 'x' must be a list or tuple.")
         if not all(isinstance(i, (float, int)) for i in x):
             raise TypeError("All values contained in 'x' must be numeric.")
@@ -1516,6 +1508,6 @@ class reliability():
         self.Omega = factor_loadings_squared / (sum([variance_list[i] - squared_factor_loadings[i] for i in range(len(variance_list))]) + factor_loadings_squared)
         return self.Omega
 
-if __name__ == "__main__":
-    import doctest
-    doctest.testmod()
+#if __name__ == "__main__":
+    #import doctest
+    #doctest.testmod()

@@ -404,17 +404,32 @@ def main():
     loading_thread.start()
 
     from bbclassify import bbclassify
-    print(data)
-    print(type(data))
-    input("Testing")
+    print(f"Reliability: {reliability}")
+    print(f"min-score: {min_score}")
+    print(f"max-score: {max_score}")
+    print(f"cut-points: {cut_points}")
+    print(f"true-cuts: {true_cut_points}")
+    print(f"method: {method}")
+    print(f"model: {model}")
+    print("\n\n\n\n")
+    input("Test\n\n\n")
     output = bbclassify.bbclassify(data, reliability, min_score, max_score, cut_points, true_cut_points, method, model)
+    print(output.Parameters)
+    print("\n\n\n\n")
+    input("Test\n\n\n")
     stop_loading = True
     loading_thread.join()
     
-    ts_raw_moments: list = output._tsm(data[0], output.max_score if method.lower() != "ll" else output.effective_test_length, output.Parameters["lords k"])
+    ts_raw_moments: list = output._tsm(data, output.max_score if method.lower() != "ll" else output.effective_test_length, output.Parameters["lords k"])
     ts_moments: list = [ts_raw_moments[0], ts_raw_moments[1] - ts_raw_moments[0]**2]
     ts_moments.append((ts_raw_moments[2] - 3*(ts_raw_moments[0]*ts_raw_moments[1]) + 2*ts_raw_moments[0]**3) / (ts_moments[1]**.5)**3)
     ts_moments.append((ts_raw_moments[3] - 4*(ts_raw_moments[0] * ts_raw_moments[2]) + 6*(ts_raw_moments[0]**2 * ts_raw_moments[1]) - 3*ts_raw_moments[0]**4) / (ts_moments[1]**.5)**4)
+    print(min_expected_value)
+    print(type(min_expected_value))
+    print("\n\n\n")
+    print("")
+    print(output.Parameters["l"])
+    print(type(output.Parameters["l"]))
     if parsed_input[1][1].lower() != "m":
         stop_loading = False
         loading_thread = threading.Thread(target = loading_animation, args = (" Estimating model fit",))
