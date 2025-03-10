@@ -1212,22 +1212,33 @@ class bbclassify():
         [4, 3]
         """
         # Input validation
-        if not isinstance(x, list):
-            raise TypeError("Parameter 'x' must be a list.")
+        #if not isinstance(x, list):
+        #    raise TypeError("Parameter 'x' must be a list.")
         if not isinstance(r, (float, int)):
             raise TypeError("Parameter 'r' must be an integer.")
         if r % 1 != 0:
             raise TypeError("Parameter 'r' must be an integer.")
-
+        """
         x1 = x.copy()
         for i in range(len(x)):
-            if r <= 1:
-                x1[i] = x1[i]**r
+            if x1[i] < r:
+                x1[i] = 0
+            elif r <= 1:
+                x1[i] = x1[i] ** r
             else:
                 for j in range(1, r + 1):
-                    if j > 1:
-                        x1[i] = x1[i] * (x1[i] - j + 1)
+                    x1[i] = x1[i] * (x1[i] - j + 1)
         return x1
+        """
+        if r == 0:
+            return 1  # x^0 = 1
+        elif r == 1:
+            return x  # x^1 = x
+        else:
+            result = 1
+            for i in range(r):
+                result *= (x - i)
+            return result
 
     def _tsm(self, x: list, n: int, k: float) -> list:
         """
@@ -1277,13 +1288,23 @@ class bbclassify():
         if not isinstance(k, (float, int)):
             raise TypeError("Parameter 'k' must be numeric.")
 
-        m = [stats.mean(x) / n, 0, 0, 0]
+        m = [stats.mean(x) / n]
+        """
         for i in range(1, 4):
             M = i + 1
             a = self._dfac([n], 2)[0] + k * self._dfac([M], 2)[0]
             b = stats.mean(self._dfac(x, M)) / self._dfac([n - 2], M - 2)[0]
             c = k * self._dfac([M], 2)[0] * m[i - 1]
             m[i] = (b / a) + c
+        """
+        for i in range(1, 4):
+            M = i
+            dfac_mean = stats.mean([self._dfac(j, M) for j in x])
+            a = self._dfac(n, 2) + k * self._dfac(M, 2)
+            b = dfac_mean / self._dfac(n - 2, M - 2)
+            c = k * self._dfac(M, 2) * m[i - 1]
+            m.append((b / a) + c)
+        
         return m
 
     def _betaparameters(self, x: list, n: int, k: float, model: int = 4, l: float = 0, u: float = 1) -> dict:
@@ -1394,6 +1415,8 @@ class bbclassify():
             u = u_save
             a = ((l - m[0]) * (l * (m[0] - u) - m[0]**2 + m[0] * u - s2)) / (s2 * (l - u))
             b = ((m[0] - u) * (l * (u - m[0]) + m[0]**2 - m[0] * u + s2)) / (s2 * (u - l))
+        print(f"Moments (m): {m}")
+
         return {"alpha":  a, "beta": b, "l": l, "u": u}
 
 class reliability():
