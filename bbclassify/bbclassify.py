@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 
 class bbclassify():
-    def __init__(self, data: list, reliability: float, min_score: float, max_score: float, cut_scores: list[float], cut_truescores: list[float] = None, method: str = "ll", model: int = 4, l: float = 0, u: float = 1, failsafe: list[bool] = [False, 2]):
+    def __init__(self, data: list, reliability: float, min_score: float, max_score: float, cut_scores: list[float], cut_truescores: list[float] = None, method: str = "ll", model: int = 4, l: float = 0, u: float = 1, failsafe: bool = True):
         """
         Estimate the parameters of the beta-binomial models.
 
@@ -1298,7 +1298,7 @@ class bbclassify():
             m[i] = (b / a) + c
         """
         for i in range(1, 4):
-            M = i
+            M = i + 1
             dfac_mean = stats.mean([self._dfac(j, M) for j in x])
             a = self._dfac(n, 2) + k * self._dfac(M, 2)
             b = dfac_mean / self._dfac(n - 2, M - 2)

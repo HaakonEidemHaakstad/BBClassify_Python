@@ -2,7 +2,7 @@
 
 
 a = Analysis(
-    ['ui_compile_script.py'],
+    ['ui.py'],
     pathex=[],
     binaries=[],
     datas=[],
