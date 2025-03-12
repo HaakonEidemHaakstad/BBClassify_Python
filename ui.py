@@ -113,7 +113,7 @@ def main():
         model: int = parsed_input[0][2]
     
     if len(parsed_input[0]) > 3:
-        if not isinstance(parsed_input[0][3], int) and not parsed_input[0][3] < 0:
+        if not isinstance(parsed_input[0][3], int) or not parsed_input[0][3] < 0:
             warnings.append(f"The fourth value of the first line representing the minimum expected value for model fit testing must be an integer >= 0. Current value is {warning(parsed_input[0][3])}. Defaulting to 0.")
             parsed_input[0][3] = 0
         min_expected_value: int = parsed_input[0][3]
@@ -404,16 +404,8 @@ def main():
     loading_thread.start()
 
     from bbclassify import bbclassify
-    print(f"Reliability: {reliability}")
-    print(f"min-score: {min_score}")
-    print(f"max-score: {max_score}")
-    print(f"cut-points: {cut_points}")
-    print(f"true-cuts: {true_cut_points}")
-    print(f"method: {method}")
-    print(f"model: {model}")
     
     output = bbclassify.bbclassify(data, reliability, min_score, max_score, cut_points, true_cut_points, method, model)
-    print(output.Parameters)
     
     stop_loading = True
     loading_thread.join()
@@ -425,14 +417,14 @@ def main():
     
     if parsed_input[1][1].lower() != "m":
         stop_loading = False
-        loading_thread = threading.Thread(target = loading_animation, args = (" Estimating model fit",))
+        loading_thread = threading.Thread(target = loading_animation, args = ("Estimating model fit",))
         loading_thread.start()
         output.modelfit(minimum_expected_value = min_expected_value)
         stop_loading = True
         loading_thread.join()
 
     stop_loading = False
-    loading_thread = threading.Thread(target = loading_animation, args = (" Estimating classification accuracy",))
+    loading_thread = threading.Thread(target = loading_animation, args = ("Estimating classification accuracy",))
     loading_thread.start()
     output.accuracy()
     stop_loading = True
@@ -450,7 +442,7 @@ def main():
         specificity.append(tn[i] / (tn[i] + fp[i]))
 
     stop_loading = False
-    loading_thread = threading.Thread(target = loading_animation, args = (" Estimating classification consistency",))
+    loading_thread = threading.Thread(target = loading_animation, args = ("Estimating classification consistency",))
     loading_thread.start()
     output.consistency()
     stop_loading = True
@@ -481,7 +473,11 @@ def main():
         data_mean: float = stats.mean(data)
         data_variance: float = stats.variance(data)
         data_skewness: float = scipy.stats.skew(data)
-        data_kurtosis: float = scipy.stats.kurtosis(data, fisher = False)
+        data_kurtosis: float = scipy.stats.kurtosis(data, fisher = False)        
+
+        mi_reliability = (ts_moments[1]**.5 * max_score)**2 / data_variance
+        mi_sem = data_variance**.5 * (1 - mi_reliability)**.5
+    
     
     with open(input_path + "_output.txt", "w", encoding = "utf-8") as file:
 
@@ -541,8 +537,11 @@ def main():
         file.write(f"  Variance:                   {sf.float_to_str(ts_moments[1])} (SD = {sf.float_to_str(ts_moments[1]**.5)})\n")
         file.write(f"  Skewness:                   {sf.float_to_str(ts_moments[2])}\n")
         file.write(f"  Kurtosis:                   {sf.float_to_str(ts_moments[3])}\n")
-        file.write("\n")
-        file.write(f" Reliability:                 {sf.float_to_str((ts_moments[1]**.5 * max_score)**2 / data_variance)}\n")
+        if parsed_input[1][1].lower() in ["r", "f", "c"]:
+            file.write("\n")
+            file.write(" Model implied precision:\n")
+            file.write(f"  Reliability:                {sf.float_to_str(mi_reliability)}\n")
+            file.write(f"  SEM:                        {sf.float_to_str(mi_sem)}\n")
         file.write("\n")
         file.write(f" Number of moments fit:       {int(output.model)} ({", ".join(["Mean", "Variance", "Skewness", "Kurtosis"][:int(output.model)])})\n")
         file.write("\n")

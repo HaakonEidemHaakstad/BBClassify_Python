@@ -1218,22 +1218,11 @@ class bbclassify():
             raise TypeError("Parameter 'r' must be an integer.")
         if r % 1 != 0:
             raise TypeError("Parameter 'r' must be an integer.")
-        """
-        x1 = x.copy()
-        for i in range(len(x)):
-            if x1[i] < r:
-                x1[i] = 0
-            elif r <= 1:
-                x1[i] = x1[i] ** r
-            else:
-                for j in range(1, r + 1):
-                    x1[i] = x1[i] * (x1[i] - j + 1)
-        return x1
-        """
+        
         if r == 0:
-            return 1  # x^0 = 1
+            return 1
         elif r == 1:
-            return x  # x^1 = x
+            return x
         else:
             result = 1
             for i in range(r):
@@ -1289,14 +1278,6 @@ class bbclassify():
             raise TypeError("Parameter 'k' must be numeric.")
 
         m = [stats.mean(x) / n]
-        """
-        for i in range(1, 4):
-            M = i + 1
-            a = self._dfac([n], 2)[0] + k * self._dfac([M], 2)[0]
-            b = stats.mean(self._dfac(x, M)) / self._dfac([n - 2], M - 2)[0]
-            c = k * self._dfac([M], 2)[0] * m[i - 1]
-            m[i] = (b / a) + c
-        """
         for i in range(1, 4):
             M = i + 1
             dfac_mean = stats.mean([self._dfac(j, M) for j in x])
@@ -1415,7 +1396,6 @@ class bbclassify():
             u = u_save
             a = ((l - m[0]) * (l * (m[0] - u) - m[0]**2 + m[0] * u - s2)) / (s2 * (l - u))
             b = ((m[0] - u) * (l * (u - m[0]) + m[0]**2 - m[0] * u + s2)) / (s2 * (u - l))
-        print(f"Moments (m): {m}")
 
         return {"alpha":  a, "beta": b, "l": l, "u": u}
 
