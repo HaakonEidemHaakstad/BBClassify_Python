@@ -83,7 +83,7 @@ def main():
     parsed_input = [[int(j) if isinstance(j, str) and j.isnumeric() else j for j in i] for i in parsed_input]
     parsed_input = [[int(j) if not isinstance(j, str) and j % 1 == 0 else j for j in i] for i in parsed_input]
     parsed_input[1][0] = parsed_input[1][0].removeprefix("\"").removesuffix("\"")
-
+    
     ### INPUT VALIDATION ###
     ## Overall:
     if len(parsed_input) < 3:
@@ -117,7 +117,7 @@ def main():
             warnings.append(f"The fourth value of the first line representing the minimum expected value for model fit testing must be an integer >= 0. Current value is {warning(parsed_input[0][3])}. Defaulting to 0.")
             parsed_input[0][3] = 0
         min_expected_value: int = parsed_input[0][3]
-
+    
     ## Line 2:
     if len(parsed_input[1]) < 2:
         errors.append("Invalid input format. Second line must contain at least 2 values.")
@@ -163,8 +163,11 @@ def main():
                     warnings.append(f"The fifth value of the second line must be a numeric value. Current value is {warning(parsed_input[1][4])}. Defaulting to {warnings("0")}.")
                     parsed_input[1][4] = 0
             max_score = parsed_input[1][3]
-            min_score = parsed_input[1][4]
-        
+            if method.lower() == "ll":
+                min_score = parsed_input[1][4]
+            else:
+                min_score = 0
+            
         if parsed_input[1][1] in ["f", "F"]:
             if len(parsed_input[1]) < 4:
                 errors.append("The second line must contain at least 4 values when the specified data-type is \"f\".")
@@ -213,7 +216,7 @@ def main():
                     errors.append("All true-score cut-scores specified on line three must be floating-point values between 0 and 1.")                
                 cut_points = parsed_input[2][1:parsed_input[2][0]]
                 true_cut_points = parsed_input[2][parsed_input[2][0]:]
-
+                
     if len(errors) > 0:
         success = False
     
