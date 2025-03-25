@@ -1,0 +1,128 @@
+******************************************************************************
+***   BBClassify:  Beta-Binomial Classification Accuracy and Consistency   ***
+***                              Version 1.0.0                             ***
+***                                                                        ***
+***                           Haakon E. Haakstad                           ***
+***                                                                        ***
+***            MIT License (https://opensource.org/license/mit)            ***
+***                Copyright (c) 2025 Haakon Eidem Haakstad                ***
+******************************************************************************
+
+*** Listing of Input Specified in "ccLL_act_raw" ***
+
+ Interpretation of input:
+  Type of Procedure:           Livingston and Lewis ("LL").
+  Reliability of scores:       0.873
+  True-score Beta model:       4-parameter Beta distribution
+  Model-fit testing:           Minimum expected value of bins set to 0
+  Name of data file:           act288m_raw
+  Format of input data:        Raw scores
+  Minimum possible score:      0.0 
+  Maximum possible score:      40.0 
+  Number of categories:        2
+  Obs.-score cut-point(s):     24.0
+  True-score cut-point(s):     0.6
+
+*** Summary Statistics of Data in act288m_raw ***
+
+ Number of observations:      151050
+
+ Observed-score distribution moments:
+  Mean:                       16.4987
+  Variance:                   64.7823 (SD = 8.04875)
+  Skewness:                   0.82936
+  Kurtosis:                   2.96590
+
+ Observed category proportions:
+  Category 1:                 0.80351
+  Category 2:                 0.19649
+
+*** Model Parameter Estimates ***
+
+ WARNING: Four-parameter true-score distribution fitting procedure produced
+  impermissible location parameter estimates. Reverted to a three-parameter
+  fitting procedure with "u" set to 1.
+
+ Proportional true-score distribution moments:
+  Mean:                       0.41247
+  Variance:                   0.03531 (SD = 0.18792)
+  Skewness:                   1.02143
+  Kurtosis:                   3.15830
+
+ Model implied precision:
+  Reliability:                0.87217
+  SEM:                        2.87775
+
+ Number of moments fit:       3 (Mean, Variance, Skewness)
+
+ Beta true-score distribution:
+  Alpha:                      0.52378
+  Beta:                       1.62569
+  l:                          0.22317
+  u:                          1.00000
+
+ Binomial error distribution:
+  Lord's k:                   0 (Binomial error model)
+  Number of 'trials':         40 (Effective Test Length)
+
+*** Model Fit ***
+ Pearson's χ²:                344.666
+ DF:                          38
+ p-value:                     0.00000
+
+*** Classification Accuracy Estimates ***
+
+ Confusion matrix (transposed):
+               x0        x1      marg
+     t0   0.78247   0.03795   0.82042
+     t1   0.01778   0.16180   0.17958
+   marg   0.80026   0.19974   1.00000
+
+ Overall:                  Unweighted  Weighted
+  Accuracy:                   0.94427
+  Sensitivity:                0.89390   0.94482
+  Specificity:                0.89390   0.84299
+
+ Category specific:
+
+  Category 1:
+   Accuracy:                  0.94427
+   True Positives:            0.78247
+   True Negatives:            0.16180
+   Sensitivity:               0.97778
+   Specificity:               0.81003
+
+  Category 2:
+   Accuracy:                  0.94427
+   True Positives:            0.16180
+   True Negatives:            0.78247
+   Sensitivity:               0.81003
+   Specificity:               0.97778
+
+*** Classification Consistency Estimates ***
+
+ Consistency matrix:
+               x0        x1      marg
+     x0   0.76127   0.03898   0.80025
+     x1   0.03898   0.16076   0.19974
+   marg   0.80025   0.19974   0.99999
+
+ NOTE: Matrix entries do not add up to 1 due to rounding errors.
+  Statistics will be computed from a normalized matrix where the entries add up to 1.
+
+ Overall:                  Unweighted  Weighted
+  Consistency:                0.92203
+  Chance consistency:         0.68030
+  Coefficient Kappa:          0.75612
+
+ Category specific:
+  Category 1:
+   Consistency:               0.76127   0.95129
+   Chance consistency:        0.64040
+   Coefficient Kappa:         0.33612
+
+  Category 2:
+   Consistency:               0.16076   0.80484
+   Chance consistency:        0.03990
+   Coefficient Kappa:         0.12589
+

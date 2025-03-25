@@ -341,79 +341,80 @@ class bbclassify():
         self.Modelfit_p_value = 1 - float(chi2.cdf(self.Modelfit_chi_squared, self.Modelfit_degrees_of_freedom))
     
     # Function for estimating classification accuracy.
-    def accuracy(self):
-        # Initialize a matrix of proportions of individuals with true-scores within each category producing specific observed-scores.
+    def accuracy(self) -> float:
+        """
+        Estimate classification accuracy by computing a confusion matrix.
+        The confusion matrix is constructed by integrating the model's predicted 
+        probabilities over the observed cut score ranges.
+        """
+        # Initialize a matrix for predicted proportions.
         confmat = np.zeros((self.N + 1, len(self.cut_scores) - 1))
         for i in range(len(self.cut_scores) - 1):
             for j in range(self.N + 1):
-                confmat[j, i] = self._bbintegrate1(self.Parameters["alpha"], self.Parameters["beta"], self.Parameters["l"], self.Parameters["u"], 
-                                               self.choose_values[j], self.N, j, self.Parameters["lords k"], self.cut_truescores[i], self.cut_truescores[i + 1], self.method)[0]
-        # Initialize the confusion matrix collapsing (summing) the values in "confmat" into ranges of observed-values corresponding to each category.
-        self.confusionmatrix = np.zeros((len(self.cut_scores) - 1, len(self.cut_scores) - 1))
-        for i in range(len(self.cut_scores) - 1):
-            for j in range(len(self.cut_scores) - 1):
-                if i != len(self.cut_scores) - 2:
-                    self.confusionmatrix[i, j] = sum(confmat[self.cut_scores[i]:self.cut_scores[i + 1], j]) 
-                else:
-                    self.confusionmatrix[i, j] = sum(confmat[self.cut_scores[i]:, j])
-        # Compute overall accuracy by summing the values in the diagonal of the confusion matrix.
-        #self.Accuracy = float(sum([self.confusionmatrix[i, i] for i in range(len(self.cut_scores) - 1)]))
-        self.Accuracy = self.confusionmatrix.diagonal().sum()
+                confmat[j, i] = self._bbintegrate1(
+                    self.Parameters["alpha"],
+                    self.Parameters["beta"],
+                    self.Parameters["l"],
+                    self.Parameters["u"],
+                    self.choose_values[j],
+                    self.N,
+                    j,
+                    self.Parameters["lords k"],
+                    self.cut_truescores[i],
+                    self.cut_truescores[i + 1],
+                    self.method
+                )[0]
+        # Initialize the confusion matrix for categories.
+        # Its dimensions should match the number of categories.
+        num_categories = len(self.cut_scores) - 1
+        self.confusionmatrix = np.zeros((num_categories, num_categories))
+        for i in range(num_categories):
+            # Convert observed cut score values to integers for slicing.
+            start_index = int(round(self.cut_scores[i]))
+            if i != num_categories - 1:
+                end_index = int(round(self.cut_scores[i + 1]))
+                for j in range(num_categories):
+                    self.confusionmatrix[j, i] = np.sum(confmat[start_index:end_index, j])
+            else:
+                for j in range(num_categories):
+                    self.confusionmatrix[j, i] = np.sum(confmat[start_index:, j])
+        # Overall accuracy is the sum of the diagonal elements.
+        self.Accuracy = np.sum(np.diag(self.confusionmatrix))
         return self.Accuracy
-
+    
     # Function for estimating classification consistency.
-    def consistency(self):
-        # Initialize confusion matrix where proportions of consecutive item-scores are calculated.
+    def consistency(self) -> float:
+        """
+        Estimate classification consistency by constructing a consistency matrix.
+        The matrix is computed by integrating the joint distribution over score ranges 
+        defined by the cut scores.
+        """
         consmat = np.zeros((self.N + 1, self.N + 1))
-        # Since the consistency matrix is a symmetric matrix only the lower triangle is computed for performance considerations.
         for i in range(self.N + 1):
             for j in range(self.N + 1):
                 if i <= j:
-                    consmat[i, j] = self._bbintegrate2(self.Parameters["alpha"], self.Parameters["beta"], self.Parameters["l"], self.Parameters["u"], 
-                                                   self.choose_values[i], self.choose_values[j], self.N, i, j, self.Parameters["lords k"], 0, 1, self.method)[0]
+                    consmat[i, j] = self._bbintegrate2(
+                        self.Parameters["alpha"], self.Parameters["beta"],
+                        self.Parameters["l"], self.Parameters["u"],
+                        self.choose_values[i], self.choose_values[j],
+                        self.N, i, j, self.Parameters["lords k"],
+                        0, 1, self.method
+                    )[0]
         lower_triangle = np.tril_indices(consmat.shape[0], 0)
-        # Transpose the lower triangle and insert into the upper triangle to fill out the matrix.
         consmat[lower_triangle] = consmat.T[lower_triangle]
-        # Initialize confusion matrix for categories.
-        self.consistencymatrix = np.zeros((len(self.cut_scores) - 1, len(self.cut_scores) - 1))
-        # Collapse (sum) values in ranges to produce the consistency matrix for categories.
-        # There are 9 different cases.
-        # Corners (4 cases)
-        # Sides (4 cases)
-        # Center (1 case)
-        for i in range(len(self.cut_scores) - 1):
-            for j in range(len(self.cut_scores) - 1):
-                if i == 0 and j == 0: 
-                    # Top-left corner.
-                    self.consistencymatrix[i, j] = sum(sum(consmat[0:self.cut_scores[i + 1], 0:self.cut_scores[j + 1]]))
-                elif i == 0 and (j != 0 and j != len(self.cut_scores) - 2): 
-                    # Top-side.
-                    self.consistencymatrix[i, j] = sum(sum(consmat[0:self.cut_scores[i + 1], self.cut_scores[j]:self.cut_scores[j + 1]]))
-                elif i == 0  and j == len(self.cut_scores) - 2: 
-                    # Top-right corner.
-                    self.consistencymatrix[i, j] = sum(sum(consmat[0:self.cut_scores[i + 1], self.cut_scores[j]:self.cut_scores[j + 1] + 1]))
-                elif (i != 0 and i != len(self.cut_scores) - 2) and j == 0:
-                    # Left-side.
-                    self.consistencymatrix[i, j] = sum(sum(consmat[self.cut_scores[i]:self.cut_scores[i + 1], 0:self.cut_scores[j + 1]]))
-                elif (i != 0 and i != len(self.cut_scores) - 2) and (j != 0 and j != len(self.cut_scores) - 2):
-                    # Center
-                    self.consistencymatrix[i, j] = sum(sum(consmat[self.cut_scores[i]:self.cut_scores[i + 1], self.cut_scores[j]:self.cut_scores[j + 1]]))
-                elif (i != 0 and i != len(self.cut_scores) - 2) and j == len(self.cut_scores) - 2:
-                    # Right-side
-                    self.consistencymatrix[i, j] = sum(sum(consmat[self.cut_scores[i]:self.cut_scores[i + 1], self.cut_scores[j]:self.cut_scores[j + 1] + 1]))
-                elif i == len(self.cut_scores) - 2 and j == 0:
-                    # Bottom-left corner.
-                    self.consistencymatrix[i, j] = sum(sum(consmat[self.cut_scores[i]:self.cut_scores[i + 1] + 1, 0:self.cut_scores[j + 1]]))
-                elif i == len(self.cut_scores) - 2 and (j != 0 and j != len(self.cut_scores) - 2):
-                    # Bottom-side
-                    self.consistencymatrix[i, j] = sum(sum(consmat[self.cut_scores[i]:self.cut_scores[i + 1] + 1, self.cut_scores[j]:self.cut_scores[j + 1]]))
-                else:
-                    # Bottom-right corner
-                    self.consistencymatrix[i, j] = sum(sum(consmat[self.cut_scores[i]:self.cut_scores[i + 1] + 1, self.cut_scores[j]:self.cut_scores[j + 1] + 1]))
-        # Compute overall consistency by summing the values in the diagonal of the consistency matrix.
-        #self.Consistency = float(sum([self.consistencymatrix[i, i] for i in range(len(self.cut_scores) - 1)]))
-        self.Consistency = self.consistencymatrix.diagonal().sum()
+        num_categories = len(self.cut_scores) - 1
+        self.consistencymatrix = np.zeros((num_categories, num_categories))
+        for i in range(num_categories):
+            for j in range(num_categories):
+                # Convert the cut scores to integers for valid slicing.
+                start_i = int(round(self.cut_scores[i]))
+                end_i = int(round(self.cut_scores[i + 1])) if i < num_categories - 1 else None
+                start_j = int(round(self.cut_scores[j]))
+                end_j = int(round(self.cut_scores[j + 1])) if j < num_categories - 1 else None
+                self.consistencymatrix[i, j] = np.sum(consmat[start_i:end_i, start_j:end_j])
+        self.Consistency = float(np.sum(np.diag(self.consistencymatrix)))
         return self.Consistency
+
 
     def _calculate_etl(self, mean: float, var: float, reliability: float, min: float = 0, max: float = 1) -> float:
         """
@@ -1176,7 +1177,7 @@ class bbclassify():
                 return self._dbeta4p(x, a, b, l, u) * self._dcbinom2(c1, x, N, n1, k, method) * self._dcbinom2(c2, x, N, n2, k, method)
             return quad(f, lower, upper, args = (a, b, l, u, c1, c2, N, n1, n2), limit = 100)
 
-    def _dfac(self, x: list, r = int) -> list:
+    def _dfac(self, x: float | int, r = int) -> list:
         """
         Calculate the descending factorial for each numeric value in a list.
 
@@ -1212,8 +1213,8 @@ class bbclassify():
         [4, 3]
         """
         # Input validation
-        #if not isinstance(x, list):
-        #    raise TypeError("Parameter 'x' must be a list.")
+        if not isinstance(x, (float, int)):
+            raise TypeError("Parameter 'x' must be numeric.")
         if not isinstance(r, (float, int)):
             raise TypeError("Parameter 'r' must be an integer.")
         if r % 1 != 0:

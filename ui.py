@@ -403,13 +403,11 @@ def main():
     
     true_cut_points = [i / max_score for i in cut_points]
 
+    stop_loading = False
     loading_thread = threading.Thread(target = loading_animation, args = ("Estimating model parameters",))
     loading_thread.start()
-
-    from bbclassify import bbclassify
-    
-    output = bbclassify.bbclassify(data, reliability, min_score, max_score, cut_points, true_cut_points, method, model)
-    
+    from bbclassify import bbclassify    
+    output = bbclassify.bbclassify(data, reliability, min_score, max_score, cut_points, true_cut_points, method, model)    
     stop_loading = True
     loading_thread.join()
     
@@ -607,11 +605,6 @@ def main():
             file.write(f"   Consistency:               {sf.float_to_str(output.consistencymatrix[i, i])}   {sf.float_to_str(weighted_consistencymatrix[i][i])}\n")
             file.write(f"   Chance consistency:        {sf.float_to_str(sum(output.consistencymatrix[i, :])**2)}\n")
             file.write(f"   Coefficient Kappa:         {sf.float_to_str(coefficient_kappas[i])}\n")
-            file.write("\n")
-    print("\n")
-    print(f"Analysis completed successfully. Results have been saved to the file \"{input_path + "_output.txt"}\".")
-    print("\n")
-    input("Press ENTER to close the program...")
     
 if __name__ == "__main__":
     main()
