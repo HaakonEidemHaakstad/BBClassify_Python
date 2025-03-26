@@ -5,7 +5,7 @@ Revised complete version with robust input parsing, improved handling of cut sco
 safeguarded calculations for sensitivity/specificity, and transposed confusion matrix output.
 
 NOTE: If using raw data input, ensure that the control card's maximum score is at least
-      as high as the highest observed score. This version now filters the raw data to include
+      as high as the highest observed score. This version filters the raw data to include
       only numeric values within the expected range.
 """
 
@@ -15,6 +15,7 @@ import time
 import threading
 import shlex
 
+# Display welcome message.
 print("WELCOME TO BBClassify: BETA-BINOMIAL CLASSIFICATION ACCURACY AND CONSISTENCY")
 
 # ------------------------------------------------------------------------------
@@ -211,8 +212,8 @@ def validate_control_card(parsed_input):
             "min_expected_value": mev,
             "data_file_path": data_file_path,
             "datatype": dt,
-            "max_score": float(parsed_input[1][3]) if dt in ["r", "c"] and proc == "ll" else None,
-            "min_score": float(parsed_input[1][4]) if dt in ["r", "c"] and proc == "ll" else (0 if proc == "hb" else None)
+            "max_score": float(parsed_input[1][3]) if dt in ["r", "c"] and proc == "ll" else (float(parsed_input[1][3]) if dt in ["r", "c"] and proc == "hb" else None),
+            "min_score": float(parsed_input[1][4]) if dt in ["r", "c"] and proc == "ll" else (0 if dt in ["r", "c"] and proc == "hb" else None)
         }
     }
 
@@ -274,9 +275,6 @@ def main():
     success = True
     stop_loading = False
 
-    def tokenize_line(line):
-        return shlex.split(line)
-
     def error(x):
         return "\033[91m" + x + "\033[0m"
     def warning(x):
@@ -313,76 +311,35 @@ def main():
         print(" " + line.strip())
     print("")
 
+    # Start input validation animation.
     thread = threading.Thread(target=loading_animation, args=("Validating input",))
     thread.start()
 
-    let_parsed = [tokenize_line(line) for line in raw_input]
-    parsed_input = [convert_tokens(line) for line in let_parsed]
+    # Tokenize input lines using shlex.split to preserve quoted strings.
+    parsed_input = [tokenize_line(line) for line in raw_input]
+    parsed_input = [convert_tokens(line) for line in parsed_input]
 
     validation_results = validate_control_card(parsed_input)
     errors.extend(validation_results["errors"])
     warnings_list.extend(validation_results["warnings"])
     notes.extend(validation_results["notes"])
     params = validation_results["parameters"]
+
     stop_loading = True
     thread.join()
     stop_loading = False
+
+    # Start data validation animation.
     thread = threading.Thread(target=loading_animation, args=("Validating data",))
     thread.start()
-  
 
-
-    with open(params["data_file_path"], "r") as file:
-        data_lines = file.readlines()
-    data = [tokenize_line(line) for line in data_lines]
-    data = [convert_tokens(line) for line in data]
-    # Process data based on datatype.
-    if params["datatype"].lower() == "f":
-        xcol = int(parsed_input[1][2]) - 1
-        fcol = int(parsed_input[1][3]) - 1
-        raw_scores = [row[xcol] for row in data if len(row) > xcol]
-        max_score = int(max(raw_scores))
-        min_score = int(min(raw_scores))
-        data = [[row[xcol] for _ in range(int(row[fcol]))] for row in data]
-        data = [score for sublist in data for score in sublist]
-    elif params["datatype"].lower() == "r":
-        # For raw data, flatten and filter only numeric values within the expected range.
-        flat_data = []
-        for sublist in data:
-            for item in sublist:
-                try:
-                    num = float(item)
-                    flat_data.append(num)
-                except Exception:
-                    continue
-        # Only retain values between min_score and max_score.
-        data = [x for x in flat_data if params["min_score"] <= x <= params["max_score"]]
-        max_score = params["max_score"]
-        min_score = params["min_score"]
-    else:
-        max_score = params["max_score"]
-        min_score = params["min_score"]
-
-    method = params["method"]
-    model = params["model"]
-    min_expected_value = params["min_expected_value"]
-
-    n_categories = int(parsed_input[2][0])
-    if len(parsed_input[2]) == n_categories:
-        obs_cut_points = [float(x) for x in parsed_input[2][1:]]
-        full_scores = [min_score] + obs_cut_points + [max_score]
-        true_cut_points = [(score - min_score) / (max_score - min_score) for score in full_scores][1:-1]
-        cut_points = obs_cut_points
-    elif len(parsed_input[2]) == (2 * n_categories - 1):
-        obs_cut_points = [float(x) for x in parsed_input[2][1:n_categories]]
-        true_cut_points = [float(x) for x in parsed_input[2][n_categories:]]
-        cut_points = obs_cut_points
-    else:
-        errors.append("Length of cut-point list does not match the number of categories.")
-    stop_loading = True
-    thread.join()
     data_file_errors = validate_data_file(params["data_file_path"], params["method"], params["datatype"])
     errors.extend(data_file_errors)
+
+    stop_loading = True
+    thread.join()
+    stop_loading = False
+
     if errors:
         for err in errors:
             print(error(err))
@@ -398,6 +355,84 @@ def main():
     print("")
     print(note("Input validation completed successfully."))
     print("")
+
+    # Load and process the data file.
+    with open(params["data_file_path"], "r") as file:
+        data_lines = file.readlines()
+    # Tokenize data lines.
+    data = [tokenize_line(line) for line in data_lines]
+    data = [convert_tokens(line) for line in data]
+    
+    # Process data based on datatype.
+    if params["datatype"].lower() == "f":
+        xcol = int(parsed_input[1][2]) - 1
+        fcol = int(parsed_input[1][3]) - 1
+        raw_scores = [row[xcol] for row in data if len(row) > xcol]
+        max_score = int(max(raw_scores))
+        min_score = int(min(raw_scores))
+        data = [[row[xcol] for _ in range(int(row[fcol]))] for row in data]
+        data = [score for sublist in data for score in sublist]
+    elif params["datatype"].lower() == "r":
+        # Robustly flatten raw data.
+        flat_data = []
+        for sublist in data:
+            for item in sublist:
+                try:
+                    num = float(item)
+                    flat_data.append(num)
+                except Exception:
+                    tokens = item.split()
+                    for token in tokens:
+                        try:
+                            num = float(token)
+                            flat_data.append(num)
+                        except Exception:
+                            continue
+        data = [x for x in flat_data if params["min_score"] <= x <= params["max_score"]]
+        max_score = params["max_score"]
+        min_score = params["min_score"]
+    else:
+        max_score = params["max_score"]
+        min_score = params["min_score"]
+
+    method = params["method"]
+    model = params["model"]
+    min_expected_value = params["min_expected_value"]
+
+    # Process cut scores from line 3.
+    n_categories = int(parsed_input[2][0])
+    if len(parsed_input[2]) == n_categories:
+        obs_cut_points = [float(x) for x in parsed_input[2][1:]]
+        full_scores = [min_score] + obs_cut_points + [max_score]
+        true_cut_points = [(score - min_score) / (max_score - min_score) for score in full_scores][1:-1]
+        cut_points = obs_cut_points
+    elif len(parsed_input[2]) == (2 * n_categories - 1):
+        obs_cut_points = [float(x) for x in parsed_input[2][1:n_categories]]
+        true_cut_points = [float(x) for x in parsed_input[2][n_categories:]]
+        cut_points = obs_cut_points
+    else:
+        errors.append("Length of cut-point list does not match the number of categories.")
+    if errors:
+        for err in errors:
+            print(error(err))
+        input("Execution terminated. Press ENTER to exit BBClassify.")
+        return
+
+    # Perform data file validation again.
+    data_file_errors = validate_data_file(params["data_file_path"], params["method"], params["datatype"])
+    errors.extend(data_file_errors)
+    if errors:
+        for err in errors:
+            print(error(err))
+        input("Execution terminated. Press ENTER to exit BBClassify.")
+        return
+
+    # Display final validated input.
+    print("")
+    print(note("Input validation completed successfully."))
+    print("")
+
+    # Start model parameter estimation.
     stop_loading = False
     loading_thread = threading.Thread(target=loading_animation, args=("Estimating model parameters",))
     loading_thread.start()
@@ -407,6 +442,7 @@ def main():
     stop_loading = True
     loading_thread.join()
 
+    # Estimate true-score moments.
     ts_raw_moments = output._tsm(
         data,
         output.max_score if method.lower() != "ll" else output.N,
@@ -443,7 +479,9 @@ def main():
         loading_thread.join()
     
     # Transpose the confusion matrix for output.
-    rounded_confusionmatrix = sf.add_labels(sf.array_to_strlist(output.confusionmatrix), "x", "t")
+    rounded_confusionmatrix = sf.add_labels(sf.array_to_strlist(output.confusionmatrix.T), "x", "t")
+    
+    # Compute performance metrics.
     tp = []
     tn = []
     fp = []
@@ -522,6 +560,7 @@ def main():
         data_skewness = scipy.stats.skew(data)
         data_kurtosis = scipy.stats.kurtosis(data, fisher=False)
     
+    # Write output to file.
     with open(input_path + "_output.txt", "w", encoding="utf-8") as file:
         file.write("******************************************************************************\n")
         file.write("***   BBClassify:  Beta-Binomial Classification Accuracy and Consistency   ***\n")
@@ -639,6 +678,9 @@ def main():
             file.write(f"   Consistency:               {sf.float_to_str(output.consistencymatrix[i, i])}   {sf.float_to_str(weighted_consistencymatrix[i][i])}\n")
             file.write(f"   Chance consistency:        {sf.float_to_str(sum(output.consistencymatrix[i, :])**2)}\n")
             file.write(f"   Coefficient Kappa:         {sf.float_to_str(coefficient_kappas[i])}\n\n")
+        file.write("\n")
+        file.write(f"Analysis completed successfully. Results have been saved to the file \"{input_path + '_output.txt'}\".\n\n")
+        file.write("Press ENTER to close the program...")
     
     print("\n")
     print(f"Analysis completed successfully. Results have been saved to the file \"{input_path + '_output.txt'}\".")
