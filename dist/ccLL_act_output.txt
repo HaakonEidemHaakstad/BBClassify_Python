@@ -21,9 +21,9 @@
    - Score-frequency column:   2
   Minimum possible score:      0 (Inferred from data)
   Maximum possible score:      40 (Inferred from data)
-  Number of categories:        2
-  Obs.-score cut-point(s):     24.0
-  True-score cut-point(s):     0.6
+  Number of categories:        3
+  Obs.-score cut-point(s):     23.0, 25.0
+  True-score cut-point(s):     0.55, 0.6
 
 *** Summary Statistics of Data in act288m ***
 
@@ -36,8 +36,9 @@
   Kurtosis:                   2.96590
 
  Observed category proportions:
-  Category 1:                 0.80351
-  Category 2:                 0.19649
+  Category 1:                 0.78144
+  Category 2:                 0.04319
+  Category 3:                 0.17537
 
 *** Model Parameter Estimates ***
 
@@ -74,56 +75,70 @@
 
 *** Classification Accuracy Estimates ***
 
- Confusion matrix:
-               x0        x1      marg
-     t0   0.78247   0.03795   0.82042
-     t1   0.01778   0.16180   0.17958
-   marg   0.80026   0.19974   1.00000
+ Confusion matrix (transposed):
+               x0        x1        x2      marg
+     t0   0.73124   0.02566   0.01802   0.77493
+     t1   0.01452   0.01105   0.01992   0.04549
+     t2   0.00674   0.01104   0.16180   0.17958
+   marg   0.75250   0.04775   0.19974   1.00000
 
  Overall:                  Unweighted  Weighted
-  Accuracy:                   0.94427
-  Sensitivity:                0.89390   0.94482
-  Specificity:                0.89390   0.84299
+  Accuracy:                   0.90409
+  Sensitivity:                0.69581   0.90588
+  Specificity:                0.94028   0.91641
 
  Category specific:
 
   Category 1:
-   Accuracy:                  0.94427
-   True Positives:            0.78247
-   True Negatives:            0.16180
-   Sensitivity:               0.97778
-   Specificity:               0.81003
+   Accuracy:                  0.93505
+   True Positives:            0.73124
+   True Negatives:            0.20381
+   Sensitivity:               0.94362
+   Specificity:               0.90554
 
   Category 2:
+   Accuracy:                  0.92885
+   True Positives:            0.01105
+   True Negatives:            0.91780
+   Sensitivity:               0.24283
+   Specificity:               0.96154
+
+  Category 3:
    Accuracy:                  0.94427
    True Positives:            0.16180
    True Negatives:            0.78247
-   Sensitivity:               0.81003
-   Specificity:               0.97778
+   Sensitivity:               0.90098
+   Specificity:               0.95375
 
 *** Classification Consistency Estimates ***
 
  Consistency matrix:
-               x0        x1      marg
-     x0   0.76127   0.03898   0.80025
-     x1   0.03898   0.16076   0.19974
-   marg   0.80025   0.19974   0.99999
+               x0        x1        x2      marg
+     x0   0.70700   0.02297   0.02253   0.75250
+     x1   0.02297   0.00834   0.01645   0.04775
+     x2   0.02253   0.01645   0.16076   0.19974
+   marg   0.75250   0.04775   0.19974   0.99999
 
  NOTE: Matrix entries do not add up to 1 due to rounding errors.
   Statistics will be computed from a normalized matrix where the entries add up to 1.
 
  Overall:                  Unweighted  Weighted
-  Consistency:                0.92203
-  Chance consistency:         0.68030
-  Coefficient Kappa:          0.75612
+  Consistency:                0.87610
+  Chance consistency:         0.60843
+  Coefficient Kappa:          0.68358
 
  Category specific:
   Category 1:
-   Consistency:               0.76127   0.95129
-   Chance consistency:        0.64040
-   Coefficient Kappa:         0.33612
+   Consistency:               0.70700   0.93954
+   Chance consistency:        0.56625
+   Coefficient Kappa:         0.32449
 
   Category 2:
+   Consistency:               0.00834   0.17461
+   Chance consistency:        0.00228
+   Coefficient Kappa:         0.00607
+
+  Category 3:
    Consistency:               0.16076   0.80484
    Chance consistency:        0.03990
    Coefficient Kappa:         0.12589

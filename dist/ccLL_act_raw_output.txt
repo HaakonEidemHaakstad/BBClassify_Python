@@ -80,8 +80,8 @@
 
  Overall:                  Unweighted  Weighted
   Accuracy:                   0.94427
-  Sensitivity:                0.89390   0.94482
-  Specificity:                0.89390   0.84299
+  Sensitivity:                0.92736   0.94338
+  Specificity:                0.92736   0.91135
 
  Category specific:
 
@@ -89,15 +89,15 @@
    Accuracy:                  0.94427
    True Positives:            0.78247
    True Negatives:            0.16180
-   Sensitivity:               0.97778
-   Specificity:               0.81003
+   Sensitivity:               0.95375
+   Specificity:               0.90098
 
   Category 2:
    Accuracy:                  0.94427
    True Positives:            0.16180
    True Negatives:            0.78247
-   Sensitivity:               0.81003
-   Specificity:               0.97778
+   Sensitivity:               0.90098
+   Specificity:               0.95375
 
 *** Classification Consistency Estimates ***
 
@@ -126,3 +126,7 @@
    Chance consistency:        0.03990
    Coefficient Kappa:         0.12589
 
+
+Analysis completed successfully. Results have been saved to the file "C:\Users\hehaa\OneDrive\git\BBClassify_Python\dist\ccLL_act_raw_output.txt".
+
+Press ENTER to close the program...

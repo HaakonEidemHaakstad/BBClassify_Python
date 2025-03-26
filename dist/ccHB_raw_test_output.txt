@@ -8,21 +8,20 @@
 ***                Copyright (c) 2025 Haakon Eidem Haakstad                ***
 ******************************************************************************
 
-*** Listing of Input Specified in "act288m_raw" ***
+*** Listing of Input Specified in "ccHB_raw_test" ***
 
  Interpretation of input:
-  Type of Procedure:           Hanson and Brennan ("HB")
-  Reliability of scores:       0
+  Type of Procedure:           Hanson and Brennan ("HB").
+  Reliability of scores:       0.0
   True-score Beta model:       4-parameter Beta distribution
   Model-fit testing:           Minimum expected value of bins set to 0
   Name of data file:           act288m_raw
   Format of input data:        Raw scores
   Minimum possible score:      0 
-  Maximum possible score:      40 
+  Maximum possible score:      40.0 
   Number of categories:        2
-  Obs.-score cut-point(s):     24
+  Obs.-score cut-point(s):     24.0
   True-score cut-point(s):     0.6
-
 
 *** Summary Statistics of Data in act288m_raw ***
 
@@ -38,12 +37,11 @@
   Category 1:                 0.80351
   Category 2:                 0.19649
 
-
 *** Model Parameter Estimates ***
 
  WARNING: Four-parameter true-score distribution fitting procedure produced
   impermissible location parameter estimates. Reverted to a three-parameter
-  fitting procedure with location parameter "u" set to 1.
+  fitting procedure with "u" set to 1.
 
  Proportional true-score distribution moments:
   Mean:                       0.41247
@@ -67,20 +65,18 @@
   Lord's k:                   0 (Binomial error model)
   Number of 'trials':         40 (Actual Test Length)
 
-
 *** Model Fit ***
  Pearson's χ²:                344.666
  DF:                          38
  p-value:                     0.00000
 
-
 *** Classification Accuracy Estimates ***
 
- Confusion matrix:
+ Confusion matrix (transposed):
                x0        x1      marg
-     t0   0.78247   0.01778   0.80026
-     t1   0.03795   0.16180   0.19974
-   marg   0.82042   0.17958   1.00000
+     t0   0.78247   0.03795   0.82042
+     t1   0.01778   0.16180   0.17958
+   marg   0.80026   0.19974   1.00000
 
  Overall:                  Unweighted  Weighted
   Accuracy:                   0.94427
@@ -103,7 +99,6 @@
    Sensitivity:               0.90098
    Specificity:               0.95375
 
-
 *** Classification Consistency Estimates ***
 
  Consistency matrix:
@@ -113,8 +108,7 @@
    marg   0.80025   0.19974   0.99999
 
  NOTE: Matrix entries do not add up to 1 due to rounding errors.
-  Statistics will be computed from a normalized matrix where the
-  entries do add up to 1.
+  Statistics will be computed from a normalized matrix where the entries add up to 1.
 
  Overall:                  Unweighted  Weighted
   Consistency:                0.92203
@@ -132,3 +126,7 @@
    Chance consistency:        0.03990
    Coefficient Kappa:         0.12589
 
+
+Analysis completed successfully. Results have been saved to the file "C:\Users\hehaa\OneDrive\git\BBClassify_Python\dist\ccHB_raw_test_output.txt".
+
+Press ENTER to close the program...

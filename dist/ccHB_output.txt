@@ -22,7 +22,7 @@
   Minimum possible score:      0 (Inferred from data)
   Maximum possible score:      40 (Inferred from data)
   Number of categories:        2
-  Obs.-score cut-point(s):     24
+  Obs.-score cut-point(s):     24.0
   True-score cut-point(s):     0.6
 
 *** Summary Statistics of Data in act288m ***
@@ -74,11 +74,11 @@
 
 *** Classification Accuracy Estimates ***
 
- Confusion matrix:
+ Confusion matrix (transposed):
                x0        x1      marg
-     t0   0.78247   0.01778   0.80026
-     t1   0.03795   0.16180   0.19974
-   marg   0.82042   0.17958   1.00000
+     t0   0.78247   0.03795   0.82042
+     t1   0.01778   0.16180   0.17958
+   marg   0.80026   0.19974   1.00000
 
  Overall:                  Unweighted  Weighted
   Accuracy:                   0.94427
