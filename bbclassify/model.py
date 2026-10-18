@@ -15,7 +15,7 @@ import math
 from dataclasses import dataclass
 
 import numpy as np
-from scipy import optimize, special, stats
+from . import special
 
 from .feedback import BBClassifyError, Feedback
 
@@ -133,10 +133,10 @@ class BetaFit:
 
     def density(self, tau: np.ndarray) -> np.ndarray:
         width = self.upper - self.lower
-        return stats.beta.pdf((tau - self.lower) / width, self.alpha, self.beta) / width
+        return special.beta_pdf((tau - self.lower) / width, self.alpha, self.beta) / width
 
     def cdf(self, tau: np.ndarray) -> np.ndarray:
-        return stats.beta.cdf((tau - self.lower) / (self.upper - self.lower), self.alpha, self.beta)
+        return special.beta_cdf((tau - self.lower) / (self.upper - self.lower), self.alpha, self.beta)
 
     def moments(self) -> Moments:
         """Moments of the true score on the proportion-correct scale."""
@@ -202,7 +202,7 @@ def _fit_three(t: Moments, fixed: str) -> tuple[float, float, float, float] | No
         f0, f1 = values[i], values[i + 1]
         if not (math.isfinite(f0) and math.isfinite(f1)) or f0 * f1 > 0:
             continue
-        p = optimize.brentq(excess_skew, grid[i], grid[i + 1], xtol=1e-15) if f0 * f1 < 0 else grid[i]
+        p = special.find_root(excess_skew, grid[i], grid[i + 1]) if f0 * f1 < 0 else grid[i]
         s = total(p)
         a, b = p * s, (1 - p) * s
         if fixed == "upper":
@@ -280,12 +280,17 @@ def error_pmf(n: int, k: float, tau: np.ndarray) -> np.ndarray:
     Binomial when k = 0; otherwise Lord's two-term approximation to the
     compound binomial.
     """
-    tau = np.asarray(tau, dtype=float)[:, None]
-    i = np.arange(n + 1)[None, :]
-    pmf = stats.binom.pmf(i, n, tau)
+    tau = np.asarray(tau, dtype=float)
+    pmf = special.binom_pmf_matrix(n, tau)
     if k != 0:
-        b = lambda j: stats.binom.pmf(j, n - 2, tau)  # noqa: E731
-        pmf = pmf - k * tau * (1 - tau) * (b(i) - 2 * b(i - 1) + b(i - 2))
+        # b(i) - 2 b(i - 1) + b(i - 2) for the binomial with n - 2 trials, where
+        # b(j) = 0 outside 0..n-2: shift the (n - 1)-column matrix into n + 1 columns.
+        b = special.binom_pmf_matrix(n - 2, tau)
+        second_difference = np.zeros_like(pmf)
+        second_difference[:, :n - 1] += b
+        second_difference[:, 1:n] -= 2 * b
+        second_difference[:, 2:] += b
+        pmf = pmf - k * (tau * (1 - tau))[:, None] * second_difference
     return pmf
 
 
@@ -296,9 +301,9 @@ def marginal_pmf(fit: BetaFit, n: int, k: float) -> np.ndarray:
     true score, so Gauss-Jacobi quadrature with the beta density as weight
     function integrates them exactly.
     """
-    x, w = special.roots_jacobi(n + 3, fit.beta - 1, fit.alpha - 1)
+    x, w = special.gauss_jacobi(n + 3, fit.beta - 1, fit.alpha - 1)
     tau = fit.lower + (fit.upper - fit.lower) * (x + 1) / 2
-    return (w / w.sum()) @ error_pmf(n, k, tau)
+    return w @ error_pmf(n, k, tau)
 
 
 # ---------------------------------------------------------------------------

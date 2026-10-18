@@ -24,7 +24,7 @@ BBClassify asks for the possible minimum and maximum score instead.
 
 ## Running BBClassify
 
-**Windows program.** Build `BBClassify.exe` as described under [Building the Windows program](#building-the-windows-program), or download it from the [releases page](https://github.com/HaakonEidemHaakstad/BBClassify_Python/releases) once a release is published. Then double-click it. As with BB-CLASS, it asks for the name of the control-card file. Put the control cards and data next to the program, or type the full path.
+**Windows program.** Build the program as described under [Building the Windows program](#building-the-windows-program), or download it from the [releases page](https://github.com/HaakonEidemHaakstad/BBClassify_Python/releases) once a release is published. Then double-click `BBClassify.exe`. As with BB-CLASS, it asks for the name of the control-card file. Put the control cards and data next to the program, or type the full path.
 
 **Python.** With Python 3.10 or later:
 
@@ -148,6 +148,12 @@ Run them with `pip install -e .[test]` and `pytest`.
 pip install pyinstaller
 pyinstaller BBClassify.spec
 ```
+
+This creates the folder `dist/BBClassify`, containing `BBClassify.exe` and an `_internal` folder. Distribute the whole folder, for example as a zip file.
+
+The one-folder layout is deliberate. A single-file `.exe` unpacks itself into a temporary folder every time it starts, which takes seconds, and longer with antivirus scanning or OneDrive. The one-folder program starts in a fraction of a second.
+
+BBClassify depends only on NumPy. SciPy is needed only to run the tests.
 
 ## License
 

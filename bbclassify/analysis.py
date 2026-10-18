@@ -6,11 +6,11 @@ import math
 from dataclasses import dataclass, field
 
 import numpy as np
-from scipy import stats
 
 from .controlcards import ControlCards
 from .data import ScoreData
 from .feedback import BBClassifyError, Feedback
+from .special import chi2_sf
 from .model import (BetaFit, Moments, Quadrature, central_from_raw, distribution_moments,
                     effective_test_length, error_pmf, fit_beta, lords_k, marginal_pmf, quadrature,
                     true_score_moments)
@@ -66,11 +66,11 @@ class ChiSquare:
 
     @property
     def p_likelihood_ratio(self) -> float:
-        return float(stats.chi2.sf(self.likelihood_ratio, self.df)) if self.df > 0 else float("nan")
+        return chi2_sf(self.likelihood_ratio, self.df) if self.df > 0 else float("nan")
 
     @property
     def p_pearson(self) -> float:
-        return float(stats.chi2.sf(self.pearson, self.df)) if self.df > 0 else float("nan")
+        return chi2_sf(self.pearson, self.df) if self.df > 0 else float("nan")
 
 
 @dataclass

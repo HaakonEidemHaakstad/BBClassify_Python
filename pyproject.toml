@@ -10,10 +10,10 @@ readme = "README.md"
 license = { file = "LICENSE.md" }
 authors = [{ name = "Haakon Eidem Haakstad", email = "h.e.haakstad@gmail.com" }]
 requires-python = ">=3.10"
-dependencies = ["numpy>=1.24", "scipy>=1.10"]
+dependencies = ["numpy>=1.24"]
 
 [project.optional-dependencies]
-test = ["pytest>=7"]
+test = ["pytest>=7", "scipy>=1.10"]
 
 [project.scripts]
 bbclassify = "bbclassify.cli:main"
