@@ -147,4 +147,4 @@ pyinstaller BBClassify.spec
 
 ## License
 
-MIT. See [LICENSE.md](LICENSE.md). BB-CLASS and its manual, in `bb-class_for_pc`, are included for reference and remain the property of their author.
+MIT. See [LICENSE.md](LICENSE.md).
