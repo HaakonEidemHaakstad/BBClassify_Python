@@ -1,16 +1,18 @@
 # -*- mode: python ; coding: utf-8 -*-
-
+# Build a standalone console program with:  pyinstaller BBClassify.spec
+# The executable is written to dist/BBClassify(.exe). Put control cards and
+# data files next to it, or give full paths when prompted.
 
 a = Analysis(
-    ['ui2.py'],
-    pathex=[],
+    ['bbclassify/__main__.py'],
+    pathex=['.'],
     binaries=[],
     datas=[],
-    hiddenimports=[],
+    hiddenimports=['scipy.special._cdflib'],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=[],
+    excludes=['matplotlib', 'pandas', 'tkinter'],
     noarchive=False,
     optimize=0,
 )
@@ -22,7 +24,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name='bbclassify',
+    name='BBClassify',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,

@@ -1,9 +1,14 @@
-BBClassify_output
-ui_compile_script.spec
 __pycache__/
-bbclass/
+*.pyc
+*.egg-info/
 build/
-ai_testing/
-docs/raw moments from central and standardized moments.aux
-docs/raw moments from central and standardized moments.log
-docs/raw moments from central and standardized moments.synctex.gz
+dist/
+.pytest_cache/
+# Output files written next to control cards
+* out.txt
+* true dist.txt
+* observed dist.txt
+BBClassify error log.txt
+docs/*.aux
+docs/*.log
+docs/*.synctex.gz

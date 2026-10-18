@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bbclassify"
+dynamic = ["version"]
+description = "Beta-binomial classification consistency and accuracy: a corrected re-implementation of BB-CLASS"
+readme = "README.md"
+license = { file = "LICENSE.md" }
+authors = [{ name = "Haakon Eidem Haakstad", email = "h.e.haakstad@gmail.com" }]
+requires-python = ">=3.10"
+dependencies = ["numpy>=1.24", "scipy>=1.10"]
+
+[project.optional-dependencies]
+test = ["pytest>=7"]
+
+[project.scripts]
+bbclassify = "bbclassify.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/HaakonEidemHaakstad/BBClassify_Python"
+Issues = "https://github.com/HaakonEidemHaakstad/BBClassify_Python/issues"
+
+[tool.setuptools]
+packages = ["bbclassify"]
+
+[tool.setuptools.dynamic]
+version = { attr = "bbclassify.__version__" }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
