@@ -3,6 +3,7 @@ __pycache__/
 *.egg-info/
 build/
 dist/
+docs/
 .pytest_cache/
 # Output files written next to control cards
 * out.txt
