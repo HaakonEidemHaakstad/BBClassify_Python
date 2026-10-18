@@ -9,14 +9,10 @@ It is intended to succeed BB-CLASS ([Brennan, 2004](https://brennancrickgenova.o
 The Livingston and Lewis (LL) procedure replaces the number of items with an *effective test length*:
 
 <div align="center">
-<picture>
-   <source srcset="https://quicklatex.com/cache3/ab/ql_f6ece2871c700a2a20c15f863bd48dab_l3.png" media="(prefers-color-scheme: light)">
-   <source srcset="https://quicklatex.com/cache3/bc/ql_1f22e5b3830a792b9090b035feb729bc_l3.png" media="(prefers-color-scheme: dark)">
-   <img src="https://quicklatex.com/cache3/ab/ql_f6ece2871c700a2a20c15f863bd48dab_l3.png" alt="n = ((mu - Xmin)(Xmax - mu) - rho sigma^2) / (sigma^2 (1 - rho))">
-</picture>
+   n = ((mu - Xmin)(Xmax - mu) - rho sigma^2) / (sigma^2 (1 - rho))
 </div>
 
-μ and σ² are the mean and variance of the observed scores, and ρ is the reliability. X<sub>min</sub> and X<sub>max</sub> are the lowest and highest ***possible*** scores on the test.
+mu and sigma^2 are the mean and variance of the observed scores, and rho is the reliability. Xmin and Xmax are the lowest and highest ***possible*** scores on the test.
 
 BB-CLASS instead uses the lowest and highest ***observed*** scores. If a test can be scored from 0 to 100 but the observed scores range from 10 to 90, BB-CLASS uses 10 and 90. This biases the effective test length and, through it, the rescaled scores, the true-score distribution, and every classification accuracy and consistency estimate. (The BB-CLASS manual's own LL example uses the observed range, 101 to 190.)
 
